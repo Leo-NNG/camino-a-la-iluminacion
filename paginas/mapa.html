@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camino a la Iluminación — Iglesias cercanas</title>
+<link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+
+<header class="sitio-header">
+  <nav class="barra-nav">
+    <a href="../index.html" class="marca">
+      <span class="marca-arco"></span>
+      <span class="marca-texto">Camino a la Iluminación<small>Software para parroquias</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Inicio</a></li>
+      <li><a href="horarios.html">Horarios</a></li>
+      <li><a href="notificaciones.html">Avisos</a></li>
+      <li><a href="mapa.html" class="activo">Iglesias cercanas</a></li>
+      <li><a href="reservas.html">Reservar sacramento</a></li>
+      <li><a href="documentos.html">Mis documentos</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <section class="seccion" style="padding-top:56px">
+    <div class="envolvente">
+      <div class="encabezado-seccion">
+        <p class="eyebrow">Localización</p>
+        <h1>Iglesias cercanas</h1>
+      </div>
+
+      <div class="buscador">
+        <input type="text" id="buscador-iglesias" placeholder="Buscar por nombre, distrito o sacramento…">
+      </div>
+
+      <div class="rejilla">
+        <a href="iglesia.html" class="tarjeta tarjeta-iglesia">
+          <span class="tarjeta-icono">SJ</span>
+          <h3>Parroquia San José</h3>
+          <p>A 1.2 km — Bautizos, matrimonios, Primera Comunión</p>
+        </a>
+        <a href="iglesia.html" class="tarjeta tarjeta-iglesia">
+          <span class="tarjeta-icono">SF</span>
+          <h3>Parroquia Santa Fe</h3>
+          <p>A 2.8 km — Bautizos, confirmación</p>
+        </a>
+        <a href="iglesia.html" class="tarjeta tarjeta-iglesia">
+          <span class="tarjeta-icono">NS</span>
+          <h3>Parroquia Nuestra Señora del Carmen</h3>
+          <p>A 3.5 km — Matrimonios, Primera Comunión, confirmación</p>
+        </a>
+        <a href="iglesia.html" class="tarjeta tarjeta-iglesia">
+          <span class="tarjeta-icono">SC</span>
+          <h3>Capilla Sagrado Corazón</h3>
+          <p>A 4.1 km — Bautizos comunitarios</p>
+        </a>
+      </div>
+
+      <div class="vitral" style="aspect-ratio: 16/7; margin-top:8px;" aria-hidden="true">
+        <svg viewBox="0 0 800 350" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="350" fill="#FFFBF2"/>
+          <circle cx="200" cy="120" r="8" fill="#6E1F2A"/>
+          <circle cx="420" cy="200" r="8" fill="#6E1F2A"/>
+          <circle cx="560" cy="90" r="8" fill="#6E1F2A"/>
+          <circle cx="640" cy="240" r="8" fill="#6E1F2A"/>
+          <circle cx="380" cy="175" r="14" fill="none" stroke="#A9812E" stroke-width="2"/>
+          <text x="380" y="150" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="14" fill="#5B5449">Tú estás aquí</text>
+          <line x1="0" y1="60" x2="800" y2="60" stroke="#DCCCA6" stroke-width="1"/>
+          <line x1="0" y1="290" x2="800" y2="290" stroke="#DCCCA6" stroke-width="1"/>
+          <line x1="120" y1="0" x2="120" y2="350" stroke="#DCCCA6" stroke-width="1"/>
+          <line x1="680" y1="0" x2="680" y2="350" stroke="#DCCCA6" stroke-width="1"/>
+        </svg>
+      </div>
+      <p style="font-size:.82rem;color:var(--color-ink-soft);margin-top:8px;">
+        Mapa referencial del prototipo. En la versión final se integrará con un mapa real (Google Maps o similar).
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer class="sitio-footer">
+  <div class="envolvente">
+    Camino a la Iluminación — Prototipo estático de uso académico. Curso Integrador I.
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>

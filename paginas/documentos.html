@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camino a la Iluminación — Mis documentos</title>
+<link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+
+<header class="sitio-header">
+  <nav class="barra-nav">
+    <a href="../index.html" class="marca">
+      <span class="marca-arco"></span>
+      <span class="marca-texto">Camino a la Iluminación<small>Software para parroquias</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Inicio</a></li>
+      <li><a href="horarios.html">Horarios</a></li>
+      <li><a href="notificaciones.html">Avisos</a></li>
+      <li><a href="mapa.html">Iglesias cercanas</a></li>
+      <li><a href="reservas.html">Reservar sacramento</a></li>
+      <li><a href="documentos.html" class="activo">Mis documentos</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <section class="seccion" style="padding-top:56px">
+    <div class="envolvente">
+      <div class="encabezado-seccion">
+        <p class="eyebrow">Trámite sacramental</p>
+        <h1>Sube tus documentos</h1>
+      </div>
+
+      <div class="zona-carga" id="zona-carga" role="button" tabindex="0">
+        <strong>Arrastra tus archivos aquí o haz clic para elegirlos</strong>
+        <p style="margin:6px 0 0 0;font-size:.85rem;">PDF o imagen — partida de nacimiento, DNI, certificado de bautismo</p>
+      </div>
+      <div class="mensaje-confirmacion" id="mensaje-documento"></div>
+    </div>
+  </section>
+
+  <section class="seccion">
+    <div class="envolvente">
+      <div class="encabezado-seccion">
+        <p class="eyebrow">Historial</p>
+        <h2>Estado de tus trámites</h2>
+      </div>
+
+      <table class="tabla-tramites">
+        <thead>
+          <tr>
+            <th>Documento</th>
+            <th>Trámite</th>
+            <th>Fecha de envío</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Partida de nacimiento</td>
+            <td>Bautizo</td>
+            <td>12/08/2026</td>
+            <td><span class="insignia validado">Validado</span></td>
+          </tr>
+          <tr>
+            <td>DNI del padrino</td>
+            <td>Bautizo</td>
+            <td>18/08/2026</td>
+            <td><span class="insignia pendiente">Pendiente</span></td>
+          </tr>
+          <tr>
+            <td>Certificado prematrimonial</td>
+            <td>Matrimonio</td>
+            <td>20/08/2026</td>
+            <td><span class="insignia rechazado">Rechazado</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="sitio-footer">
+  <div class="envolvente">
+    Camino a la Iluminación — Prototipo estático de uso académico. Curso Integrador I.
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>
