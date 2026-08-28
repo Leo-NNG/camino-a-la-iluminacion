@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel administrador — Gestionar horarios</title>
+<link rel="stylesheet" href="../../css/estilos.css">
+</head>
+<body>
+
+<div class="franja-admin">Panel de personal parroquial — Parroquia San José · <a href="../../login.html">Cerrar sesión</a></div>
+
+<header class="sitio-header">
+  <nav class="barra-nav">
+    <a href="documentos.html" class="marca">
+      <span class="marca-arco"></span>
+      <span class="marca-texto">Camino a la Iluminación<small>Panel administrador</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="documentos.html">Validar documentos</a></li>
+      <li><a href="avisos.html">Publicar aviso</a></li>
+      <li><a href="horarios.html" class="activo">Gestionar horarios</a></li>
+      <li><a href="reportes.html">Reportes</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <section class="seccion" style="padding-top:56px">
+    <div class="envolvente">
+      <div class="encabezado-seccion">
+        <p class="eyebrow">Horario de misas</p>
+        <h1>Gestionar horarios</h1>
+        <p style="color:var(--color-ink-soft)">Actualiza los horarios que verán los feligreses en la app.</p>
+      </div>
+
+      <form class="formulario" id="form-horarios" style="max-width:760px;">
+        <div class="campo">
+          <label for="h-semana">Lunes a viernes</label>
+          <input type="text" id="h-semana" value="7:00 a.m. y 7:00 p.m.">
+        </div>
+        <div class="campo">
+          <label for="h-sabado">Sábado</label>
+          <input type="text" id="h-sabado" value="8:00 a.m. y 6:00 p.m. (vigilia)">
+        </div>
+        <div class="campo">
+          <label for="h-domingo">Domingo</label>
+          <input type="text" id="h-domingo" value="7:00 a.m., 9:00 a.m., 11:00 a.m. y 7:00 p.m.">
+        </div>
+        <button type="submit" class="boton boton-primario">Guardar cambios</button>
+        <div class="mensaje-confirmacion" id="mensaje-horarios"></div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="sitio-footer">
+  <div class="envolvente">
+    Camino a la Iluminación — Prototipo estático de uso académico. Curso Integrador I.
+  </div>
+</footer>
+
+<script src="../../js/main.js"></script>
+</body>
+</html>

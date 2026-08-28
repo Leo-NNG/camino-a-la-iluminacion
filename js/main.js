@@ -36,4 +36,43 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  // Panel de administrador: aprobar / rechazar documentos (solo cambia el estado en pantalla)
+  document.querySelectorAll('[data-accion="aprobar"], [data-accion="rechazar"]').forEach((boton) => {
+    boton.addEventListener('click', () => {
+      const fila = boton.closest('tr');
+      const insignia = fila.querySelector('.insignia');
+      if (boton.dataset.accion === 'aprobar') {
+        insignia.textContent = 'Validado';
+        insignia.className = 'insignia validado';
+      } else {
+        insignia.textContent = 'Rechazado';
+        insignia.className = 'insignia rechazado';
+      }
+      fila.querySelectorAll('.boton-mini').forEach((b) => b.setAttribute('disabled', 'true'));
+    });
+  });
+
+  // Formulario de publicar aviso (admin)
+  const formAviso = document.getElementById('form-aviso');
+  if (formAviso) {
+    formAviso.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const mensaje = document.getElementById('mensaje-aviso');
+      mensaje.classList.add('visible');
+      mensaje.textContent = 'Aviso publicado (simulación). En la versión final aparecerá de inmediato en la app de los feligreses.';
+      formAviso.querySelector('.boton-primario').setAttribute('disabled', 'true');
+    });
+  }
+
+  // Formulario de horarios (admin)
+  const formHorarios = document.getElementById('form-horarios');
+  if (formHorarios) {
+    formHorarios.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const mensaje = document.getElementById('mensaje-horarios');
+      mensaje.classList.add('visible');
+      mensaje.textContent = 'Cambios guardados (simulación). Los feligreses verán el horario actualizado.';
+    });
+  }
 });

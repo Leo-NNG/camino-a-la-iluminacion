@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel administrador — Validar documentos</title>
+<link rel="stylesheet" href="../../css/estilos.css">
+</head>
+<body>
+
+<div class="franja-admin">Panel de personal parroquial — Parroquia San José · <a href="../../login.html">Cerrar sesión</a></div>
+
+<header class="sitio-header">
+  <nav class="barra-nav">
+    <a href="documentos.html" class="marca">
+      <span class="marca-arco"></span>
+      <span class="marca-texto">Camino a la Iluminación<small>Panel administrador</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="documentos.html" class="activo">Validar documentos</a></li>
+      <li><a href="avisos.html">Publicar aviso</a></li>
+      <li><a href="horarios.html">Gestionar horarios</a></li>
+      <li><a href="reportes.html">Reportes</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <section class="seccion" style="padding-top:56px">
+    <div class="envolvente">
+      <div class="encabezado-seccion">
+        <p class="eyebrow">Trámites pendientes</p>
+        <h1>Validar documentos</h1>
+        <p style="color:var(--color-ink-soft)">Revisa los documentos enviados por los feligreses y aprueba o rechaza cada trámite.</p>
+      </div>
+
+      <table class="tabla-tramites">
+        <thead>
+          <tr>
+            <th>Feligrés</th>
+            <th>Documento</th>
+            <th>Trámite</th>
+            <th>Fecha de envío</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>María Fernández</td>
+            <td>Partida de nacimiento</td>
+            <td>Bautizo</td>
+            <td>12/08/2026</td>
+            <td><span class="insignia validado">Validado</span></td>
+            <td class="fila-accion">
+              <button class="boton-mini aprobar" data-accion="aprobar" disabled>Aprobar</button>
+              <button class="boton-mini rechazar" data-accion="rechazar" disabled>Rechazar</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Jorge Ramírez</td>
+            <td>DNI del padrino</td>
+            <td>Bautizo</td>
+            <td>18/08/2026</td>
+            <td><span class="insignia pendiente">Pendiente</span></td>
+            <td class="fila-accion">
+              <button class="boton-mini aprobar" data-accion="aprobar">Aprobar</button>
+              <button class="boton-mini rechazar" data-accion="rechazar">Rechazar</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Lucía y Pedro Vega</td>
+            <td>Certificado prematrimonial</td>
+            <td>Matrimonio</td>
+            <td>20/08/2026</td>
+            <td><span class="insignia pendiente">Pendiente</span></td>
+            <td class="fila-accion">
+              <button class="boton-mini aprobar" data-accion="aprobar">Aprobar</button>
+              <button class="boton-mini rechazar" data-accion="rechazar">Rechazar</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Ana Torres</td>
+            <td>Constancia de catequesis</td>
+            <td>Primera Comunión</td>
+            <td>22/08/2026</td>
+            <td><span class="insignia pendiente">Pendiente</span></td>
+            <td class="fila-accion">
+              <button class="boton-mini aprobar" data-accion="aprobar">Aprobar</button>
+              <button class="boton-mini rechazar" data-accion="rechazar">Rechazar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:.82rem;color:var(--color-ink-soft);margin-top:12px;">
+        Los botones actualizan el estado solo en esta pantalla, a modo de demostración.
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer class="sitio-footer">
+  <div class="envolvente">
+    Camino a la Iluminación — Prototipo estático de uso académico. Curso Integrador I.
+  </div>
+</footer>
+
+<script src="../../js/main.js"></script>
+</body>
+</html>

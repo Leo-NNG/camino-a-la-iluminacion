@@ -145,6 +145,62 @@ h1, h2, h3 {
   box-shadow: inset 0 -2px 0 var(--color-gold);
 }
 
+/* ---------- modo administrador ---------- */
+
+.franja-admin {
+  background: var(--color-wine-dark);
+  color: var(--color-surface);
+  font-size: .78rem;
+  text-align: center;
+  padding: 6px 12px;
+  letter-spacing: .04em;
+}
+.franja-admin a { color: var(--color-gold-soft); text-decoration: underline; }
+
+.tabla-tramites .fila-accion { white-space: nowrap; }
+
+.boton-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: .78rem;
+  padding: 7px 12px;
+  border-radius: 20px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+}
+.boton-mini.aprobar { background: #E4EBDD; color: var(--color-sage); border-color: var(--color-sage); }
+.boton-mini.aprobar:hover { background: var(--color-sage); color: var(--color-surface); }
+.boton-mini.rechazar { background: #F3DEDC; color: var(--color-wine); border-color: var(--color-wine); margin-left: 6px; }
+.boton-mini.rechazar:hover { background: var(--color-wine); color: var(--color-surface); }
+
+.tarjeta-rol {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-arch-sm);
+  padding: 32px 24px;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: box-shadow .15s ease, transform .15s ease;
+}
+.tarjeta-rol:hover { box-shadow: var(--shadow-soft); transform: translateY(-2px); }
+.tarjeta-rol .tarjeta-icono { margin: 0 auto 16px; }
+
+.pantalla-login {
+  min-height: calc(100vh - 140px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+.caja-login { max-width: 480px; width: 100%; }
+
+
 /* ---------- botones ---------- */
 
 .boton {

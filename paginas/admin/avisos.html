@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel administrador — Publicar aviso</title>
+<link rel="stylesheet" href="../../css/estilos.css">
+</head>
+<body>
+
+<div class="franja-admin">Panel de personal parroquial — Parroquia San José · <a href="../../login.html">Cerrar sesión</a></div>
+
+<header class="sitio-header">
+  <nav class="barra-nav">
+    <a href="documentos.html" class="marca">
+      <span class="marca-arco"></span>
+      <span class="marca-texto">Camino a la Iluminación<small>Panel administrador</small></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="documentos.html">Validar documentos</a></li>
+      <li><a href="avisos.html" class="activo">Publicar aviso</a></li>
+      <li><a href="horarios.html">Gestionar horarios</a></li>
+      <li><a href="reportes.html">Reportes</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <section class="seccion" style="padding-top:56px">
+    <div class="envolvente">
+      <div class="encabezado-seccion">
+        <p class="eyebrow">Comunicación oficial</p>
+        <h1>Publicar un aviso</h1>
+        <p style="color:var(--color-ink-soft)">Este aviso aparecerá de inmediato en la app de los feligreses.</p>
+      </div>
+
+      <form class="formulario" id="form-aviso">
+        <div class="campo">
+          <label for="tipo-aviso">Tipo de aviso</label>
+          <select id="tipo-aviso" required>
+            <option value="">Selecciona un tipo</option>
+            <option>Cambio de horario</option>
+            <option>Santa Cena</option>
+            <option>Ayuno y abstinencia</option>
+            <option>Vigilia</option>
+            <option>Celebración especial</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="titulo-aviso">Título</label>
+          <input type="text" id="titulo-aviso" placeholder="Ej. Vigilia de oración" required>
+        </div>
+
+        <div class="campo">
+          <label for="fecha-aviso">Fecha del evento</label>
+          <input type="date" id="fecha-aviso" required>
+        </div>
+
+        <div class="campo">
+          <label for="descripcion-aviso">Descripción</label>
+          <textarea id="descripcion-aviso" rows="4" placeholder="Detalle que verán los feligreses" required></textarea>
+        </div>
+
+        <button type="submit" class="boton boton-primario">Publicar aviso</button>
+        <div class="mensaje-confirmacion" id="mensaje-aviso"></div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="sitio-footer">
+  <div class="envolvente">
+    Camino a la Iluminación — Prototipo estático de uso académico. Curso Integrador I.
+  </div>
+</footer>
+
+<script src="../../js/main.js"></script>
+</body>
+</html>

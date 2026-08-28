@@ -15,16 +15,22 @@ documentos son simulaciones para la demo.
 ## Estructura del proyecto
 ```
 camino-a-la-iluminacion/
-├── index.html            → Inicio
+├── index.html            → Inicio (feligrés)
+├── login.html            → Selección de perfil (feligrés / personal parroquial)
 ├── css/estilos.css       → estilos compartidos
 ├── js/main.js            → interacciones simuladas
-└── paginas/
-    ├── horarios.html
-    ├── notificaciones.html
-    ├── mapa.html
-    ├── iglesia.html
-    ├── reservas.html
-    └── documentos.html
+├── paginas/
+│   ├── horarios.html
+│   ├── avisos.html
+│   ├── mapa.html
+│   ├── iglesia.html
+│   ├── reservas.html
+│   ├── documentos.html
+│   └── admin/            → panel de personal parroquial
+│       ├── documentos.html   → validar documentos
+│       ├── avisos.html       → publicar aviso
+│       ├── horarios.html     → gestionar horarios
+│       └── reportes.html     → trámites por sacramento
 ```
 
 ## Cómo ver el prototipo
