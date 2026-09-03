@@ -27,13 +27,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Buscador de iglesias (filtra las tarjetas visibles, solo del lado cliente)
   const buscador = document.getElementById('buscador-iglesias');
+  const sinResultados = document.getElementById('sin-resultados');
   if (buscador) {
     buscador.addEventListener('input', (e) => {
       const termino = e.target.value.toLowerCase();
+      let visibles = 0;
       document.querySelectorAll('.tarjeta-iglesia').forEach((tarjeta) => {
         const texto = tarjeta.textContent.toLowerCase();
-        tarjeta.style.display = texto.includes(termino) ? '' : 'none';
+        const coincide = texto.includes(termino);
+        tarjeta.style.display = coincide ? '' : 'none';
+        if (coincide) visibles++;
       });
+      if (sinResultados) {
+        sinResultados.classList.toggle('visible', visibles === 0);
+      }
     });
   }
 
