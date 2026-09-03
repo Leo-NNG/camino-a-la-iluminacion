@@ -3,6 +3,23 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // Menú hamburguesa en móvil: se agrega automáticamente a cualquier página con .barra-nav
+  document.querySelectorAll('.barra-nav').forEach((nav) => {
+    const objetivo = nav.querySelector('.nav-derecha') || nav.querySelector('.nav-links');
+    if (!objetivo) return;
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'nav-toggle';
+    boton.setAttribute('aria-label', 'Abrir menú de navegación');
+    boton.textContent = '☰';
+    boton.addEventListener('click', () => {
+      const abierto = objetivo.classList.toggle('abierta');
+      boton.textContent = abierto ? '✕' : '☰';
+      boton.setAttribute('aria-label', abierto ? 'Cerrar menú de navegación' : 'Abrir menú de navegación');
+    });
+    nav.insertBefore(boton, objetivo);
+  });
+
   // Formulario de reserva de sacramentos
   const formReserva = document.getElementById('form-reserva');
   if (formReserva) {
