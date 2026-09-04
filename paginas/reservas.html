@@ -1,10 +1,16 @@
-<!DOCTYPE html>
+}<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Camino a la Iluminación — Reservar sacramento</title>
 <link rel="stylesheet" href="../css/estilos.css">
+<script>
+  // Protección de ruta: si no hay sesión iniciada, redirige al login.
+  if (!localStorage.getItem('cai_sesion')) {
+    window.location.replace('login.html?next=reservas.html');
+  }
+</script>
 </head>
 <body>
 
@@ -14,17 +20,15 @@
       <span class="marca-arco"></span>
       <span class="marca-texto">Camino a la Iluminación<small>Software para parroquias</small></span>
     </a>
-    <div class="nav-derecha">
-      <ul class="nav-links">
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
       <li><a href="../index.html">Inicio</a></li>
       <li><a href="horarios.html">Horarios</a></li>
-      <li><a href="avisos.html">Avisos</a></li>
+      <li><a href="notificaciones.html">Avisos</a></li>
       <li><a href="mapa.html">Iglesias cercanas</a></li>
       <li><a href="reservas.html" class="activo">Reservar sacramento</a></li>
       <li><a href="documentos.html">Mis documentos</a></li>
     </ul>
-      <a href="../login.html" class="nav-perfil">Cambiar de perfil</a>
-    </div>
   </nav>
 </header>
 
@@ -34,47 +38,66 @@
       <div class="encabezado-seccion">
         <p class="eyebrow">Solicitud de sacramento</p>
         <h1>Reserva tu fecha</h1>
-        <p style="color:var(--color-ink-soft)">Completa el formulario y la parroquia confirmará tu cita.</p>
+        <p style="color:var(--color-ink-soft)">Completa los pasos y la parroquia confirmará tu cita.</p>
+      </div>
+
+      <div class="pasos-reserva">
+        <div class="paso-item activo"><span>Sacramento</span></div>
+        <div class="paso-item"><span>Datos</span></div>
+        <div class="paso-item"><span>Confirmar</span></div>
       </div>
 
       <form class="formulario" id="form-reserva">
-        <div class="campo">
-          <label for="sacramento">Sacramento</label>
-          <select id="sacramento" required>
-            <option value="">Selecciona un sacramento</option>
-            <option>Bautizo</option>
-            <option>Matrimonio</option>
-            <option>Primera Comunión</option>
-            <option>Confirmación</option>
-          </select>
+
+        <div class="panel-paso">
+          <label style="font-weight:600;font-size:.88rem;display:block;margin-bottom:10px;">¿Qué sacramento deseas reservar?</label>
+          <div class="tarjetas-sacramento">
+            <div class="tarjeta-sacramento" data-valor="Bautizo">Bautizo</div>
+            <div class="tarjeta-sacramento" data-valor="Matrimonio">Matrimonio</div>
+            <div class="tarjeta-sacramento" data-valor="Primera Comunión">Primera Comunión</div>
+            <div class="tarjeta-sacramento" data-valor="Confirmación">Confirmación</div>
+          </div>
+          <input type="hidden" id="sacramento" required>
+          <button type="button" class="boton boton-primario" style="margin-top:24px;" data-siguiente>Continuar</button>
         </div>
 
-        <div class="campo">
-          <label for="parroquia">Parroquia</label>
-          <select id="parroquia" required>
-            <option value="">Selecciona una parroquia</option>
-            <option>Parroquia San José</option>
-            <option>Parroquia Santa Fe</option>
-            <option>Parroquia Nuestra Señora del Carmen</option>
-          </select>
+        <div class="panel-paso" style="display:none;">
+          <div class="campo">
+            <label for="parroquia">Parroquia</label>
+            <select id="parroquia" required>
+              <option value="">Selecciona una parroquia</option>
+              <option>Parroquia San José</option>
+              <option>Parroquia Santa Fe</option>
+              <option>Parroquia Nuestra Señora del Carmen</option>
+              <option>Capilla Sagrado Corazón</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="nombre">Nombre completo del solicitante</label>
+            <input type="text" id="nombre" placeholder="Ej. María Fernández" required>
+          </div>
+          <div class="campo">
+            <label for="fecha">Fecha deseada</label>
+            <input type="date" id="fecha" required>
+          </div>
+          <div class="campo">
+            <label for="notas">Notas adicionales (opcional)</label>
+            <textarea id="notas" rows="3" placeholder="Cualquier detalle que la parroquia deba saber"></textarea>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button type="button" class="boton boton-secundario" data-anterior>Atrás</button>
+            <button type="button" class="boton boton-primario" data-siguiente>Continuar</button>
+          </div>
         </div>
 
-        <div class="campo">
-          <label for="nombre">Nombre completo del solicitante</label>
-          <input type="text" id="nombre" placeholder="Ej. María Fernández" required>
+        <div class="panel-paso" style="display:none;">
+          <p style="color:var(--color-ink-soft);margin-bottom:20px;">Revisa tus datos y confirma la solicitud. La parroquia se comunicará contigo para validar la fecha.</p>
+          <div style="display:flex;gap:10px;">
+            <button type="button" class="boton boton-secundario" data-anterior>Atrás</button>
+            <button type="submit" class="boton boton-primario">Enviar solicitud</button>
+          </div>
         </div>
 
-        <div class="campo">
-          <label for="fecha">Fecha deseada</label>
-          <input type="date" id="fecha" required>
-        </div>
-
-        <div class="campo">
-          <label for="notas">Notas adicionales (opcional)</label>
-          <textarea id="notas" rows="3" placeholder="Cualquier detalle que la parroquia deba saber"></textarea>
-        </div>
-
-        <button type="submit" class="boton boton-primario">Enviar solicitud</button>
         <div class="mensaje-confirmacion" id="mensaje-reserva"></div>
       </form>
     </div>
@@ -83,7 +106,7 @@
 
 <footer class="sitio-footer">
   <div class="envolvente">
-    Camino a la Iluminación — Prototipo estático de uso académico. Curso Integrador I.
+    Camino a la Iluminación — Proyecto final. Curso Integrador I.
   </div>
 </footer>
 

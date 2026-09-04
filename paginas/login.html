@@ -1,0 +1,66 @@
+#login mejorado
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camino a la Iluminación — Iniciar sesión</title>
+<link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body data-pagina-auth="true">
+
+<header class="sitio-header">
+  <nav class="barra-nav">
+    <a href="../index.html" class="marca">
+      <span class="marca-arco"></span>
+      <span class="marca-texto">Camino a la Iluminación<small>Software para parroquias</small></span>
+    </a>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="../index.html">Inicio</a></li>
+      <li><a href="horarios.html">Horarios</a></li>
+      <li><a href="notificaciones.html">Avisos</a></li>
+      <li><a href="mapa.html">Iglesias cercanas</a></li>
+      <li><a href="reservas.html">Reservar sacramento</a></li>
+      <li><a href="documentos.html">Mis documentos</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="pantalla-auth">
+    <div class="tarjeta-auth al-aparecer">
+      <p class="eyebrow">Acceso de fieles</p>
+      <h1>Inicia sesión</h1>
+      <p class="subtexto">Necesitas una cuenta para reservar sacramentos.</p>
+
+      <div class="alerta-auth" id="alerta-login"></div>
+
+      <form id="form-login" novalidate>
+        <div class="campo">
+          <label for="log-correo">Correo electrónico</label>
+          <input type="email" id="log-correo" placeholder="tucorreo@ejemplo.com">
+          <span class="error-campo">Ingresa tu correo.</span>
+        </div>
+        <div class="campo">
+          <label for="log-clave">Contraseña</label>
+          <input type="password" id="log-clave" placeholder="••••••••">
+          <span class="error-campo">Ingresa tu contraseña.</span>
+        </div>
+        <button type="submit" class="boton boton-primario" style="width:100%;">Ingresar</button>
+      </form>
+
+      <p class="pie-auth">¿Aún no tienes cuenta? <a href="registro.html">Regístrate aquí</a></p>
+    </div>
+  </div>
+</main>
+
+<footer class="sitio-footer">
+  <div class="envolvente">
+    Camino a la Iluminación — Proyecto final. Curso Integrador I.
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>

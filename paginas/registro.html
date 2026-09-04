@@ -1,0 +1,85 @@
+#mas dinamica 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camino a la Iluminación — Crear cuenta</title>
+<link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body data-pagina-auth="true">
+
+<header class="sitio-header">
+  <nav class="barra-nav">
+    <a href="../index.html" class="marca">
+      <span class="marca-arco"></span>
+      <span class="marca-texto">Camino a la Iluminación<small>Software para parroquias</small></span>
+    </a>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="../index.html">Inicio</a></li>
+      <li><a href="horarios.html">Horarios</a></li>
+      <li><a href="notificaciones.html">Avisos</a></li>
+      <li><a href="mapa.html">Iglesias cercanas</a></li>
+      <li><a href="reservas.html">Reservar sacramento</a></li>
+      <li><a href="documentos.html">Mis documentos</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="pantalla-auth">
+    <div class="tarjeta-auth al-aparecer">
+      <p class="eyebrow">Nuevo fiel</p>
+      <h1>Crea tu cuenta</h1>
+      <p class="subtexto">Regístrate para reservar sacramentos y ver iglesias cercanas a tu ubicación real.</p>
+
+      <div class="alerta-auth" id="alerta-registro"></div>
+
+      <form id="form-registro" novalidate>
+        <div class="campo">
+          <label for="reg-nombre">Nombre completo</label>
+          <input type="text" id="reg-nombre" placeholder="Ej. María Fernández">
+          <span class="error-campo">Ingresa tu nombre completo.</span>
+        </div>
+        <div class="campo">
+          <label for="reg-correo">Correo electrónico</label>
+          <input type="email" id="reg-correo" placeholder="tucorreo@ejemplo.com">
+          <span class="error-campo">Ingresa un correo válido.</span>
+        </div>
+        <div class="campo">
+          <label for="reg-telefono">Teléfono</label>
+          <input type="tel" id="reg-telefono" placeholder="Ej. 987654321">
+          <span class="error-campo">Ingresa un número de 7 a 9 dígitos.</span>
+        </div>
+        <div class="campo">
+          <label for="reg-clave">Contraseña</label>
+          <input type="password" id="reg-clave" placeholder="Mínimo 6 caracteres">
+          <span class="error-campo">La contraseña debe tener al menos 6 caracteres.</span>
+        </div>
+        <div class="campo">
+          <label for="reg-clave2">Confirmar contraseña</label>
+          <input type="password" id="reg-clave2" placeholder="Repite tu contraseña">
+          <span class="error-campo">Las contraseñas no coinciden.</span>
+        </div>
+        <div class="campo-check">
+          <input type="checkbox" id="reg-terminos">
+          <label for="reg-terminos">Acepto que mi ubicación se use para mostrarme las iglesias más cercanas.</label>
+        </div>
+        <button type="submit" class="boton boton-primario" style="width:100%;">Crear cuenta</button>
+      </form>
+
+      <p class="pie-auth">¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></p>
+    </div>
+  </div>
+</main>
+
+<footer class="sitio-footer">
+  <div class="envolvente">
+    Camino a la Iluminación — Proyecto final. Curso Integrador I.
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>

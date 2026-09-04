@@ -14,17 +14,15 @@
       <span class="marca-arco"></span>
       <span class="marca-texto">Camino a la Iluminación<small>Software para parroquias</small></span>
     </a>
-    <div class="nav-derecha">
-      <ul class="nav-links">
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
       <li><a href="../index.html">Inicio</a></li>
       <li><a href="horarios.html">Horarios</a></li>
-      <li><a href="avisos.html">Avisos</a></li>
+      <li><a href="notificaciones.html">Avisos</a></li>
       <li><a href="mapa.html">Iglesias cercanas</a></li>
       <li><a href="reservas.html">Reservar sacramento</a></li>
       <li><a href="documentos.html" class="activo">Mis documentos</a></li>
     </ul>
-      <a href="../login.html" class="nav-perfil">Cambiar de perfil</a>
-    </div>
   </nav>
 </header>
 
@@ -39,7 +37,9 @@
       <div class="zona-carga" id="zona-carga" role="button" tabindex="0">
         <strong>Arrastra tus archivos aquí o haz clic para elegirlos</strong>
         <p style="margin:6px 0 0 0;font-size:.85rem;">PDF o imagen — partida de nacimiento, DNI, certificado de bautismo</p>
+        <input type="file" id="input-archivo" multiple hidden>
       </div>
+      <ul class="lista-archivos" id="lista-archivos"></ul>
       <div class="mensaje-confirmacion" id="mensaje-documento"></div>
     </div>
   </section>
@@ -51,7 +51,6 @@
         <h2>Estado de tus trámites</h2>
       </div>
 
-      <div class="tabla-scroll">
       <table class="tabla-tramites">
         <thead>
           <tr>
@@ -82,14 +81,13 @@
           </tr>
         </tbody>
       </table>
-      </div>
     </div>
   </section>
 </main>
 
 <footer class="sitio-footer">
   <div class="envolvente">
-    Camino a la Iluminación — Prototipo estático de uso académico. Curso Integrador I.
+    Camino a la Iluminación — Proyecto final. Curso Integrador I.
   </div>
 </footer>
 

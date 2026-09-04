@@ -14,33 +14,43 @@
       <span class="marca-arco"></span>
       <span class="marca-texto">Camino a la Iluminación<small>Software para parroquias</small></span>
     </a>
-    <div class="nav-derecha">
-      <ul class="nav-links">
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
       <li><a href="../index.html">Inicio</a></li>
       <li><a href="horarios.html" class="activo">Horarios</a></li>
-      <li><a href="avisos.html">Avisos</a></li>
+      <li><a href="notificaciones.html">Avisos</a></li>
       <li><a href="mapa.html">Iglesias cercanas</a></li>
       <li><a href="reservas.html">Reservar sacramento</a></li>
       <li><a href="documentos.html">Mis documentos</a></li>
     </ul>
-      <a href="../login.html" class="nav-perfil">Cambiar de perfil</a>
-    </div>
   </nav>
 </header>
 
 <main>
   <section class="seccion" style="padding-top:56px">
-    <div class="envolvente">
-      <div class="encabezado-seccion">
-        <p class="eyebrow">Parroquia San José — ejemplo</p>
-        <h1>Horarios de misa</h1>
-      </div>
+    <div class="envolvente hero-grid" style="align-items:flex-start;">
+      <div>
+        <div class="encabezado-seccion">
+          <p class="eyebrow">Parroquia San José — ejemplo</p>
+          <h1>Horarios de misa</h1>
+        </div>
 
-      <ul class="lista-horarios">
-        <li class="fila-horario"><span class="dia">Lunes a viernes</span><span class="detalle">7:00 a.m. y 7:00 p.m.</span></li>
-        <li class="fila-horario"><span class="dia">Sábado</span><span class="detalle">8:00 a.m. y 6:00 p.m. (vigilia)</span></li>
-        <li class="fila-horario"><span class="dia">Domingo</span><span class="detalle">7:00 a.m., 9:00 a.m., 11:00 a.m. y 7:00 p.m.</span></li>
-      </ul>
+        <div class="pestanas-dia">
+          <button class="pestana-dia activo" data-dia="todos">Toda la semana</button>
+          <button class="pestana-dia" data-dia="semana">Lunes a viernes</button>
+          <button class="pestana-dia" data-dia="sabado">Sábado</button>
+          <button class="pestana-dia" data-dia="domingo">Domingo</button>
+        </div>
+
+        <ul class="lista-horarios">
+          <li class="fila-horario" data-dia="semana"><span class="dia">Lunes a viernes</span><span class="detalle">7:00 a.m. y 7:00 p.m.</span></li>
+          <li class="fila-horario" data-dia="sabado"><span class="dia">Sábado</span><span class="detalle">8:00 a.m. y 6:00 p.m. (vigilia)</span></li>
+          <li class="fila-horario" data-dia="domingo"><span class="dia">Domingo</span><span class="detalle">7:00 a.m., 9:00 a.m., 11:00 a.m. y 7:00 p.m.</span></li>
+        </ul>
+      </div>
+      <div class="hero-foto" style="aspect-ratio:4/5;">
+        <img src="https://images.pexels.com/photos/9614058/pexels-photo-9614058.jpeg?auto=compress&cs=tinysrgb&w=700" alt="Misa en curso">
+      </div>
     </div>
   </section>
 
@@ -62,7 +72,7 @@
 
 <footer class="sitio-footer">
   <div class="envolvente">
-    Camino a la Iluminación — Prototipo estático de uso académico. Curso Integrador I.
+    Camino a la Iluminación — Proyecto final. Curso Integrador I.
   </div>
 </footer>
 

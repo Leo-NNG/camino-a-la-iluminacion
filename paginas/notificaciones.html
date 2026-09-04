@@ -14,6 +14,7 @@
       <span class="marca-arco"></span>
       <span class="marca-texto">Camino a la Iluminación<small>Software para parroquias</small></span>
     </a>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
     <ul class="nav-links">
       <li><a href="../index.html">Inicio</a></li>
       <li><a href="horarios.html">Horarios</a></li>
@@ -31,6 +32,11 @@
       <div class="encabezado-seccion">
         <p class="eyebrow">Comunicación oficial de la parroquia</p>
         <h1>Avisos y notificaciones</h1>
+      </div>
+
+      <div class="chips">
+        <button class="chip activo" data-filtro="todos">Todos</button>
+        <button class="chip" data-filtro="urgente">Urgentes</button>
       </div>
 
       <div class="aviso urgente">
@@ -57,7 +63,7 @@
         </div>
       </div>
 
-      <div class="aviso">
+      <div class="aviso urgente">
         <span class="aviso-fecha">14 SEP</span>
         <div>
           <h4>Ayuno y abstinencia</h4>
@@ -70,9 +76,10 @@
 
 <footer class="sitio-footer">
   <div class="envolvente">
-    Camino a la Iluminación — Prototipo estático de uso académico. Curso Integrador I.
+    Camino a la Iluminación — Proyecto final. Curso Integrador I.
   </div>
 </footer>
 
+<script src="../js/main.js"></script>
 </body>
 </html>

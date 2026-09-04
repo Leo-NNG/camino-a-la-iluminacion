@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Camino a la Iluminación — Iglesias cercanas</title>
 <link rel="stylesheet" href="../css/estilos.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
 
@@ -14,17 +15,15 @@
       <span class="marca-arco"></span>
       <span class="marca-texto">Camino a la Iluminación<small>Software para parroquias</small></span>
     </a>
-    <div class="nav-derecha">
-      <ul class="nav-links">
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
       <li><a href="../index.html">Inicio</a></li>
       <li><a href="horarios.html">Horarios</a></li>
-      <li><a href="avisos.html">Avisos</a></li>
+      <li><a href="notificaciones.html">Avisos</a></li>
       <li><a href="mapa.html" class="activo">Iglesias cercanas</a></li>
       <li><a href="reservas.html">Reservar sacramento</a></li>
       <li><a href="documentos.html">Mis documentos</a></li>
     </ul>
-      <a href="../login.html" class="nav-perfil">Cambiar de perfil</a>
-    </div>
   </nav>
 </header>
 
@@ -34,67 +33,58 @@
       <div class="encabezado-seccion">
         <p class="eyebrow">Localización</p>
         <h1>Iglesias cercanas</h1>
+        <p style="color:var(--color-ink-soft)">Mapa real de Chiclayo con la ubicación de cada parroquia. Toca un marcador o una tarjeta para ver el detalle.</p>
       </div>
 
-      <div class="buscador">
+      <div id="permiso-ubicacion" class="aviso-permiso">
+        <p>Actívala para ver tu ubicación real y la distancia exacta a cada iglesia.</p>
+        <button type="button" class="boton boton-secundario" id="btn-permiso-ubicacion">Usar mi ubicación</button>
+      </div>
+
+      <div id="mapa-iglesias" class="mapa-real al-aparecer"></div>
+
+      <div class="buscador" style="margin-top:28px;">
         <input type="text" id="buscador-iglesias" placeholder="Buscar por nombre, distrito o sacramento…">
       </div>
 
       <div class="rejilla">
-        <a href="iglesia.html" class="tarjeta tarjeta-iglesia">
+        <a href="iglesia.html?id=san-jose" class="tarjeta tarjeta-iglesia">
+          <div class="tarjeta-foto"><img src="https://images.pexels.com/photos/3025593/pexels-photo-3025593.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Parroquia San José"></div>
           <span class="tarjeta-icono">SJ</span>
           <h3>Parroquia San José</h3>
-          <p>A 1.2 km — Bautizos, matrimonios, Primera Comunión</p>
+          <p><span class="distancia-real">A 1.2 km</span> — Bautizos, matrimonios, Primera Comunión</p>
         </a>
-        <a href="iglesia.html" class="tarjeta tarjeta-iglesia">
+        <a href="iglesia.html?id=santa-fe" class="tarjeta tarjeta-iglesia">
+          <div class="tarjeta-foto"><img src="https://images.pexels.com/photos/5139675/pexels-photo-5139675.jpeg?cs=tinysrgb&w=600" alt="Parroquia Santa Fe"></div>
           <span class="tarjeta-icono">SF</span>
           <h3>Parroquia Santa Fe</h3>
-          <p>A 2.8 km — Bautizos, confirmación</p>
+          <p><span class="distancia-real">A 2.8 km</span> — Bautizos, confirmación</p>
         </a>
-        <a href="iglesia.html" class="tarjeta tarjeta-iglesia">
+        <a href="iglesia.html?id=carmen" class="tarjeta tarjeta-iglesia">
+          <div class="tarjeta-foto"><img src="https://images.pexels.com/photos/18750283/pexels-photo-18750283/free-photo-of-photo-of-a-small-church-and-palm-trees.jpeg?cs=tinysrgb&w=600" alt="Parroquia Nuestra Señora del Carmen"></div>
           <span class="tarjeta-icono">NS</span>
           <h3>Parroquia Nuestra Señora del Carmen</h3>
-          <p>A 3.5 km — Matrimonios, Primera Comunión, confirmación</p>
+          <p><span class="distancia-real">A 3.5 km</span> — Matrimonios, Primera Comunión, confirmación</p>
         </a>
-        <a href="iglesia.html" class="tarjeta tarjeta-iglesia">
+        <a href="iglesia.html?id=sagrado-corazon" class="tarjeta tarjeta-iglesia">
+          <div class="tarjeta-foto"><img src="https://images.pexels.com/photos/19623130/pexels-photo-19623130/free-photo-of-exterior-of-a-church.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Capilla Sagrado Corazón"></div>
           <span class="tarjeta-icono">SC</span>
           <h3>Capilla Sagrado Corazón</h3>
-          <p>A 4.1 km — Bautizos comunitarios</p>
+          <p><span class="distancia-real">A 4.1 km</span> — Bautizos comunitarios</p>
         </a>
       </div>
-
-      <div class="sin-resultados" id="sin-resultados">
-        No encontramos iglesias con ese nombre, distrito o sacramento. Prueba con otra palabra, o revisa el mapa referencial de abajo para ubicarte.
-      </div>
-
-      <div class="vitral" style="aspect-ratio: 16/7; margin-top:8px;" aria-hidden="true">
-        <svg viewBox="0 0 800 350" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="350" fill="#FFFBF2"/>
-          <circle cx="200" cy="120" r="8" fill="#6E1F2A"/>
-          <circle cx="420" cy="200" r="8" fill="#6E1F2A"/>
-          <circle cx="560" cy="90" r="8" fill="#6E1F2A"/>
-          <circle cx="640" cy="240" r="8" fill="#6E1F2A"/>
-          <circle cx="380" cy="175" r="14" fill="none" stroke="#A9812E" stroke-width="2"/>
-          <text x="380" y="150" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="14" fill="#5B5449">Tú estás aquí</text>
-          <line x1="0" y1="60" x2="800" y2="60" stroke="#DCCCA6" stroke-width="1"/>
-          <line x1="0" y1="290" x2="800" y2="290" stroke="#DCCCA6" stroke-width="1"/>
-          <line x1="120" y1="0" x2="120" y2="350" stroke="#DCCCA6" stroke-width="1"/>
-          <line x1="680" y1="0" x2="680" y2="350" stroke="#DCCCA6" stroke-width="1"/>
-        </svg>
-      </div>
-      <p style="font-size:.82rem;color:var(--color-ink-soft);margin-top:8px;">
-        Mapa referencial del prototipo. En la versión final se integrará con un mapa real (Google Maps o similar).
-      </p>
     </div>
   </section>
 </main>
 
 <footer class="sitio-footer">
   <div class="envolvente">
-    Camino a la Iluminación — Prototipo estático de uso académico. Curso Integrador I.
+    Camino a la Iluminación — Proyecto final. Curso Integrador I.
   </div>
 </footer>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../js/iglesias-data.js"></script>
 <script src="../js/main.js"></script>
 </body>
 </html>

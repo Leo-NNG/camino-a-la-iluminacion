@@ -14,25 +14,23 @@
       <span class="marca-arco"></span>
       <span class="marca-texto">Camino a la Iluminación<small>Software para parroquias</small></span>
     </a>
-    <div class="nav-derecha">
-      <ul class="nav-links">
-        <li><a href="index.html" class="activo">Inicio</a></li>
-        <li><a href="paginas/horarios.html">Horarios</a></li>
-        <li><a href="paginas/avisos.html">Avisos</a></li>
-        <li><a href="paginas/mapa.html">Iglesias cercanas</a></li>
-        <li><a href="paginas/reservas.html">Reservar sacramento</a></li>
-        <li><a href="paginas/documentos.html">Mis documentos</a></li>
-      </ul>
-      <a href="login.html" class="nav-perfil">Cambiar de perfil</a>
-    </div>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="index.html" class="activo">Inicio</a></li>
+      <li><a href="paginas/horarios.html">Horarios</a></li>
+      <li><a href="paginas/notificaciones.html">Avisos</a></li>
+      <li><a href="paginas/mapa.html">Iglesias cercanas</a></li>
+      <li><a href="paginas/reservas.html">Reservar sacramento</a></li>
+      <li><a href="paginas/documentos.html">Mis documentos</a></li>
+    </ul>
   </nav>
 </header>
 
 <main>
   <section class="hero">
     <div class="envolvente hero-grid">
-      <div>
-        <p class="eyebrow">Prototipo — Capítulo VIII, punto 8.5</p>
+      <div class="al-aparecer">
+        <p class="eyebrow">Proyecto final — Curso Integrador I</p>
         <h1>Toda tu parroquia, en un solo lugar.</h1>
         <p class="intro">
           Horarios de misa, avisos, reservas de sacramentos y trámites documentales,
@@ -42,19 +40,15 @@
           <a href="paginas/reservas.html" class="boton boton-primario">Reservar un sacramento</a>
           <a href="paginas/mapa.html" class="boton boton-secundario">Buscar una iglesia cercana</a>
         </div>
+        <div class="hero-estadisticas">
+          <div><span class="stat-num" data-hasta="4">0</span><span class="stat-label">Parroquias afiliadas</span></div>
+          <div><span class="stat-num" data-hasta="1280" data-sufijo="+">0</span><span class="stat-label">Fieles registrados</span></div>
+          <div><span class="stat-num" data-hasta="96" data-sufijo="%">0</span><span class="stat-label">Trámites resueltos a tiempo</span></div>
+        </div>
       </div>
-      <div class="vitral" aria-hidden="true">
-        <svg viewBox="0 0 300 400" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <rect width="300" height="400" fill="#FFFBF2"/>
-          <path d="M150 30 C90 30 60 90 60 150 L60 370 L240 370 L240 150 C240 90 210 30 150 30 Z"
-                fill="none" stroke="#A9812E" stroke-width="3"/>
-          <line x1="150" y1="30" x2="150" y2="370" stroke="#DCCCA6" stroke-width="2"/>
-          <line x1="60" y1="200" x2="240" y2="200" stroke="#DCCCA6" stroke-width="2"/>
-          <line x1="90" y1="120" x2="210" y2="120" stroke="#DCCCA6" stroke-width="1.5"/>
-          <circle cx="150" cy="150" r="34" fill="none" stroke="#6E1F2A" stroke-width="3"/>
-          <line x1="150" y1="116" x2="150" y2="184" stroke="#6E1F2A" stroke-width="3"/>
-          <line x1="120" y1="150" x2="180" y2="150" stroke="#6E1F2A" stroke-width="3"/>
-        </svg>
+      <div class="hero-foto al-aparecer">
+        <img src="https://images.pexels.com/photos/208277/pexels-photo-208277.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Interior de una catedral con vitrales">
+        <span class="hero-foto-etiqueta">Cada parroquia, más cerca de ti</span>
       </div>
     </div>
   </section>
@@ -67,26 +61,31 @@
       </div>
       <div class="rejilla">
         <a href="paginas/horarios.html" class="tarjeta">
+          <div class="tarjeta-foto"><img src="https://images.pexels.com/photos/9614058/pexels-photo-9614058.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Sacerdote en misa"></div>
           <span class="tarjeta-icono">H</span>
           <h3>Horarios y actividades</h3>
           <p>Misas, actividades parroquiales y eventos especiales siempre actualizados.</p>
         </a>
-        <a href="paginas/avisos.html" class="tarjeta">
+        <a href="paginas/notificaciones.html" class="tarjeta">
+          <div class="tarjeta-foto"><img src="https://images.pexels.com/photos/12629548/pexels-photo-12629548.jpeg?w=600&h=450&dpr=1" alt="Interior de iglesia con luz cálida"></div>
           <span class="tarjeta-icono">A</span>
           <h3>Avisos oficiales</h3>
           <p>Santa Cena, ayunos, vigilias y cambios de horario, directo de la parroquia.</p>
         </a>
         <a href="paginas/mapa.html" class="tarjeta">
+          <div class="tarjeta-foto"><img src="https://images.pexels.com/photos/3025593/pexels-photo-3025593.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Fachada de una iglesia"></div>
           <span class="tarjeta-icono">M</span>
           <h3>Iglesias cercanas</h3>
-          <p>Encuentra parroquias por ubicación y revisa qué sacramentos ofrecen.</p>
+          <p>Encuentra parroquias por ubicación en un mapa real y revisa qué sacramentos ofrecen.</p>
         </a>
         <a href="paginas/reservas.html" class="tarjeta">
+          <div class="tarjeta-foto"><img src="https://images.pexels.com/photos/9153530/pexels-photo-9153530.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Cúpula de una iglesia"></div>
           <span class="tarjeta-icono">R</span>
           <h3>Reserva de sacramentos</h3>
           <p>Bautizos, matrimonios, Primera Comunión y Confirmación, con fecha propia.</p>
         </a>
         <a href="paginas/documentos.html" class="tarjeta">
+          <div class="tarjeta-foto"><img src="https://images.pexels.com/photos/27872483/pexels-photo-27872483/free-photo-of-a-church-with-a-cross-in-the-middle-of-it.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Cruz iluminada"></div>
           <span class="tarjeta-icono">D</span>
           <h3>Documentos y trámites</h3>
           <p>Sube tus documentos y consulta el estado de validación en cualquier momento.</p>
@@ -94,11 +93,44 @@
       </div>
     </div>
   </section>
+
+  <section class="seccion">
+    <div class="envolvente">
+      <div class="encabezado-seccion">
+        <p class="eyebrow">Comunidad</p>
+        <h2>Lo que dicen quienes ya lo usan</h2>
+      </div>
+      <div class="rejilla">
+        <div class="testimonio">
+          <p class="cita">"Reservé el bautizo de mi hija sin hacer una sola llamada. Todo quedó confirmado el mismo día."</p>
+          <div class="autor"><span class="avatar">MF</span> María Fernández — Parroquia San José</div>
+        </div>
+        <div class="testimonio">
+          <p class="cita">"Ya no perdemos las notas de la parroquia en el grupo de WhatsApp. Los avisos llegan claros y ordenados."</p>
+          <div class="autor"><span class="avatar">JR</span> Javier Ramírez — Parroquia Santa Fe</div>
+        </div>
+        <div class="testimonio">
+          <p class="cita">"Subí mis documentos para la confirmación desde el celular y seguí el estado paso a paso."</p>
+          <div class="autor"><span class="avatar">LC</span> Lucía Castro — N.ª Sra. del Carmen</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion">
+    <div class="envolvente">
+      <div class="cta-final">
+        <h2>¿Listo para acercarte a tu parroquia?</h2>
+        <p>Encuentra la iglesia más cercana en el mapa y reserva tu sacramento en minutos.</p>
+        <a href="paginas/mapa.html" class="boton boton-primario">Ver iglesias cercanas</a>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer class="sitio-footer">
   <div class="envolvente">
-    Camino a la Iluminación — Prototipo estático de uso académico. Curso Integrador I.
+    Camino a la Iluminación — Proyecto final. Curso Integrador I.
   </div>
 </footer>
 
