@@ -15,6 +15,8 @@ documentos son simulaciones para la demo.
 ## Estructura del proyecto
 ```
 camino-a-la-iluminacion/
+├── backend/              → backend en Java (Maven, JDBC, patrón DAO) — ver backend/README.md
+├── database/             → script SQL de la base de datos
 ├── index.html            → Inicio (feligrés)
 ├── login.html            → Selección de perfil (feligrés / personal parroquial)
 ├── css/estilos.css       → estilos compartidos
@@ -32,6 +34,10 @@ camino-a-la-iluminacion/
 │       ├── horarios.html     → gestionar horarios
 │       └── reportes.html     → trámites por sacramento
 ```
+
+## Backend y base de datos
+- `database/camino_iluminacion.sql` — script con las 6 tablas del modelo entidad-relación (Capítulo 8.3) y datos de ejemplo.
+- `backend/` — proyecto Maven en Java con modelos y DAO para las 6 tablas. Ver `backend/README.md` para instrucciones de configuración y ejecución.
 
 ## Cómo ver el prototipo
 No necesita servidor: clona el repositorio y abre `index.html` en el navegador.
