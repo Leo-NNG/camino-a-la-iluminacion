@@ -8,7 +8,7 @@
 </head>
 <body>
 
-<div class="franja-admin">Panel de personal parroquial — Parroquia San José · <a href="../../login.html">Cerrar sesión</a></div>
+<div class="franja-admin">Panel de personal parroquial — Parroquia San José · <a href="../../index.html">Salir del panel</a> · <button type="button" id="reiniciar-demo" class="enlace-franja">Reiniciar datos de demostración</button></div>
 
 <header class="sitio-header">
   <nav class="barra-nav">
@@ -16,6 +16,7 @@
       <span class="marca-arco"></span>
       <span class="marca-texto">Camino a la Iluminación<small>Panel administrador</small></span>
     </a>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
     <ul class="nav-links">
       <li><a href="documentos.html">Validar documentos</a></li>
       <li><a href="avisos.html" class="activo">Publicar aviso</a></li>
@@ -60,6 +61,11 @@
         <div class="campo">
           <label for="descripcion-aviso">Descripción</label>
           <textarea id="descripcion-aviso" rows="4" placeholder="Detalle que verán los feligreses" required></textarea>
+        </div>
+
+        <div class="campo" style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="urgente-aviso" style="width:auto;">
+          <label for="urgente-aviso" style="margin:0;">Marcar como urgente (aparece resaltado y en el filtro "Urgentes")</label>
         </div>
 
         <button type="submit" class="boton boton-primario">Publicar aviso</button>

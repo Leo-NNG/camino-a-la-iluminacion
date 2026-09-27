@@ -9,6 +9,40 @@ const AVISOS = [
   { fecha: "14 SEP", titulo: "Ayuno y abstinencia", texto: "Confesiones de 4:00 p.m. a 6:00 p.m. en la parroquia.", urgente: true }
 ];
 
+/* ==================== ALMACÉN COMPARTIDO (panel admin ↔ pantallas del feligrés) ====================
+   Usa localStorage para que las acciones del panel de administrador (aprobar un
+   documento, publicar un aviso, cambiar un horario) se reflejen en las pantallas
+   del feligrés dentro del MISMO navegador. Simulación para la demo: en la versión
+   final esto lo haría la base de datos real. */
+const Almacen = {
+  get(clave, porDefecto) {
+    try {
+      const guardado = localStorage.getItem('cai_' + clave);
+      return guardado ? JSON.parse(guardado) : JSON.parse(JSON.stringify(porDefecto));
+    } catch (e) { return porDefecto; }
+  },
+  set(clave, valor) {
+    try { localStorage.setItem('cai_' + clave, JSON.stringify(valor)); } catch (e) {}
+  },
+  reiniciar() {
+    ['documentos', 'avisos_nuevos', 'horarios'].forEach((k) => {
+      try { localStorage.removeItem('cai_' + k); } catch (e) {}
+    });
+  },
+};
+
+const DOCUMENTOS_SEMILLA = [
+  { id: 'doc1', feligres: 'María Fernández', documento: 'Partida de nacimiento', tramite: 'Bautizo', fecha: '12/08/2026', estado: 'validado' },
+  { id: 'doc2', feligres: 'Jorge Ramírez', documento: 'DNI del padrino', tramite: 'Bautizo', fecha: '18/08/2026', estado: 'pendiente' },
+  { id: 'doc3', feligres: 'Lucía y Pedro Vega', documento: 'Certificado prematrimonial', tramite: 'Matrimonio', fecha: '20/08/2026', estado: 'pendiente' },
+  { id: 'doc4', feligres: 'Ana Torres', documento: 'Constancia de catequesis', tramite: 'Primera Comunión', fecha: '22/08/2026', estado: 'pendiente' },
+];
+
+function insigniaHtml(estado) {
+  const etiquetas = { validado: 'Validado', pendiente: 'Pendiente', rechazado: 'Rechazado' };
+  return `<span class="insignia ${estado}">${etiquetas[estado]}</span>`;
+}
+
 /* ==================== SESIÓN / AUTENTICACIÓN ==================== */
 function obtenerUsuarios() {
   return JSON.parse(localStorage.getItem('cai_usuarios') || '[]');
@@ -300,7 +334,20 @@ document.addEventListener('DOMContentLoaded', () => {
     listaArchivos.appendChild(li);
     const mensaje = document.getElementById('mensaje-documento');
     mensaje.classList.add('visible');
-    mensaje.textContent = 'Documento recibido (simulación). Aquí se conectará la subida real de archivos.';
+    mensaje.textContent = 'Documento recibido (simulación). Ya aparece como pendiente en el panel de administración.';
+
+    // Se agrega como trámite pendiente para que el administrador lo vea y lo valide.
+    const sesion = obtenerSesion();
+    const documentos = Almacen.get('documentos', DOCUMENTOS_SEMILLA);
+    documentos.unshift({
+      id: 'doc' + Date.now(),
+      feligres: sesion ? sesion.nombre : 'Feligrés (invitado)',
+      documento: nombre,
+      tramite: 'Por confirmar',
+      fecha: new Date().toLocaleDateString('es-PE'),
+      estado: 'pendiente',
+    });
+    Almacen.set('documentos', documentos);
   }
   if (zonaCarga) {
     zonaCarga.addEventListener('click', () => inputArchivo && inputArchivo.click());
@@ -318,15 +365,149 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  /* ---------- tabla de documentos: feligrés (solo lectura) ---------- */
+  const tablaDocFeligres = document.getElementById('tabla-documentos-feligres');
+  if (tablaDocFeligres) {
+    const documentos = Almacen.get('documentos', DOCUMENTOS_SEMILLA);
+    tablaDocFeligres.innerHTML = documentos.map((d) => `
+      <tr>
+        <td>${d.documento}</td>
+        <td>${d.tramite}</td>
+        <td>${d.fecha}</td>
+        <td>${insigniaHtml(d.estado)}</td>
+      </tr>
+    `).join('');
+  }
+
+  /* ---------- tabla de documentos: administrador (aprobar/rechazar) ---------- */
+  const tablaDocAdmin = document.getElementById('tabla-documentos-admin');
+  if (tablaDocAdmin) {
+    const pintarTablaAdmin = () => {
+      const documentos = Almacen.get('documentos', DOCUMENTOS_SEMILLA);
+      tablaDocAdmin.innerHTML = documentos.map((d) => {
+        const resuelto = d.estado !== 'pendiente';
+        return `
+          <tr>
+            <td>${d.feligres}</td>
+            <td>${d.documento}</td>
+            <td>${d.tramite}</td>
+            <td>${d.fecha}</td>
+            <td>${insigniaHtml(d.estado)}</td>
+            <td class="fila-accion">
+              <button class="boton-mini aprobar" data-id="${d.id}" data-accion="aprobar" ${resuelto ? 'disabled' : ''}>Aprobar</button>
+              <button class="boton-mini rechazar" data-id="${d.id}" data-accion="rechazar" ${resuelto ? 'disabled' : ''}>Rechazar</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tablaDocAdmin.querySelectorAll('[data-accion]').forEach((boton) => {
+        boton.addEventListener('click', () => {
+          const documentos2 = Almacen.get('documentos', DOCUMENTOS_SEMILLA);
+          const item = documentos2.find((d) => d.id === boton.dataset.id);
+          if (!item) return;
+          item.estado = boton.dataset.accion === 'aprobar' ? 'validado' : 'rechazado';
+          Almacen.set('documentos', documentos2);
+          pintarTablaAdmin();
+        });
+      });
+    };
+    pintarTablaAdmin();
+  }
+
+  /* ---------- avisos publicados por el administrador (visibles del lado feligrés) ---------- */
+  const contenedorAvisosNuevos = document.getElementById('avisos-nuevos');
+  if (contenedorAvisosNuevos) {
+    const avisosNuevos = Almacen.get('avisos_nuevos', []);
+    contenedorAvisosNuevos.innerHTML = avisosNuevos.map((a) => `
+      <div class="aviso ${a.urgente ? 'urgente' : ''}">
+        <span class="aviso-fecha">${a.fecha}</span>
+        <div>
+          <h4>${a.titulo}</h4>
+          <p>${a.descripcion}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  /* ---------- formulario del admin: publicar aviso ---------- */
+  const formAviso = document.getElementById('form-aviso');
+  if (formAviso) {
+    formAviso.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fecha = document.getElementById('fecha-aviso').value;
+      const fechaCorta = fecha
+        ? new Date(fecha + 'T00:00:00').toLocaleDateString('es-PE', { day: '2-digit', month: 'short' }).toUpperCase().replace('.', '')
+        : '';
+      const avisosNuevos = Almacen.get('avisos_nuevos', []);
+      avisosNuevos.unshift({
+        fecha: fechaCorta,
+        titulo: document.getElementById('titulo-aviso').value,
+        descripcion: document.getElementById('descripcion-aviso').value,
+        urgente: document.getElementById('urgente-aviso').checked,
+      });
+      Almacen.set('avisos_nuevos', avisosNuevos);
+
+      const mensaje = document.getElementById('mensaje-aviso');
+      mensaje.classList.add('visible');
+      mensaje.textContent = 'Aviso publicado. Ya aparece en la pantalla de avisos del feligrés.';
+      formAviso.reset();
+    });
+  }
+
+  /* ---------- horarios: si el administrador guardó cambios, se reflejan aquí ---------- */
+  const elSemana = document.getElementById('horario-semana');
+  const elSabado = document.getElementById('horario-sabado');
+  const elDomingo = document.getElementById('horario-domingo');
+  if (elSemana && elSabado && elDomingo) {
+    const horarios = Almacen.get('horarios', null);
+    if (horarios) {
+      elSemana.textContent = horarios.semana;
+      elSabado.textContent = horarios.sabado;
+      elDomingo.textContent = horarios.domingo;
+    }
+  }
+
+  /* ---------- formulario del admin: guardar horarios ---------- */
+  const formHorarios = document.getElementById('form-horarios');
+  if (formHorarios) {
+    formHorarios.addEventListener('submit', (e) => {
+      e.preventDefault();
+      Almacen.set('horarios', {
+        semana: document.getElementById('h-semana').value,
+        sabado: document.getElementById('h-sabado').value,
+        domingo: document.getElementById('h-domingo').value,
+      });
+      const mensaje = document.getElementById('mensaje-horarios');
+      mensaje.classList.add('visible');
+      mensaje.textContent = 'Horarios actualizados. Ya se reflejan en la pantalla de horarios del feligrés.';
+    });
+  }
+
+  /* ---------- botón de reiniciar datos de demostración ---------- */
+  const btnReiniciar = document.getElementById('reiniciar-demo');
+  if (btnReiniciar) {
+    btnReiniciar.addEventListener('click', () => {
+      Almacen.reiniciar();
+      btnReiniciar.textContent = 'Datos reiniciados ✓';
+      setTimeout(() => { btnReiniciar.textContent = 'Reiniciar datos de demostración'; }, 2000);
+    });
+  }
+
   /* ---------- buscador de iglesias (mapa.html) ---------- */
   const buscador = document.getElementById('buscador-iglesias');
+  const sinResultados = document.getElementById('sin-resultados');
   if (buscador) {
     buscador.addEventListener('input', (e) => {
       const termino = e.target.value.toLowerCase();
+      let visibles = 0;
       document.querySelectorAll('.tarjeta-iglesia').forEach((tarjeta) => {
         const texto = tarjeta.textContent.toLowerCase();
-        tarjeta.style.display = texto.includes(termino) ? '' : 'none';
+        const coincide = texto.includes(termino);
+        tarjeta.style.display = coincide ? '' : 'none';
+        if (coincide) visibles++;
       });
+      if (sinResultados) sinResultados.classList.toggle('visible', visibles === 0);
     });
   }
 
