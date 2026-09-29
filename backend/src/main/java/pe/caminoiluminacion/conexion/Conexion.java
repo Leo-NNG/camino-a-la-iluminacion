@@ -19,7 +19,7 @@ public class Conexion {
     private static final String PUERTO = "3306";
     private static final String BASE_DATOS = "camino_iluminacion";
     private static final String USUARIO = "root";
-    private static final String CONTRASENA = "CAMBIAR_POR_TU_CONTRASENA";
+    private static final String CONTRASENA = "1234";
 
     private static final String URL =
         "jdbc:mysql://" + HOST + ":" + PUERTO + "/" + BASE_DATOS

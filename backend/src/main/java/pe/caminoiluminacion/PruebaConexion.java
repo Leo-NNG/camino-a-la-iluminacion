@@ -76,10 +76,10 @@ public class PruebaConexion {
             System.out.println("Reserva de prueba id=" + nueva.getIdReserva()
                 + " y documento id=" + doc.getIdDocumento() + " quedaron guardados como evidencia.");
 
-            System.out.println("\n✅ CONEXIÓN Y OPERACIONES CRUD FUNCIONANDO CORRECTAMENTE.");
+            System.out.println("\nCONEXIÓN Y OPERACIONES CRUD FUNCIONANDO CORRECTAMENTE.");
 
         } catch (Exception e) {
-            System.out.println("\n❌ ERROR: no se pudo completar la prueba.");
+            System.out.println("\nERROR: no se pudo completar la prueba.");
             e.printStackTrace();
         }
     }

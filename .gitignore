@@ -6,3 +6,7 @@ node_modules/
 # Backend Java (Maven)
 backend/target/
 *.class
+
+.idea/
+out/
+*.iml
