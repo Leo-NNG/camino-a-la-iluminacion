@@ -165,110 +165,123 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 25);
   });
 
-  /* ---------- formulario de registro ---------- */
-  const formRegistro = document.getElementById('form-registro');
-  if (formRegistro) {
-    formRegistro.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const campos = {
-        nombre: document.getElementById('reg-nombre'),
-        correo: document.getElementById('reg-correo'),
-        telefono: document.getElementById('reg-telefono'),
-        clave: document.getElementById('reg-clave'),
-        clave2: document.getElementById('reg-clave2')
-      };
-      const terminos = document.getElementById('reg-terminos');
-      const alerta = document.getElementById('alerta-registro');
-      let valido = true;
-      alerta.className = 'alerta-auth';
+  /* ---------- formulario de registro (Conectado a MySQL via Servlet) ---------- */
+    const formRegistro = document.getElementById('form-registro');
+    if (formRegistro) {
+      formRegistro.addEventListener('submit', (e) => {
+        e.preventDefault();
 
-      Object.values(campos).forEach((c) => c.closest('.campo').classList.remove('con-error'));
+        const campos = {
+          nombre: document.getElementById('reg-nombre'),
+          correo: document.getElementById('reg-correo'),
+          telefono: document.getElementById('reg-telefono'),
+          clave: document.getElementById('reg-clave'),
+          clave2: document.getElementById('reg-clave2')
+        };
+        const terminos = document.getElementById('reg-terminos');
+        const alerta = document.getElementById('alerta-registro');
+        let valido = true;
+        alerta.className = 'alerta-auth';
 
-      if (!campos.nombre.value.trim()) { marcarError(campos.nombre); valido = false; }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(campos.correo.value.trim())) { marcarError(campos.correo); valido = false; }
-      if (!/^[0-9]{7,9}$/.test(campos.telefono.value.trim())) { marcarError(campos.telefono); valido = false; }
-      if (campos.clave.value.length < 6) { marcarError(campos.clave); valido = false; }
-      if (campos.clave2.value !== campos.clave.value || !campos.clave2.value) { marcarError(campos.clave2); valido = false; }
-      if (!terminos.checked) valido = false;
+        Object.values(campos).forEach((c) => c.closest('.campo').classList.remove('con-error'));
 
-      if (!valido) {
-        alerta.textContent = 'Revisa los campos marcados: todos son obligatorios y deben ser válidos.';
-        alerta.classList.add('visible', 'error');
-        return;
-      }
+        if (!campos.nombre.value.trim()) { marcarError(campos.nombre); valido = false; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(campos.correo.value.trim())) { marcarError(campos.correo); valido = false; }
+        if (!/^[0-9]{7,9}$/.test(campos.telefono.value.trim())) { marcarError(campos.telefono); valido = false; }
+        if (campos.clave.value.length < 6) { marcarError(campos.clave); valido = false; }
+        if (campos.clave2.value !== campos.clave.value || !campos.clave2.value) { marcarError(campos.clave2); valido = false; }
+        if (!terminos.checked) valido = false;
 
-      const usuarios = obtenerUsuarios();
-      if (usuarios.some((u) => u.correo === campos.correo.value.trim().toLowerCase())) {
-        alerta.textContent = 'Ya existe una cuenta registrada con ese correo.';
-        alerta.classList.add('visible', 'error');
-        return;
-      }
+        if (!valido) {
+          alerta.textContent = 'Revisa los campos marcados: todos son obligatorios y deben ser válidos.';
+          alerta.classList.add('visible', 'error');
+          return;
+        }
 
-      const nuevoUsuario = {
-        nombre: campos.nombre.value.trim(),
-        correo: campos.correo.value.trim().toLowerCase(),
-        telefono: campos.telefono.value.trim(),
-        clave: campos.clave.value,
-        ubicacion: null
-      };
-      usuarios.push(nuevoUsuario);
-      guardarUsuarios(usuarios);
-      iniciarSesion(nuevoUsuario);
+        alerta.textContent = 'Guardando usuario en la base de datos...';
+        alerta.classList.add('visible', 'exito');
 
-      alerta.textContent = 'Cuenta creada. Solicitando tu ubicación para mostrarte las iglesias más cercanas…';
-      alerta.classList.add('visible', 'exito');
+        // Preparamos los datos para enviarlos al Servlet RegistroServlet (/api/registro)
+        const datos = new URLSearchParams();
+        datos.append('nombre', campos.nombre.value.trim());
+        datos.append('apellido', ''); // Si tu formulario no pide apellido por separado, lo mandamos vacío o ajustas el input
+        datos.append('correo', campos.correo.value.trim().toLowerCase());
+        datos.append('telefono', campos.telefono.value.trim());
+        datos.append('contrasena', campos.clave.value);
+        datos.append('ubicacion', 'Chiclayo'); // Ubicación por defecto para la demo
 
-      pedirUbicacion(
-        (lat, lng) => {
-          nuevoUsuario.ubicacion = { lat, lng };
-          iniciarSesion(nuevoUsuario);
-          const lista = obtenerUsuarios().map((u) => u.correo === nuevoUsuario.correo ? nuevoUsuario : u);
-          guardarUsuarios(lista);
-          setTimeout(() => window.location.href = 'mapa.html', 900);
-        },
-        () => setTimeout(() => window.location.href = 'mapa.html', 900)
-      );
-    });
-  }
+        fetch('/api/registro', {
+            method: 'POST',
+            body: datos
+        })
+        .then(response => {
+            if (response.ok) {
+                alerta.textContent = '¡Cuenta creada y guardada en MySQL con éxito!';
+                setTimeout(() => window.location.href = 'login.html', 1200);
+            } else {
+                alerta.textContent = 'Error al registrar la cuenta en el servidor.';
+                alerta.className = 'alerta-auth visible error';
+            }
+        })
+        .catch(error => {
+            console.error("Error en la petición:", error);
+            alerta.textContent = 'Error de conexión con el servidor Java.';
+            alerta.className = 'alerta-auth visible error';
+        });
+      });
+    }
 
   function marcarError(campo) { campo.closest('.campo').classList.add('con-error'); }
 
-  /* ---------- formulario de login ---------- */
-  const formLogin = document.getElementById('form-login');
-  if (formLogin) {
-    formLogin.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const correo = document.getElementById('log-correo');
-      const clave = document.getElementById('log-clave');
-      const alerta = document.getElementById('alerta-login');
-      let valido = true;
-      [correo, clave].forEach((c) => c.closest('.campo').classList.remove('con-error'));
+  /* ---------- formulario de login (Conectado a MySQL via Servlet) ---------- */
+    const formLogin = document.getElementById('form-login');
+    if (formLogin) {
+      formLogin.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const correo = document.getElementById('log-correo');
+        const clave = document.getElementById('log-clave');
+        const alerta = document.getElementById('alerta-login');
+        let valido = true;
+        [correo, clave].forEach((c) => c.closest('.campo').classList.remove('con-error'));
 
-      if (!correo.value.trim()) { marcarError(correo); valido = false; }
-      if (!clave.value.trim()) { marcarError(clave); valido = false; }
+        if (!correo.value.trim()) { marcarError(correo); valido = false; }
+        if (!clave.value.trim()) { marcarError(clave); valido = false; }
 
-      if (!valido) {
-        alerta.textContent = 'Completa correo y contraseña para continuar.';
-        alerta.className = 'alerta-auth visible error';
-        return;
-      }
+        if (!valido) {
+          alerta.textContent = 'Completa correo y contraseña para continuar.';
+          alerta.className = 'alerta-auth visible error';
+          return;
+        }
 
-      const usuario = obtenerUsuarios().find(
-        (u) => u.correo === correo.value.trim().toLowerCase() && u.clave === clave.value
-      );
+        const datos = new URLSearchParams();
+        datos.append('correo', correo.value.trim().toLowerCase());
+        datos.append('contrasena', clave.value);
 
-      if (!usuario) {
-        alerta.textContent = 'Correo o contraseña incorrectos.';
-        alerta.className = 'alerta-auth visible error';
-        return;
-      }
+        fetch('/api/login', {
+            method: 'POST',
+            body: datos
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.exito) {
+                // Guardamos los datos básicos en el localStorage del navegador solo para pintar el saludo ("Hola, [Nombre]")
+                iniciarSesion({ nombre: data.nombre, rol: data.rol, correo: correo.value.trim() });
 
-      iniciarSesion(usuario);
-      const params = new URLSearchParams(window.location.search);
-      const siguiente = params.get('next') || 'reservas.html';
-      window.location.href = siguiente;
-    });
-  }
+                const params = new URLSearchParams(window.location.search);
+                const siguiente = params.get('next') || 'reservas.html';
+                window.location.href = siguiente;
+            } else {
+                alerta.textContent = data.error || 'Correo o contraseña incorrectos.';
+                alerta.className = 'alerta-auth visible error';
+            }
+        })
+        .catch(error => {
+            console.error("Error en la petición:", error);
+            alerta.textContent = 'Error de conexión con el servidor Java.';
+            alerta.className = 'alerta-auth visible error';
+        });
+      });
+    }
 
   /* ---------- formulario de reserva (stepper) ---------- */
   const formReserva = document.getElementById('form-reserva');
@@ -315,12 +328,44 @@ document.addEventListener('DOMContentLoaded', () => {
     mostrarPaso(0);
 
     formReserva.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const mensaje = document.getElementById('mensaje-reserva');
-      mensaje.classList.add('visible');
-      mensaje.textContent = 'Solicitud registrada (simulación). En la versión final esto quedará guardado en la base de datos de la parroquia.';
-      formReserva.querySelector('button[type="submit"]').setAttribute('disabled', 'true');
-    });
+          e.preventDefault();
+
+          const mensaje = document.getElementById('mensaje-reserva');
+          mensaje.textContent = 'Enviando a la base de datos...';
+          mensaje.classList.add('visible');
+          const botonSubmit = formReserva.querySelector('button[type="submit"]');
+          botonSubmit.setAttribute('disabled', 'true');
+
+          // 1. Capturar los datos del formulario HTML
+          const datos = new URLSearchParams();
+          // Asegúrate de que los IDs coincidan con los de tu HTML (reservas.html)
+          datos.append('sacramento', document.getElementById('sacramento').value);
+          datos.append('nombre_solicitante', document.getElementById('nombre').value);
+          datos.append('fecha', document.getElementById('fecha').value);
+          datos.append('notas', document.getElementById('notas').value);
+
+          // 2. Enviar los datos al Servlet de Java
+          fetch('/api/reservas', {
+              method: 'POST',
+              body: datos
+          })
+          .then(respuesta => {
+              if (respuesta.ok) {
+                  mensaje.textContent = '¡Éxito! Tu reserva ya está guardada en MySQL.';
+                  mensaje.style.color = "green";
+              } else {
+                  mensaje.textContent = 'Error al guardar la reserva en el servidor.';
+                  mensaje.style.color = "red";
+              }
+          })
+          .catch(error => {
+              console.error("Error en la petición:", error);
+              mensaje.textContent = 'Error de conexión con el servidor Java.';
+          })
+          .finally(() => {
+              botonSubmit.removeAttribute('disabled');
+          });
+        });
   }
 
   /* ---------- zona de carga de documentos ---------- */
@@ -632,3 +677,38 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tramites-iglesia').textContent = iglesia.tramites;
   }
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Consultamos el endpoint del Servlet administrador que creamos
+    fetch('/api/admin/reservas')
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('tabla-documentos-admin');
+
+            if (!tbody) return;
+
+            // Limpiamos la tabla por si tuviera datos estáticos
+            tbody.innerHTML = '';
+
+            // 2. Recorremos las reservas reales obtenidas de MySQL
+            data.forEach(reserva => {
+                const fila = document.createElement('tr');
+
+                fila.innerHTML = `
+                    <td>${reserva.nombreSolicitante}</td>
+                    <td>Solicitud de Sacramento</td>
+                    <td>${reserva.sacramento}</td>
+                    <td>${reserva.fecha}</td>
+                    <td><span class="badge-${reserva.estado}">${reserva.estado}</span></td>
+                    <td>
+                        <button class="boton-aprobar" onclick="alert('Acción de aprobar para ID: ${reserva.id}')">Aprobar</button>
+                        <button class="boton-rechazar" onclick="alert('Acción de rechazar para ID: ${reserva.id}')">Rechazar</button>
+                    </td>
+                `;
+
+                tbody.appendChild(fila);
+            });
+        })
+        .catch(error => console.error("Error al cargar las reservas del administrador:", error));
+});
+

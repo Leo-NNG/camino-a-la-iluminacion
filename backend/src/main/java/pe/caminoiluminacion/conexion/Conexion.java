@@ -37,6 +37,12 @@ public class Conexion {
      * (idealmente con try-with-resources, como se hace en los DAO).
      */
     public static Connection obtener() throws SQLException {
+        try {
+            // Registramos explícitamente el Driver para que Tomcat lo reconozca
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new SQLException("No se encontró el driver de MySQL: " + e.getMessage(), e);
+        }
         return DriverManager.getConnection(URL, USUARIO, CONTRASENA);
     }
 }
