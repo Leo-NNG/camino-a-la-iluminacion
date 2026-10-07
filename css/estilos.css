@@ -838,3 +838,6 @@ h1, h2, h3 {
 @media (max-width: 600px) {
   .toast-contenedor { right: 10px; left: 10px; max-width: none; }
 }
+
+/* Páginas protegidas por rol: se muestran solo cuando el servidor confirma la sesión (ver aplicarGuarda en main.js) */
+body[data-requiere-rol]:not(.sesion-ok) { visibility: hidden; }

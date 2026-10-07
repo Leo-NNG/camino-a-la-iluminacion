@@ -31,8 +31,34 @@ public class AvisoDAOImpl implements AvisoDAO {
     }
 
     @Override
+    public java.util.Optional<Aviso> buscarPorId(int idAviso) throws SQLException {
+        String sql = "SELECT * FROM aviso WHERE id_aviso = ?";
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idAviso);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? java.util.Optional.of(mapear(rs)) : java.util.Optional.empty();
+            }
+        }
+    }
+
+    @Override
+    public List<Aviso> listarUrgentesRecientes(int limite) throws SQLException {
+        String sql = "SELECT * FROM aviso WHERE urgente = TRUE ORDER BY publicado_en DESC, id_aviso DESC LIMIT ?";
+        List<Aviso> lista = new ArrayList<>();
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, limite);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) lista.add(mapear(rs));
+            }
+        }
+        return lista;
+    }
+
+    @Override
     public List<Aviso> listarPorParroquia(int idParroquia) throws SQLException {
-        String sql = "SELECT * FROM aviso WHERE id_parroquia = ? ORDER BY publicado_en DESC";
+        String sql = "SELECT * FROM aviso WHERE id_parroquia = ? ORDER BY publicado_en DESC, id_aviso DESC";
         List<Aviso> lista = new ArrayList<>();
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {

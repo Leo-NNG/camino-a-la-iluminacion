@@ -28,6 +28,7 @@ USE camino_iluminacion;
 -- ----------------------------------------------------------------------------
 CREATE TABLE usuario (
   id_usuario        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  dni               CHAR(8)      NOT NULL COMMENT 'Documento de identidad (8 dígitos): es la credencial de acceso',
   nombre            VARCHAR(80)  NOT NULL,
   apellido          VARCHAR(80)  NOT NULL,
   correo            VARCHAR(120) NOT NULL,
@@ -35,9 +36,12 @@ CREATE TABLE usuario (
   contrasena_hash   VARCHAR(255) NOT NULL,
   rol               ENUM('feligres', 'administrador') NOT NULL DEFAULT 'feligres',
   ubicacion         VARCHAR(150) NULL COMMENT 'Distrito o referencia de ubicación del feligrés',
+  id_parroquia      INT UNSIGNED NULL COMMENT 'Solo para personal (administrador): parroquia que gestiona',
   creado_en         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-  CONSTRAINT uq_usuario_correo UNIQUE (correo)
+  CONSTRAINT uq_usuario_dni    UNIQUE (dni),
+  CONSTRAINT uq_usuario_correo UNIQUE (correo),
+  CONSTRAINT ck_usuario_dni    CHECK (dni REGEXP '^[0-9]{8}$')
 ) ENGINE=InnoDB;
 
 -- ----------------------------------------------------------------------------
@@ -50,8 +54,17 @@ CREATE TABLE parroquia (
   latitud                 DECIMAL(9,6) NULL,
   longitud                DECIMAL(9,6) NULL,
   sacramentos_disponibles VARCHAR(255) NULL COMMENT 'Lista separada por comas, ej: Bautizo,Matrimonio',
+  foto_url                VARCHAR(255) NULL COMMENT 'Foto exterior (URL)',
+  foto_interior_url       VARCHAR(255) NULL COMMENT 'Foto interior (URL)',
+  horario_tramites        VARCHAR(255) NULL COMMENT 'Texto libre: cuándo y dónde se atienden los trámites',
   creado_en               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
+-- El personal (administrador) pertenece a una parroquia; los feligreses no (NULL).
+ALTER TABLE usuario
+  ADD CONSTRAINT fk_usuario_parroquia FOREIGN KEY (id_parroquia)
+    REFERENCES parroquia (id_parroquia)
+    ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- ----------------------------------------------------------------------------
 -- HORARIO
@@ -99,6 +112,7 @@ CREATE TABLE reserva (
   fecha_solicitada   DATE NOT NULL,
   notas              TEXT NULL,
   estado             ENUM('pendiente','confirmada','rechazada') NOT NULL DEFAULT 'pendiente',
+  motivo_rechazo     VARCHAR(255) NULL COMMENT 'Lo escribe el personal al rechazar; el feligrés lo ve en Mis solicitudes',
   creado_en          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_reserva_usuario FOREIGN KEY (id_usuario)
@@ -123,6 +137,8 @@ CREATE TABLE documento (
   ruta_archivo         VARCHAR(255) NOT NULL,
   estado_validacion    ENUM('pendiente','validado','rechazado') NOT NULL DEFAULT 'pendiente',
   motivo_rechazo       VARCHAR(255) NULL,
+  tipo_mime            VARCHAR(50)  NOT NULL DEFAULT 'application/pdf' COMMENT 'application/pdf, image/jpeg o image/png (detectado por contenido)',
+  tamano_bytes         INT UNSIGNED NULL,
   fecha_envio          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   fecha_validacion     TIMESTAMP NULL,
 
@@ -148,25 +164,51 @@ CREATE INDEX idx_horario_parroquia    ON horario (id_parroquia, dia_semana);
 -- el sistema con información real y consistente entre el prototipo y la BD.
 -- ============================================================================
 
-INSERT INTO parroquia (nombre, direccion, latitud, longitud, sacramentos_disponibles) VALUES
-  ('Parroquia San José', 'Av. Los Álamos 245, distrito de ejemplo', -12.046374, -77.042793, 'Bautizo,Matrimonio,Primera Comunión'),
-  ('Parroquia Santa Fe', 'Jr. Las Magnolias 118, distrito de ejemplo', -12.052000, -77.036000, 'Bautizo,Confirmación'),
-  ('Parroquia Nuestra Señora del Carmen', 'Calle Los Cipreses 340, distrito de ejemplo', -12.041000, -77.050000, 'Matrimonio,Primera Comunión,Confirmación'),
-  ('Capilla Sagrado Corazón', 'Av. Central 89, distrito de ejemplo', -12.058000, -77.045000, 'Bautizo');
+-- Parroquias de ejemplo (Chiclayo): son la ÚNICA fuente de datos del mapa, las fichas, el selector de reservas, los horarios y los avisos.
+INSERT INTO parroquia (nombre, direccion, latitud, longitud, sacramentos_disponibles, foto_url, foto_interior_url, horario_tramites) VALUES
+  ('Parroquia San José', 'Av. Los Álamos 245, Chiclayo', -6.7701, -79.8380, 'Bautizo,Matrimonio,Primera Comunión', 'https://images.pexels.com/photos/3025593/pexels-photo-3025593.jpeg?auto=compress&cs=tinysrgb&w=900', 'https://images.pexels.com/photos/7520352/pexels-photo-7520352.jpeg?auto=compress&cs=tinysrgb&w=900', 'Lunes a viernes, 9:00 a.m. a 1:00 p.m., oficina parroquial.'),
+  ('Parroquia Santa Fe', 'Calle Real 512, Chiclayo', -6.7620, -79.8450, 'Bautizo,Confirmación', 'https://images.pexels.com/photos/5139675/pexels-photo-5139675.jpeg?cs=tinysrgb&w=900', 'https://images.pexels.com/photos/208277/pexels-photo-208277.jpeg?auto=compress&cs=tinysrgb&w=900', 'Martes y jueves, 3:00 p.m. a 6:00 p.m., casa parroquial.'),
+  ('Parroquia Nuestra Señora del Carmen', 'Jr. Las Palmeras 88, Chiclayo', -6.7800, -79.8300, 'Matrimonio,Primera Comunión,Confirmación', 'https://images.pexels.com/photos/18750283/pexels-photo-18750283/free-photo-of-photo-of-a-small-church-and-palm-trees.jpeg?cs=tinysrgb&w=900', 'https://images.pexels.com/photos/9153530/pexels-photo-9153530.jpeg?auto=compress&cs=tinysrgb&w=900', 'Lunes a sábado, 10:00 a.m. a 1:00 p.m.'),
+  ('Capilla Sagrado Corazón', 'Av. Grau 1420, Chiclayo', -6.7550, -79.8500, 'Bautizo', 'https://images.pexels.com/photos/19623130/pexels-photo-19623130/free-photo-of-exterior-of-a-church.jpeg?auto=compress&cs=tinysrgb&w=900', 'https://images.pexels.com/photos/27872483/pexels-photo-27872483/free-photo-of-a-church-with-a-cross-in-the-middle-of-it.jpeg?auto=compress&cs=tinysrgb&w=900', 'Solo domingos, 9:00 a.m. a 10:00 a.m., a la entrada de la capilla.');
 
 INSERT INTO horario (id_parroquia, dia_semana, hora, tipo) VALUES
-  (1, 'lunes',    '7:00 a.m. y 7:00 p.m.', 'misa'),
-  (1, 'sabado',   '8:00 a.m. y 6:00 p.m. (vigilia)', 'misa'),
-  (1, 'domingo',  '7:00 a.m., 9:00 a.m., 11:00 a.m. y 7:00 p.m.', 'misa'),
-  (1, 'martes',   'Catequesis de Primera Comunión — 5:00 p.m.', 'actividad'),
-  (1, 'jueves',   'Grupo de oración — 7:30 p.m.', 'actividad');
+  (1, 'lunes', '7:00 a.m. y 7:00 p.m.', 'misa'),
+  (1, 'martes', '7:00 a.m. y 7:00 p.m.', 'misa'),
+  (1, 'miercoles', '7:00 a.m. y 7:00 p.m.', 'misa'),
+  (1, 'jueves', '7:00 a.m. y 7:00 p.m.', 'misa'),
+  (1, 'viernes', '7:00 a.m. y 7:00 p.m.', 'misa'),
+  (1, 'sabado', '8:00 a.m. y 6:00 p.m.', 'misa'),
+  (1, 'domingo', '7, 9, 11 a.m. y 7 p.m.', 'misa'),
+  (1, 'martes', 'Catequesis de Primera Comunión — 5:00 p.m.', 'actividad'),
+  (1, 'jueves', 'Grupo de oración — 7:30 p.m.', 'actividad'),
+  (2, 'lunes', '6:30 a.m. y 6:30 p.m.', 'misa'),
+  (2, 'martes', '6:30 a.m. y 6:30 p.m.', 'misa'),
+  (2, 'miercoles', '6:30 a.m. y 6:30 p.m.', 'misa'),
+  (2, 'jueves', '6:30 a.m. y 6:30 p.m.', 'misa'),
+  (2, 'viernes', '6:30 a.m. y 6:30 p.m.', 'misa'),
+  (2, 'sabado', '5:00 p.m. (vigilia)', 'misa'),
+  (2, 'domingo', '8, 10 a.m. y 6 p.m.', 'misa'),
+  (2, 'miercoles', 'Catequesis de Confirmación — 6:00 p.m.', 'actividad'),
+  (3, 'lunes', '7:30 a.m.', 'misa'),
+  (3, 'martes', '7:30 a.m.', 'misa'),
+  (3, 'miercoles', '7:30 a.m.', 'misa'),
+  (3, 'jueves', '7:30 a.m.', 'misa'),
+  (3, 'viernes', '7:30 a.m.', 'misa'),
+  (3, 'sabado', '6:00 p.m.', 'misa'),
+  (3, 'domingo', '9 a.m., 12 p.m. y 7 p.m.', 'misa'),
+  (3, 'viernes', 'Rosario y exposición del Santísimo — 5:30 p.m.', 'actividad'),
+  (4, 'sabado', '4:00 p.m.', 'misa'),
+  (4, 'domingo', '10:00 a.m.', 'misa'),
+  (4, 'sabado', 'Charla de preparación para bautizos comunitarios — 3:00 p.m.', 'actividad');
 
-INSERT INTO usuario (nombre, apellido, correo, telefono, contrasena_hash, rol) VALUES
-  ('María',   'Fernández', 'maria.fernandez@example.com', '999111222', '$2y$10$reemplazar_por_hash_real', 'feligres'),
-  ('Jorge',   'Ramírez',   'jorge.ramirez@example.com',   '999333444', '$2y$10$reemplazar_por_hash_real', 'feligres'),
-  ('Lucía',   'Vega',      'lucia.vega@example.com',      '999444555', '$2y$10$reemplazar_por_hash_real', 'feligres'),
-  ('Ana',     'Torres',    'ana.torres@example.com',      '999555666', '$2y$10$reemplazar_por_hash_real', 'feligres'),
-  ('Personal','Parroquial','admin@caminoiluminacion.pe',  NULL,        '$2y$10$reemplazar_por_hash_real', 'administrador');
+-- Usuarios de DEMOSTRACIÓN. Contraseña de todos: Demo1234  (cámbiala antes de cualquier uso real).
+-- DNI de ejemplo ficticios. El administrador gestiona la parroquia 1 (San José).
+INSERT INTO usuario (dni, nombre, apellido, correo, telefono, contrasena_hash, rol, id_parroquia) VALUES
+  ('70000001', 'María',   'Fernández', 'maria.fernandez@example.com', '999111222', 'pbkdf2$120000$siMdRnNa8EYp3SuZXCNGSg==$k8pV0urFl7dy5jRq9Zm8mfyW05HCi9BOBpXGt6kDN4I=', 'feligres', NULL),
+  ('70000002', 'Jorge',   'Ramírez',   'jorge.ramirez@example.com',   '999333444', 'pbkdf2$120000$dEaKG+4XMNm2PUfKungeog==$OJguo69V8mjkQ+BAYmc2PJOgiplAhp/NhQQs0G7ec80=', 'feligres', NULL),
+  ('70000003', 'Lucía',   'Vega',      'lucia.vega@example.com',      '999444555', 'pbkdf2$120000$SXa6PWdCY4Zlg2WtAyoKeQ==$zXRsz1OKKig2WriBgPEtXB3veiYz1sRZH0oh62I6hpU=', 'feligres', NULL),
+  ('70000004', 'Ana',     'Torres',    'ana.torres@example.com',      '999555666', 'pbkdf2$120000$byLs4hEE6LEycXPyeMUJnQ==$ixaXvIe8ZMZMENYSHHKjRtKC1MHt+Ws6+eA/ZX1atMs=', 'feligres', NULL),
+  ('70000000', 'Personal','Parroquial','admin@caminoiluminacion.pe',  NULL,        'pbkdf2$120000$LbWUqcwLOoD2j3jVkDkxNg==$3xLosli1Uuanpb1KJVTjEbql6SoJWn+AkuPHI6+IEvU=', 'administrador', 1);
 
 INSERT INTO reserva (id_usuario, id_parroquia, sacramento, nombre_solicitante, fecha_solicitada, estado) VALUES
   (1, 1, 'bautizo',           'María Fernández',    '2026-09-12', 'confirmada'),
@@ -174,14 +216,12 @@ INSERT INTO reserva (id_usuario, id_parroquia, sacramento, nombre_solicitante, f
   (3, 1, 'matrimonio',        'Lucía y Pedro Vega', '2026-09-20', 'pendiente'),
   (4, 1, 'primera_comunion',  'Ana Torres',         '2026-09-22', 'pendiente');
 
-INSERT INTO documento (id_reserva, id_usuario, nombre_archivo, ruta_archivo, estado_validacion) VALUES
-  (1, 1, 'partida_nacimiento_maria.pdf',   '/uploads/doc1.pdf', 'validado'),
-  (2, 2, 'dni_padrino_jorge.pdf',          '/uploads/doc2.pdf', 'pendiente'),
-  (3, 3, 'certificado_prematrimonial.pdf', '/uploads/doc3.pdf', 'pendiente'),
-  (4, 4, 'constancia_catequesis_ana.pdf',  '/uploads/doc4.pdf', 'pendiente');
+-- (Sin documentos de ejemplo: ahora los archivos se suben de verdad desde la página "Mis documentos".)
 
 INSERT INTO aviso (id_parroquia, titulo, descripcion, tipo, urgente, fecha_evento) VALUES
-  (1, 'Cambio de horario — misa de la tarde', 'Por mantenimiento del templo, la misa de las 7:00 p.m. del viernes se traslada a las 6:00 p.m.', 'cambio_horario', TRUE, '2026-08-29'),
-  (1, 'Inicio de novena', 'Comienza la novena en honor a la Virgen, todos los días a las 7:00 p.m. en la capilla lateral.', 'celebracion', FALSE, '2026-09-01'),
-  (1, 'Vigilia de oración', 'Vigilia nocturna desde las 9:00 p.m. hasta la misa de las 6:00 a.m. del sábado.', 'vigilia', FALSE, '2026-09-05'),
-  (1, 'Ayuno y abstinencia', 'Jornada de ayuno y abstinencia. La parroquia atenderá confesiones de 4:00 p.m. a 6:00 p.m.', 'ayuno', TRUE, '2026-09-14');
+  (1, 'Cambio de horario — misa de la tarde', 'Por mantenimiento del templo, la misa de las 7:00 p.m. del viernes se traslada a las 6:00 p.m.', 'cambio_horario', TRUE, '2026-10-09'),
+  (1, 'Inicio de novena', 'Comienza la novena en honor a la Virgen, todos los días a las 7:00 p.m. en la capilla lateral.', 'celebracion', FALSE, '2026-10-12'),
+  (1, 'Vigilia de oración', 'Vigilia nocturna desde las 9:00 p.m. hasta la misa de las 6:00 a.m. del sábado.', 'vigilia', FALSE, '2026-10-17'),
+  (1, 'Ayuno y abstinencia', 'Jornada de ayuno y abstinencia. La parroquia atenderá confesiones de 4:00 p.m. a 6:00 p.m.', 'ayuno', TRUE, '2026-10-23'),
+  (2, 'Inscripciones a Confirmación', 'Están abiertas las inscripciones para el grupo de Confirmación. Atención en la casa parroquial, martes y jueves.', 'otro', FALSE, '2026-10-20'),
+  (3, 'Fiesta patronal', 'Misa solemne y procesión de la imagen de la Virgen del Carmen por las calles aledañas.', 'celebracion', FALSE, '2026-10-25');

@@ -6,9 +6,9 @@
 <title>Panel administrador — Publicar aviso</title>
 <link rel="stylesheet" href="../../css/estilos.css">
 </head>
-<body>
+<body data-requiere-rol="administrador">
 
-<div class="franja-admin">Panel de personal parroquial — Parroquia San José · <a href="../../index.html">Salir del panel</a> · <button type="button" id="reiniciar-demo" class="enlace-franja">Reiniciar datos de demostración</button></div>
+<div class="franja-admin">Panel de personal parroquial — <span id="franja-parroquia">tu parroquia</span> · <a href="../../index.html">Ver el sitio público</a></div>
 
 <header class="sitio-header">
   <nav class="barra-nav">
@@ -32,7 +32,7 @@
       <div class="encabezado-seccion">
         <p class="eyebrow">Comunicación oficial</p>
         <h1>Publicar un aviso</h1>
-        <p style="color:var(--color-ink-soft)">Este aviso aparecerá de inmediato en la app de los feligreses.</p>
+        <p style="color:var(--color-ink-soft)">El aviso se publica en tu parroquia y lo ven de inmediato los feligreses.</p>
       </div>
 
       <form class="formulario" id="form-aviso">
@@ -40,17 +40,18 @@
           <label for="tipo-aviso">Tipo de aviso</label>
           <select id="tipo-aviso" required>
             <option value="">Selecciona un tipo</option>
-            <option>Cambio de horario</option>
-            <option>Santa Cena</option>
-            <option>Ayuno y abstinencia</option>
-            <option>Vigilia</option>
-            <option>Celebración especial</option>
+            <option value="cambio_horario">Cambio de horario</option>
+            <option value="santa_cena">Santa Cena</option>
+            <option value="ayuno">Ayuno y abstinencia</option>
+            <option value="vigilia">Vigilia</option>
+            <option value="celebracion">Celebración especial</option>
+            <option value="otro">Otro</option>
           </select>
         </div>
 
         <div class="campo">
           <label for="titulo-aviso">Título</label>
-          <input type="text" id="titulo-aviso" placeholder="Ej. Vigilia de oración" required>
+          <input type="text" id="titulo-aviso" maxlength="150" placeholder="Ej. Vigilia de oración" required>
         </div>
 
         <div class="campo">
@@ -60,7 +61,7 @@
 
         <div class="campo">
           <label for="descripcion-aviso">Descripción</label>
-          <textarea id="descripcion-aviso" rows="4" placeholder="Detalle que verán los feligreses" required></textarea>
+          <textarea id="descripcion-aviso" rows="4" maxlength="2000" placeholder="Detalle que verán los feligreses" required></textarea>
         </div>
 
         <div class="campo" style="display:flex;align-items:center;gap:8px;">
@@ -71,6 +72,17 @@
         <button type="submit" class="boton boton-primario">Publicar aviso</button>
         <div class="mensaje-confirmacion" id="mensaje-aviso"></div>
       </form>
+
+      <h2 style="margin-top:48px;">Avisos publicados</h2>
+      <div class="tabla-scroll">
+        <table class="tabla-tramites">
+          <thead>
+            <tr><th>Fecha</th><th>Título</th><th>Tipo</th><th>Acción</th></tr>
+          </thead>
+          <tbody id="tabla-avisos-admin"></tbody>
+        </table>
+      </div>
+      <p id="nota-avisos-admin" style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;"></p>
     </div>
   </section>
 </main>

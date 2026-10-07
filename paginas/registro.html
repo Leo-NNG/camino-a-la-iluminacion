@@ -37,14 +37,24 @@
 
       <form id="form-registro" novalidate>
         <div class="campo">
-          <label for="reg-nombre">Nombre completo</label>
-          <input type="text" id="reg-nombre" name="nombre" placeholder="Ej. María Fernández">
-          <span class="error-campo">Ingresa tu nombre completo.</span>
+          <label for="reg-nombre">Nombres</label>
+          <input type="text" id="reg-nombre" name="nombre" maxlength="80" autocomplete="given-name" placeholder="Ej. María José">
+          <span class="error-campo">Ingresa tus nombres (solo letras).</span>
+        </div>
+        <div class="campo">
+          <label for="reg-apellido">Apellidos</label>
+          <input type="text" id="reg-apellido" name="apellido" maxlength="80" autocomplete="family-name" placeholder="Ej. Fernández Núñez">
+          <span class="error-campo">Ingresa tus apellidos (solo letras).</span>
+        </div>
+        <div class="campo">
+          <label for="reg-dni">DNI</label>
+          <input type="text" id="reg-dni" name="dni" inputmode="numeric" maxlength="8" data-solo-digitos placeholder="8 dígitos">
+          <span class="error-campo">El DNI debe tener exactamente 8 dígitos.</span>
         </div>
         <div class="campo">
           <label for="reg-correo">Correo electrónico</label>
           <input type="email" id="reg-correo" name="correo" placeholder="tucorreo@ejemplo.com">
-          <span class="error-campo">Ingresa un correo válido.</span>
+          <span class="error-campo">Ingresa un correo válido (lo usaremos para avisarte de tus trámites).</span>
         </div>
         <div class="campo">
           <label for="reg-telefono">Teléfono</label>

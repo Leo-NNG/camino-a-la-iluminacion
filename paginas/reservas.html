@@ -5,14 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Camino a la Iluminación — Reservar sacramento</title>
 <link rel="stylesheet" href="../css/estilos.css">
-<script>
-  // Protección de ruta: si no hay sesión iniciada, redirige al login.
-  if (!localStorage.getItem('cai_sesion')) {
-    window.location.replace('login.html?next=reservas.html');
-  }
-</script>
 </head>
-<body>
+<body data-requiere-rol="feligres">
 
 <header class="sitio-header">
   <nav class="barra-nav">
@@ -66,10 +60,6 @@
             <label for="parroquia">Parroquia</label>
             <select id="parroquia" required>
               <option value="">Selecciona una parroquia</option>
-              <option>Parroquia San José</option>
-              <option>Parroquia Santa Fe</option>
-              <option>Parroquia Nuestra Señora del Carmen</option>
-              <option>Capilla Sagrado Corazón</option>
             </select>
           </div>
           <div class="campo">
@@ -100,6 +90,32 @@
 
         <div class="mensaje-confirmacion" id="mensaje-reserva"></div>
       </form>
+    </div>
+  </section>
+
+  <section class="seccion" id="mis-solicitudes">
+    <div class="envolvente">
+      <div class="encabezado-seccion">
+        <p class="eyebrow">Seguimiento</p>
+        <h2>Mis solicitudes</h2>
+        <p style="color:var(--color-ink-soft)">Aquí ves si la parroquia confirmó o rechazó cada solicitud. Si fue rechazada, verás el motivo.</p>
+      </div>
+      <div class="tabla-scroll">
+        <table class="tabla-tramites">
+          <thead>
+            <tr>
+              <th>Sacramento</th>
+              <th>Parroquia</th>
+              <th>Solicitante</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-mis-reservas"></tbody>
+        </table>
+      </div>
+      <p id="nota-mis-reservas" style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;"></p>
     </div>
   </section>
 </main>

@@ -13,8 +13,8 @@ public class ParroquiaDAOImpl implements ParroquiaDAO {
 
     @Override
     public Parroquia insertar(Parroquia p) throws SQLException {
-        String sql = "INSERT INTO parroquia (nombre, direccion, latitud, longitud, sacramentos_disponibles) "
-                   + "VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO parroquia (nombre, direccion, latitud, longitud, sacramentos_disponibles, "
+                   + "foto_url, foto_interior_url, horario_tramites) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, p.getNombre());
@@ -22,6 +22,9 @@ public class ParroquiaDAOImpl implements ParroquiaDAO {
             ps.setBigDecimal(3, p.getLatitud());
             ps.setBigDecimal(4, p.getLongitud());
             ps.setString(5, p.getSacramentosDisponibles());
+            ps.setString(6, p.getFotoUrl());
+            ps.setString(7, p.getFotoInteriorUrl());
+            ps.setString(8, p.getHorarioTramites());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) p.setIdParroquia(keys.getInt(1));
@@ -56,8 +59,8 @@ public class ParroquiaDAOImpl implements ParroquiaDAO {
 
     @Override
     public boolean actualizar(Parroquia p) throws SQLException {
-        String sql = "UPDATE parroquia SET nombre=?, direccion=?, latitud=?, longitud=?, sacramentos_disponibles=? "
-                   + "WHERE id_parroquia=?";
+        String sql = "UPDATE parroquia SET nombre=?, direccion=?, latitud=?, longitud=?, sacramentos_disponibles=?, "
+                   + "foto_url=?, foto_interior_url=?, horario_tramites=? WHERE id_parroquia=?";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, p.getNombre());
@@ -65,7 +68,10 @@ public class ParroquiaDAOImpl implements ParroquiaDAO {
             ps.setBigDecimal(3, p.getLatitud());
             ps.setBigDecimal(4, p.getLongitud());
             ps.setString(5, p.getSacramentosDisponibles());
-            ps.setInt(6, p.getIdParroquia());
+            ps.setString(6, p.getFotoUrl());
+            ps.setString(7, p.getFotoInteriorUrl());
+            ps.setString(8, p.getHorarioTramites());
+            ps.setInt(9, p.getIdParroquia());
             return ps.executeUpdate() > 0;
         }
     }
@@ -88,6 +94,9 @@ public class ParroquiaDAOImpl implements ParroquiaDAO {
         p.setLatitud(rs.getBigDecimal("latitud"));
         p.setLongitud(rs.getBigDecimal("longitud"));
         p.setSacramentosDisponibles(rs.getString("sacramentos_disponibles"));
+        p.setFotoUrl(rs.getString("foto_url"));
+        p.setFotoInteriorUrl(rs.getString("foto_interior_url"));
+        p.setHorarioTramites(rs.getString("horario_tramites"));
         p.setCreadoEn(rs.getTimestamp("creado_en"));
         return p;
     }

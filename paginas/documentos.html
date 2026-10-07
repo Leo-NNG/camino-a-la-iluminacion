@@ -6,7 +6,7 @@
 <title>Camino a la Iluminación — Mis documentos</title>
 <link rel="stylesheet" href="../css/estilos.css">
 </head>
-<body>
+<body data-requiere-rol="feligres">
 
 <header class="sitio-header">
   <nav class="barra-nav">
@@ -34,10 +34,21 @@
         <h1>Sube tus documentos</h1>
       </div>
 
+      <div class="campo" style="max-width:560px;margin-bottom:20px;">
+        <label for="doc-reserva">¿Para qué solicitud son estos documentos?</label>
+        <select id="doc-reserva">
+          <option value="">Selecciona una solicitud</option>
+        </select>
+        <span class="error-campo">Elige a qué solicitud pertenecen los documentos.</span>
+      </div>
+      <p id="aviso-sin-reservas" style="display:none;color:var(--color-ink-soft);margin-bottom:16px;">
+        Aún no tienes solicitudes activas. <a href="reservas.html">Reserva un sacramento</a> y luego vuelve aquí para enviar tus documentos.
+      </p>
+
       <div class="zona-carga" id="zona-carga" role="button" tabindex="0">
         <strong>Arrastra tus archivos aquí o haz clic para elegirlos</strong>
-        <p style="margin:6px 0 0 0;font-size:.85rem;">PDF o imagen — partida de nacimiento, DNI, certificado de bautismo</p>
-        <input type="file" id="input-archivo" multiple hidden>
+        <p style="margin:6px 0 0 0;font-size:.85rem;">PDF, JPG o PNG, máximo 5 MB por archivo — partida de nacimiento, DNI, certificado de bautismo</p>
+        <input type="file" id="input-archivo" multiple hidden accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">
       </div>
       <ul class="lista-archivos" id="lista-archivos"></ul>
       <div class="mensaje-confirmacion" id="mensaje-documento"></div>

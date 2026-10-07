@@ -10,3 +10,4 @@ backend/target/
 .idea/
 out/
 *.iml
+.smarttomcat/

@@ -31,19 +31,19 @@
     <div class="tarjeta-auth al-aparecer">
       <p class="eyebrow">Acceso de fieles</p>
       <h1>Inicia sesión</h1>
-      <p class="subtexto">Necesitas una cuenta para reservar sacramentos.</p>
+      <p class="subtexto">Ingresa con tu DNI y tu contraseña.</p>
 
       <div class="alerta-auth" id="alerta-login"></div>
 
       <form id="form-login" novalidate>
         <div class="campo">
-          <label for="log-correo">Correo electrónico</label>
-          <input type="email" id="log-correo" placeholder="tucorreo@ejemplo.com">
-          <span class="error-campo">Ingresa tu correo.</span>
+          <label for="log-dni">DNI</label>
+          <input type="text" id="log-dni" name="dni" inputmode="numeric" maxlength="8" autocomplete="username" data-solo-digitos placeholder="8 dígitos">
+          <span class="error-campo">Ingresa tu DNI de 8 dígitos.</span>
         </div>
         <div class="campo">
           <label for="log-clave">Contraseña</label>
-          <input type="password" id="log-clave" placeholder="••••••••">
+          <input type="password" id="log-clave" autocomplete="current-password" placeholder="••••••••">
           <span class="error-campo">Ingresa tu contraseña.</span>
         </div>
         <button type="submit" class="boton boton-primario" style="width:100%;">Ingresar</button>

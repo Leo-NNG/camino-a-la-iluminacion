@@ -13,17 +13,19 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
     @Override
     public Usuario insertar(Usuario u) throws SQLException {
-        String sql = "INSERT INTO usuario (nombre, apellido, correo, telefono, contrasena_hash, rol, ubicacion) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO usuario (dni, nombre, apellido, correo, telefono, contrasena_hash, rol, ubicacion, id_parroquia) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, u.getNombre());
-            ps.setString(2, u.getApellido());
-            ps.setString(3, u.getCorreo());
-            ps.setString(4, u.getTelefono());
-            ps.setString(5, u.getContrasenaHash());
-            ps.setString(6, u.getRol());
-            ps.setString(7, u.getUbicacion());
+            ps.setString(1, u.getDni());
+            ps.setString(2, u.getNombre());
+            ps.setString(3, u.getApellido());
+            ps.setString(4, u.getCorreo());
+            ps.setString(5, u.getTelefono());
+            ps.setString(6, u.getContrasenaHash());
+            ps.setString(7, u.getRol());
+            ps.setString(8, u.getUbicacion());
+            ps.setObject(9, u.getIdParroquia(), Types.INTEGER);
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) u.setIdUsuario(keys.getInt(1));
@@ -57,6 +59,18 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     }
 
     @Override
+    public Optional<Usuario> buscarPorDni(String dni) throws SQLException {
+        String sql = "SELECT * FROM usuario WHERE dni = ?";
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, dni);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? Optional.of(mapear(rs)) : Optional.empty();
+            }
+        }
+    }
+
+    @Override
     public List<Usuario> listarTodos() throws SQLException {
         String sql = "SELECT * FROM usuario ORDER BY id_usuario";
         List<Usuario> lista = new ArrayList<>();
@@ -70,17 +84,19 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
     @Override
     public boolean actualizar(Usuario u) throws SQLException {
-        String sql = "UPDATE usuario SET nombre=?, apellido=?, correo=?, telefono=?, rol=?, ubicacion=? "
+        String sql = "UPDATE usuario SET dni=?, nombre=?, apellido=?, correo=?, telefono=?, rol=?, ubicacion=?, id_parroquia=? "
                    + "WHERE id_usuario=?";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, u.getNombre());
-            ps.setString(2, u.getApellido());
-            ps.setString(3, u.getCorreo());
-            ps.setString(4, u.getTelefono());
-            ps.setString(5, u.getRol());
-            ps.setString(6, u.getUbicacion());
-            ps.setInt(7, u.getIdUsuario());
+            ps.setString(1, u.getDni());
+            ps.setString(2, u.getNombre());
+            ps.setString(3, u.getApellido());
+            ps.setString(4, u.getCorreo());
+            ps.setString(5, u.getTelefono());
+            ps.setString(6, u.getRol());
+            ps.setString(7, u.getUbicacion());
+            ps.setObject(8, u.getIdParroquia(), Types.INTEGER);
+            ps.setInt(9, u.getIdUsuario());
             return ps.executeUpdate() > 0;
         }
     }
@@ -98,6 +114,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     private Usuario mapear(ResultSet rs) throws SQLException {
         Usuario u = new Usuario();
         u.setIdUsuario(rs.getInt("id_usuario"));
+        u.setDni(rs.getString("dni"));
+        int idParroquia = rs.getInt("id_parroquia");
+        u.setIdParroquia(rs.wasNull() ? null : idParroquia);
         u.setNombre(rs.getString("nombre"));
         u.setApellido(rs.getString("apellido"));
         u.setCorreo(rs.getString("correo"));

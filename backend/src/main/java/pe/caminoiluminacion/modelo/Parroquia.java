@@ -11,6 +11,9 @@ public class Parroquia {
     private BigDecimal latitud;
     private BigDecimal longitud;
     private String sacramentosDisponibles; // lista separada por comas
+    private String fotoUrl;
+    private String fotoInteriorUrl;
+    private String horarioTramites;
     private Timestamp creadoEn;
 
     public Parroquia() {
@@ -39,6 +42,15 @@ public class Parroquia {
 
     public BigDecimal getLongitud() { return longitud; }
     public void setLongitud(BigDecimal longitud) { this.longitud = longitud; }
+
+    public String getFotoUrl() { return fotoUrl; }
+    public void setFotoUrl(String fotoUrl) { this.fotoUrl = fotoUrl; }
+
+    public String getFotoInteriorUrl() { return fotoInteriorUrl; }
+    public void setFotoInteriorUrl(String fotoInteriorUrl) { this.fotoInteriorUrl = fotoInteriorUrl; }
+
+    public String getHorarioTramites() { return horarioTramites; }
+    public void setHorarioTramites(String horarioTramites) { this.horarioTramites = horarioTramites; }
 
     public String getSacramentosDisponibles() { return sacramentosDisponibles; }
     public void setSacramentosDisponibles(String s) { this.sacramentosDisponibles = s; }

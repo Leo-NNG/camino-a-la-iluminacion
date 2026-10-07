@@ -28,9 +28,21 @@ public class HorarioDAOImpl implements HorarioDAO {
     }
 
     @Override
+    public java.util.Optional<Horario> buscarPorId(int idHorario) throws SQLException {
+        String sql = "SELECT * FROM horario WHERE id_horario = ?";
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idHorario);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? java.util.Optional.of(mapear(rs)) : java.util.Optional.empty();
+            }
+        }
+    }
+
+    @Override
     public List<Horario> listarPorParroquia(int idParroquia) throws SQLException {
         String sql = "SELECT * FROM horario WHERE id_parroquia = ? "
-                   + "ORDER BY FIELD(dia_semana,'lunes','martes','miercoles','jueves','viernes','sabado','domingo')";
+                   + "ORDER BY tipo, FIELD(dia_semana,'lunes','martes','miercoles','jueves','viernes','sabado','domingo'), id_horario";
         List<Horario> lista = new ArrayList<>();
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {

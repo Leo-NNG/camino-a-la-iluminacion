@@ -47,33 +47,7 @@
         <input type="text" id="buscador-iglesias" placeholder="Buscar por nombre, distrito o sacramento…">
       </div>
 
-      <div class="rejilla">
-        <a href="iglesia.html?id=san-jose" class="tarjeta tarjeta-iglesia">
-          <div class="tarjeta-foto"><img src="https://images.pexels.com/photos/3025593/pexels-photo-3025593.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Parroquia San José"></div>
-          <span class="tarjeta-icono">SJ</span>
-          <h3>Parroquia San José</h3>
-          <p><span class="distancia-real">A 1.2 km</span> — Bautizos, matrimonios, Primera Comunión</p>
-        </a>
-        <a href="iglesia.html?id=santa-fe" class="tarjeta tarjeta-iglesia">
-          <div class="tarjeta-foto"><img src="https://images.pexels.com/photos/5139675/pexels-photo-5139675.jpeg?cs=tinysrgb&w=600" alt="Parroquia Santa Fe"></div>
-          <span class="tarjeta-icono">SF</span>
-          <h3>Parroquia Santa Fe</h3>
-          <p><span class="distancia-real">A 2.8 km</span> — Bautizos, confirmación</p>
-        </a>
-        <a href="iglesia.html?id=carmen" class="tarjeta tarjeta-iglesia">
-          <div class="tarjeta-foto"><img src="https://images.pexels.com/photos/18750283/pexels-photo-18750283/free-photo-of-photo-of-a-small-church-and-palm-trees.jpeg?cs=tinysrgb&w=600" alt="Parroquia Nuestra Señora del Carmen"></div>
-          <span class="tarjeta-icono">NS</span>
-          <h3>Parroquia Nuestra Señora del Carmen</h3>
-          <p><span class="distancia-real">A 3.5 km</span> — Matrimonios, Primera Comunión, confirmación</p>
-        </a>
-        <a href="iglesia.html?id=sagrado-corazon" class="tarjeta tarjeta-iglesia">
-          <div class="tarjeta-foto"><img src="https://images.pexels.com/photos/19623130/pexels-photo-19623130/free-photo-of-exterior-of-a-church.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Capilla Sagrado Corazón"></div>
-          <span class="tarjeta-icono">SC</span>
-          <h3>Capilla Sagrado Corazón</h3>
-          <p><span class="distancia-real">A 4.1 km</span> — Bautizos comunitarios</p>
-        </a>
-      </div>
-
+      <div class="rejilla" id="rejilla-iglesias"></div>
       <div class="sin-resultados" id="sin-resultados">
         No encontramos iglesias con ese nombre, distrito o sacramento. Prueba con otra palabra.
       </div>
@@ -88,7 +62,6 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="../js/iglesias-data.js"></script>
 <script src="../js/main.js"></script>
 </body>
 </html>

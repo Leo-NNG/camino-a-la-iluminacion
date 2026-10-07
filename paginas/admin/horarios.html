@@ -6,9 +6,9 @@
 <title>Panel administrador — Gestionar horarios</title>
 <link rel="stylesheet" href="../../css/estilos.css">
 </head>
-<body>
+<body data-requiere-rol="administrador">
 
-<div class="franja-admin">Panel de personal parroquial — Parroquia San José · <a href="../../index.html">Salir del panel</a> · <button type="button" id="reiniciar-demo" class="enlace-franja">Reiniciar datos de demostración</button></div>
+<div class="franja-admin">Panel de personal parroquial — <span id="franja-parroquia">tu parroquia</span> · <a href="../../index.html">Ver el sitio público</a></div>
 
 <header class="sitio-header">
   <nav class="barra-nav">
@@ -35,22 +35,47 @@
         <p style="color:var(--color-ink-soft)">Actualiza los horarios que verán los feligreses en la app.</p>
       </div>
 
-      <form class="formulario" id="form-horarios" style="max-width:760px;">
+      <form class="formulario" id="form-horario" style="max-width:760px;">
+        <input type="hidden" id="h-id">
         <div class="campo">
-          <label for="h-semana">Lunes a viernes</label>
-          <input type="text" id="h-semana" value="7:00 a.m. y 7:00 p.m.">
+          <label for="h-tipo">¿Qué vas a registrar?</label>
+          <select id="h-tipo" required>
+            <option value="misa">Misa</option>
+            <option value="actividad">Actividad parroquial (catequesis, grupo de oración…)</option>
+          </select>
         </div>
         <div class="campo">
-          <label for="h-sabado">Sábado</label>
-          <input type="text" id="h-sabado" value="8:00 a.m. y 6:00 p.m. (vigilia)">
+          <label for="h-dia">Día</label>
+          <select id="h-dia" required>
+            <option value="lunes">Lunes</option>
+            <option value="martes">Martes</option>
+            <option value="miercoles">Miércoles</option>
+            <option value="jueves">Jueves</option>
+            <option value="viernes">Viernes</option>
+            <option value="sabado">Sábado</option>
+            <option value="domingo">Domingo</option>
+          </select>
         </div>
         <div class="campo">
-          <label for="h-domingo">Domingo</label>
-          <input type="text" id="h-domingo" value="7:00 a.m., 9:00 a.m., 11:00 a.m. y 7:00 p.m.">
+          <label for="h-hora">Hora o detalle</label>
+          <input type="text" id="h-hora" maxlength="120" placeholder="Ej. 7:00 a.m. y 7:00 p.m.  —  o  —  Catequesis de Primera Comunión — 5:00 p.m." required>
         </div>
-        <button type="submit" class="boton boton-primario">Guardar cambios</button>
+        <button type="submit" class="boton boton-primario" id="h-guardar">Agregar horario</button>
+        <button type="button" class="boton boton-secundario" id="h-cancelar" style="display:none;">Cancelar edición</button>
         <div class="mensaje-confirmacion" id="mensaje-horarios"></div>
       </form>
+
+      <h2 style="margin-top:48px;">Horarios de tu parroquia</h2>
+      <p style="font-size:.9rem;color:var(--color-ink-soft);">Si de lunes a viernes tienes el mismo horario, los feligreses lo verán agrupado como "Lunes a viernes".</p>
+      <div class="tabla-scroll">
+        <table class="tabla-tramites">
+          <thead>
+            <tr><th>Tipo</th><th>Día</th><th>Horario o detalle</th><th>Acción</th></tr>
+          </thead>
+          <tbody id="tabla-horarios-admin"></tbody>
+        </table>
+      </div>
+      <p id="nota-horarios-admin" style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;"></p>
     </div>
   </section>
 </main>

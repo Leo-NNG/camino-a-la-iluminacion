@@ -10,6 +10,8 @@ import java.sql.Timestamp;
 public class Usuario {
 
     private Integer idUsuario;
+    private String dni; // 8 dígitos; es la credencial de acceso
+    private Integer idParroquia; // solo personal (administrador): parroquia que gestiona
     private String nombre;
     private String apellido;
     private String correo;
@@ -22,8 +24,9 @@ public class Usuario {
     public Usuario() {
     }
 
-    public Usuario(String nombre, String apellido, String correo, String telefono,
+    public Usuario(String dni, String nombre, String apellido, String correo, String telefono,
                    String contrasenaHash, String rol, String ubicacion) {
+        this.dni = dni;
         this.nombre = nombre;
         this.apellido = apellido;
         this.correo = correo;
@@ -35,6 +38,10 @@ public class Usuario {
 
     public Integer getIdUsuario() { return idUsuario; }
     public void setIdUsuario(Integer idUsuario) { this.idUsuario = idUsuario; }
+    public String getDni() { return dni; }
+    public void setDni(String dni) { this.dni = dni; }
+    public Integer getIdParroquia() { return idParroquia; }
+    public void setIdParroquia(Integer idParroquia) { this.idParroquia = idParroquia; }
 
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }

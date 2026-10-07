@@ -11,6 +11,8 @@ public class Documento {
     private String rutaArchivo;
     private String estadoValidacion; // pendiente, validado, rechazado
     private String motivoRechazo;
+    private String tipoMime; // application/pdf, image/jpeg, image/png
+    private Long tamanoBytes;
     private Timestamp fechaEnvio;
     private Timestamp fechaValidacion;
 
@@ -45,6 +47,12 @@ public class Documento {
 
     public String getMotivoRechazo() { return motivoRechazo; }
     public void setMotivoRechazo(String motivoRechazo) { this.motivoRechazo = motivoRechazo; }
+
+    public String getTipoMime() { return tipoMime; }
+    public void setTipoMime(String tipoMime) { this.tipoMime = tipoMime; }
+
+    public Long getTamanoBytes() { return tamanoBytes; }
+    public void setTamanoBytes(Long tamanoBytes) { this.tamanoBytes = tamanoBytes; }
 
     public Timestamp getFechaEnvio() { return fechaEnvio; }
     public void setFechaEnvio(Timestamp fechaEnvio) { this.fechaEnvio = fechaEnvio; }

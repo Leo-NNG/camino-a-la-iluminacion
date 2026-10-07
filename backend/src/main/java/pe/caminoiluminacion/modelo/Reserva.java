@@ -13,6 +13,7 @@ public class Reserva {
     private Date fechaSolicitada;
     private String notas;
     private String estado; // pendiente, confirmada, rechazada
+    private String motivoRechazo; // solo cuando estado = rechazada
     private Timestamp creadoEn;
 
     public Reserva() {
@@ -52,6 +53,9 @@ public class Reserva {
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
+    public String getMotivoRechazo() { return motivoRechazo; }
+    public void setMotivoRechazo(String motivoRechazo) { this.motivoRechazo = motivoRechazo; }
 
     public Timestamp getCreadoEn() { return creadoEn; }
     public void setCreadoEn(Timestamp creadoEn) { this.creadoEn = creadoEn; }

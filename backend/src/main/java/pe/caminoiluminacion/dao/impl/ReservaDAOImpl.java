@@ -33,6 +33,68 @@ public class ReservaDAOImpl implements ReservaDAO {
     }
 
     @Override
+    public boolean insertarSiDisponible(Reserva r) throws SQLException {
+        try (Connection con = Conexion.obtener()) {
+            con.setAutoCommit(false);
+            try {
+                // Bloquea la fila de la parroquia hasta el commit: serializa sus reservas.
+                try (PreparedStatement lock = con.prepareStatement(
+                        "SELECT id_parroquia FROM parroquia WHERE id_parroquia = ? FOR UPDATE")) {
+                    lock.setInt(1, r.getIdParroquia());
+                    try (ResultSet rs = lock.executeQuery()) {
+                        if (!rs.next()) throw new SQLException("La parroquia no existe: " + r.getIdParroquia());
+                    }
+                }
+                try (PreparedStatement chk = con.prepareStatement(
+                        "SELECT 1 FROM reserva WHERE id_parroquia = ? AND sacramento = ? "
+                      + "AND fecha_solicitada = ? AND estado <> 'rechazada' LIMIT 1")) {
+                    chk.setInt(1, r.getIdParroquia());
+                    chk.setString(2, r.getSacramento());
+                    chk.setDate(3, r.getFechaSolicitada());
+                    try (ResultSet rs = chk.executeQuery()) {
+                        if (rs.next()) { con.rollback(); return false; }
+                    }
+                }
+                try (PreparedStatement ins = con.prepareStatement(
+                        "INSERT INTO reserva (id_usuario, id_parroquia, sacramento, nombre_solicitante, "
+                      + "fecha_solicitada, notas, estado) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS)) {
+                    ins.setInt(1, r.getIdUsuario());
+                    ins.setInt(2, r.getIdParroquia());
+                    ins.setString(3, r.getSacramento());
+                    ins.setString(4, r.getNombreSolicitante());
+                    ins.setDate(5, r.getFechaSolicitada());
+                    ins.setString(6, r.getNotas());
+                    ins.setString(7, "pendiente");
+                    ins.executeUpdate();
+                    try (ResultSet keys = ins.getGeneratedKeys()) {
+                        if (keys.next()) r.setIdReserva(keys.getInt(1));
+                    }
+                }
+                con.commit();
+                return true;
+            } catch (SQLException | RuntimeException e) {
+                con.rollback();
+                throw e;
+            } finally {
+                con.setAutoCommit(true);
+            }
+        }
+    }
+
+    @Override
+    public boolean resolverPendiente(int idReserva, String nuevoEstado, String motivo) throws SQLException {
+        String sql = "UPDATE reserva SET estado = ?, motivo_rechazo = ? WHERE id_reserva = ? AND estado = 'pendiente'";
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, nuevoEstado);
+            ps.setString(2, "rechazada".equals(nuevoEstado) ? motivo : null);
+            ps.setInt(3, idReserva);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    @Override
     public Optional<Reserva> buscarPorId(int idReserva) throws SQLException {
         String sql = "SELECT * FROM reserva WHERE id_reserva = ?";
         try (Connection con = Conexion.obtener();
@@ -73,6 +135,21 @@ public class ReservaDAOImpl implements ReservaDAO {
     }
 
     @Override
+    public List<Reserva> listarPorEstadoYParroquia(String estado, int idParroquia) throws SQLException {
+        String sql = "SELECT * FROM reserva WHERE estado = ? AND id_parroquia = ? ORDER BY fecha_solicitada";
+        List<Reserva> lista = new ArrayList<>();
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, estado);
+            ps.setInt(2, idParroquia);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) lista.add(mapear(rs));
+            }
+        }
+        return lista;
+    }
+
+    @Override
     public boolean actualizarEstado(int idReserva, String nuevoEstado) throws SQLException {
         String sql = "UPDATE reserva SET estado = ? WHERE id_reserva = ?";
         try (Connection con = Conexion.obtener();
@@ -93,6 +170,7 @@ public class ReservaDAOImpl implements ReservaDAO {
         r.setFechaSolicitada(rs.getDate("fecha_solicitada"));
         r.setNotas(rs.getString("notas"));
         r.setEstado(rs.getString("estado"));
+        r.setMotivoRechazo(rs.getString("motivo_rechazo"));
         r.setCreadoEn(rs.getTimestamp("creado_en"));
         return r;
     }
