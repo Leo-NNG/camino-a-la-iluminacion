@@ -24,11 +24,11 @@ public class Conexion {
     private static final String CONTRASENA = env("DB_PASSWORD", "1234");
 
     private static final String URL =
-        "jdbc:mysql://" + HOST + ":" + PUERTO + "/" + BASE_DATOS
-        + "?useUnicode=true&characterEncoding=UTF-8"
-        + "&connectionCollation=utf8mb4_unicode_ci"
-        + "&serverTimezone=America/Lima"
-        + "&useSSL=false&allowPublicKeyRetrieval=true";
+            "jdbc:mysql://" + HOST + ":" + PUERTO + "/" + BASE_DATOS
+                    + "?useUnicode=true&characterEncoding=UTF-8"
+                    + "&connectionCollation=utf8mb4_unicode_ci"
+                    + "&serverTimezone=America/Lima"
+                    + "&useSSL=false&allowPublicKeyRetrieval=true";
 
     private static String env(String clave, String porDefecto) {
         String v = System.getenv(clave);
@@ -44,13 +44,24 @@ public class Conexion {
      * (idealmente con try-with-resources, como se hace en los DAO).
      */
     public static Connection obtener() throws SQLException {
-        try {
-            // Registro explícito del driver que realmente trae el pom (MariaDB, que
-            // también acepta URLs jdbc:mysql://). Así Tomcat lo encuentra en WEB-INF/lib.
-            Class.forName("org.mariadb.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("No se encontró el driver JDBC (mariadb-java-client): " + e.getMessage(), e);
-        }
+        registrarDriver();
         return DriverManager.getConnection(URL, USUARIO, CONTRASENA);
+    }
+
+    /**
+     * Intenta registrar el driver de MySQL o el de MariaDB, el que esté disponible en el classpath de
+     * Tomcat (ambos aceptan URLs jdbc:mysql://). Si ninguno se encuentra por nombre, no falla aquí:
+     * DriverManager todavía puede descubrir cualquier driver JDBC 4 que esté en el classpath, y si de
+     * verdad no hay ninguno, getConnection lanza "No suitable driver" con un mensaje claro.
+     */
+    private static void registrarDriver() {
+        for (String clase : new String[] {"com.mysql.cj.jdbc.Driver", "org.mariadb.jdbc.Driver"}) {
+            try {
+                Class.forName(clase);
+                return;
+            } catch (ClassNotFoundException e) {
+                // probar el siguiente
+            }
+        }
     }
 }
