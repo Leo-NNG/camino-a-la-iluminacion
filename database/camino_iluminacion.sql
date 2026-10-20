@@ -53,7 +53,6 @@ CREATE TABLE parroquia (
   direccion               VARCHAR(200) NOT NULL,
   latitud                 DECIMAL(9,6) NULL,
   longitud                DECIMAL(9,6) NULL,
-  sacramentos_disponibles VARCHAR(255) NULL COMMENT 'Lista separada por comas, ej: Bautizo,Matrimonio',
   foto_url                VARCHAR(255) NULL COMMENT 'Foto exterior (URL)',
   foto_interior_url       VARCHAR(255) NULL COMMENT 'Foto interior (URL)',
   horario_tramites        VARCHAR(255) NULL COMMENT 'Texto libre: cuándo y dónde se atienden los trámites',
@@ -65,6 +64,34 @@ ALTER TABLE usuario
   ADD CONSTRAINT fk_usuario_parroquia FOREIGN KEY (id_parroquia)
     REFERENCES parroquia (id_parroquia)
     ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- ----------------------------------------------------------------------------
+-- SACRAMENTO — catálogo de sacramentos. Agregar uno nuevo es insertar una fila.
+-- ----------------------------------------------------------------------------
+CREATE TABLE sacramento (
+  id_sacramento TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  codigo        VARCHAR(30) NOT NULL COMMENT 'Identificador estable, ej: primera_comunion',
+  nombre        VARCHAR(60) NOT NULL COMMENT 'Nombre que ve el usuario',
+
+  CONSTRAINT uq_sacramento_codigo UNIQUE (codigo),
+  CONSTRAINT uq_sacramento_nombre UNIQUE (nombre)
+) ENGINE=InnoDB;
+
+-- ----------------------------------------------------------------------------
+-- PARROQUIA_SACRAMENTO — qué sacramentos ofrece cada parroquia (relación N:M)
+-- ----------------------------------------------------------------------------
+CREATE TABLE parroquia_sacramento (
+  id_parroquia  INT UNSIGNED NOT NULL,
+  id_sacramento TINYINT UNSIGNED NOT NULL,
+
+  PRIMARY KEY (id_parroquia, id_sacramento),
+  CONSTRAINT fk_ps_parroquia FOREIGN KEY (id_parroquia)
+    REFERENCES parroquia (id_parroquia)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_ps_sacramento FOREIGN KEY (id_sacramento)
+    REFERENCES sacramento (id_sacramento)
+    ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB;
 
 -- ----------------------------------------------------------------------------
 -- HORARIO
@@ -93,11 +120,15 @@ CREATE TABLE aviso (
   tipo           ENUM('santa_cena','ayuno','vigilia','celebracion','cambio_horario','otro') NOT NULL DEFAULT 'otro',
   urgente        BOOLEAN NOT NULL DEFAULT FALSE,
   fecha_evento   DATE NULL,
+  id_autor       INT UNSIGNED NULL COMMENT 'Quién lo publicó (queda NULL si esa cuenta se elimina)',
   publicado_en   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_aviso_parroquia FOREIGN KEY (id_parroquia)
     REFERENCES parroquia (id_parroquia)
-    ON DELETE CASCADE ON UPDATE CASCADE
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_aviso_autor FOREIGN KEY (id_autor)
+    REFERENCES usuario (id_usuario)
+    ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 -- ----------------------------------------------------------------------------
@@ -107,7 +138,7 @@ CREATE TABLE reserva (
   id_reserva         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_usuario         INT UNSIGNED NOT NULL,
   id_parroquia       INT UNSIGNED NOT NULL,
-  sacramento         ENUM('bautizo','matrimonio','primera_comunion','confirmacion') NOT NULL,
+  id_sacramento      TINYINT UNSIGNED NOT NULL,
   nombre_solicitante VARCHAR(150) NOT NULL,
   fecha_solicitada   DATE NOT NULL,
   notas              TEXT NULL,
@@ -120,6 +151,9 @@ CREATE TABLE reserva (
     ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT fk_reserva_parroquia FOREIGN KEY (id_parroquia)
     REFERENCES parroquia (id_parroquia)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_reserva_sacramento FOREIGN KEY (id_sacramento)
+    REFERENCES sacramento (id_sacramento)
     ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
@@ -141,17 +175,40 @@ CREATE TABLE documento (
   tamano_bytes         INT UNSIGNED NULL,
   fecha_envio          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   fecha_validacion     TIMESTAMP NULL,
+  id_validador         INT UNSIGNED NULL COMMENT 'Quién lo validó o rechazó (queda NULL si esa cuenta se elimina)',
 
   CONSTRAINT fk_documento_reserva FOREIGN KEY (id_reserva)
     REFERENCES reserva (id_reserva)
     ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT fk_documento_usuario FOREIGN KEY (id_usuario)
     REFERENCES usuario (id_usuario)
-    ON DELETE CASCADE ON UPDATE CASCADE
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_documento_validador FOREIGN KEY (id_validador)
+    REFERENCES usuario (id_usuario)
+    ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 -- ----------------------------------------------------------------------------
 -- Índices adicionales para las consultas más frecuentes del sistema
+-- ----------------------------------------------------------------------------
+-- BITACORA — registro de acciones críticas (RNF09): ingresos, reservas, validaciones, publicaciones.
+-- No guarda DNI, contraseñas ni contenido de documentos.
+-- ----------------------------------------------------------------------------
+CREATE TABLE bitacora (
+  id_bitacora INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id_usuario  INT UNSIGNED NULL COMMENT 'NULL si no se pudo identificar o la cuenta se eliminó',
+  accion      VARCHAR(40)  NOT NULL COMMENT 'Ej: LOGIN_OK, LOGIN_FALLIDO, RESERVA_CREADA, DOCUMENTO_VALIDADO',
+  detalle     VARCHAR(255) NULL,
+  ip          VARCHAR(45)  NULL,
+  creado_en   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  INDEX ix_bitacora_fecha (creado_en),
+  INDEX ix_bitacora_usuario (id_usuario),
+  CONSTRAINT fk_bitacora_usuario FOREIGN KEY (id_usuario)
+    REFERENCES usuario (id_usuario)
+    ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
 -- ----------------------------------------------------------------------------
 CREATE INDEX idx_reserva_estado       ON reserva (estado);
 CREATE INDEX idx_documento_estado     ON documento (estado_validacion);
@@ -165,11 +222,23 @@ CREATE INDEX idx_horario_parroquia    ON horario (id_parroquia, dia_semana);
 -- ============================================================================
 
 -- Parroquias de ejemplo (Chiclayo): son la ÚNICA fuente de datos del mapa, las fichas, el selector de reservas, los horarios y los avisos.
-INSERT INTO parroquia (nombre, direccion, latitud, longitud, sacramentos_disponibles, foto_url, foto_interior_url, horario_tramites) VALUES
-  ('Parroquia San José', 'Av. Los Álamos 245, Chiclayo', -6.7701, -79.8380, 'Bautizo,Matrimonio,Primera Comunión', 'https://images.pexels.com/photos/3025593/pexels-photo-3025593.jpeg?auto=compress&cs=tinysrgb&w=900', 'https://images.pexels.com/photos/7520352/pexels-photo-7520352.jpeg?auto=compress&cs=tinysrgb&w=900', 'Lunes a viernes, 9:00 a.m. a 1:00 p.m., oficina parroquial.'),
-  ('Parroquia Santa Fe', 'Calle Real 512, Chiclayo', -6.7620, -79.8450, 'Bautizo,Confirmación', 'https://images.pexels.com/photos/5139675/pexels-photo-5139675.jpeg?cs=tinysrgb&w=900', 'https://images.pexels.com/photos/208277/pexels-photo-208277.jpeg?auto=compress&cs=tinysrgb&w=900', 'Martes y jueves, 3:00 p.m. a 6:00 p.m., casa parroquial.'),
-  ('Parroquia Nuestra Señora del Carmen', 'Jr. Las Palmeras 88, Chiclayo', -6.7800, -79.8300, 'Matrimonio,Primera Comunión,Confirmación', 'https://images.pexels.com/photos/18750283/pexels-photo-18750283/free-photo-of-photo-of-a-small-church-and-palm-trees.jpeg?cs=tinysrgb&w=900', 'https://images.pexels.com/photos/9153530/pexels-photo-9153530.jpeg?auto=compress&cs=tinysrgb&w=900', 'Lunes a sábado, 10:00 a.m. a 1:00 p.m.'),
-  ('Capilla Sagrado Corazón', 'Av. Grau 1420, Chiclayo', -6.7550, -79.8500, 'Bautizo', 'https://images.pexels.com/photos/19623130/pexels-photo-19623130/free-photo-of-exterior-of-a-church.jpeg?auto=compress&cs=tinysrgb&w=900', 'https://images.pexels.com/photos/27872483/pexels-photo-27872483/free-photo-of-a-church-with-a-cross-in-the-middle-of-it.jpeg?auto=compress&cs=tinysrgb&w=900', 'Solo domingos, 9:00 a.m. a 10:00 a.m., a la entrada de la capilla.');
+INSERT INTO sacramento (codigo, nombre) VALUES
+  ('bautizo', 'Bautizo'),
+  ('matrimonio', 'Matrimonio'),
+  ('primera_comunion', 'Primera Comunión'),
+  ('confirmacion', 'Confirmación');
+
+INSERT INTO parroquia (nombre, direccion, latitud, longitud, foto_url, foto_interior_url, horario_tramites) VALUES
+  ('Parroquia San José', 'Av. Los Álamos 245, Chiclayo', -6.7701, -79.8380, 'https://images.pexels.com/photos/3025593/pexels-photo-3025593.jpeg?auto=compress&cs=tinysrgb&w=900', 'https://images.pexels.com/photos/7520352/pexels-photo-7520352.jpeg?auto=compress&cs=tinysrgb&w=900', 'Lunes a viernes, 9:00 a.m. a 1:00 p.m., oficina parroquial.'),
+  ('Parroquia Santa Fe', 'Calle Real 512, Chiclayo', -6.7620, -79.8450, 'https://images.pexels.com/photos/5139675/pexels-photo-5139675.jpeg?cs=tinysrgb&w=900', 'https://images.pexels.com/photos/208277/pexels-photo-208277.jpeg?auto=compress&cs=tinysrgb&w=900', 'Martes y jueves, 3:00 p.m. a 6:00 p.m., casa parroquial.'),
+  ('Parroquia Nuestra Señora del Carmen', 'Jr. Las Palmeras 88, Chiclayo', -6.7800, -79.8300, 'https://images.pexels.com/photos/18750283/pexels-photo-18750283/free-photo-of-photo-of-a-small-church-and-palm-trees.jpeg?cs=tinysrgb&w=900', 'https://images.pexels.com/photos/9153530/pexels-photo-9153530.jpeg?auto=compress&cs=tinysrgb&w=900', 'Lunes a sábado, 10:00 a.m. a 1:00 p.m.'),
+  ('Capilla Sagrado Corazón', 'Av. Grau 1420, Chiclayo', -6.7550, -79.8500, 'https://images.pexels.com/photos/19623130/pexels-photo-19623130/free-photo-of-exterior-of-a-church.jpeg?auto=compress&cs=tinysrgb&w=900', 'https://images.pexels.com/photos/27872483/pexels-photo-27872483/free-photo-of-a-church-with-a-cross-in-the-middle-of-it.jpeg?auto=compress&cs=tinysrgb&w=900', 'Solo domingos, 9:00 a.m. a 10:00 a.m., a la entrada de la capilla.');
+
+INSERT INTO parroquia_sacramento (id_parroquia, id_sacramento) VALUES
+  (1, 1), (1, 2), (1, 3),   -- San José: Bautizo, Matrimonio, Primera Comunión
+  (2, 1), (2, 4),           -- Santa Fe: Bautizo, Confirmación
+  (3, 2), (3, 3), (3, 4),   -- Nuestra Señora del Carmen: Matrimonio, Primera Comunión, Confirmación
+  (4, 1);                   -- Sagrado Corazón: Bautizo
 
 INSERT INTO horario (id_parroquia, dia_semana, hora, tipo) VALUES
   (1, 'lunes', '7:00 a.m. y 7:00 p.m.', 'misa'),
@@ -210,11 +279,11 @@ INSERT INTO usuario (dni, nombre, apellido, correo, telefono, contrasena_hash, r
   ('70000004', 'Ana',     'Torres',    'ana.torres@example.com',      '999555666', 'pbkdf2$120000$byLs4hEE6LEycXPyeMUJnQ==$ixaXvIe8ZMZMENYSHHKjRtKC1MHt+Ws6+eA/ZX1atMs=', 'feligres', NULL),
   ('70000000', 'Personal','Parroquial','admin@caminoiluminacion.pe',  NULL,        'pbkdf2$120000$LbWUqcwLOoD2j3jVkDkxNg==$3xLosli1Uuanpb1KJVTjEbql6SoJWn+AkuPHI6+IEvU=', 'administrador', 1);
 
-INSERT INTO reserva (id_usuario, id_parroquia, sacramento, nombre_solicitante, fecha_solicitada, estado) VALUES
-  (1, 1, 'bautizo',           'María Fernández',    '2026-09-12', 'confirmada'),
-  (2, 1, 'bautizo',           'Jorge Ramírez',      '2026-09-18', 'pendiente'),
-  (3, 1, 'matrimonio',        'Lucía y Pedro Vega', '2026-09-20', 'pendiente'),
-  (4, 1, 'primera_comunion',  'Ana Torres',         '2026-09-22', 'pendiente');
+INSERT INTO reserva (id_usuario, id_parroquia, id_sacramento, nombre_solicitante, fecha_solicitada, estado) VALUES
+  (1, 1, 1, 'María Fernández',    '2026-09-12', 'confirmada'),   -- Bautizo
+  (2, 1, 1, 'Jorge Ramírez',      '2026-09-18', 'pendiente'),    -- Bautizo
+  (3, 1, 2, 'Lucía y Pedro Vega', '2026-09-20', 'pendiente'),    -- Matrimonio
+  (4, 1, 3, 'Ana Torres',         '2026-09-22', 'pendiente');    -- Primera Comunión
 
 -- (Sin documentos de ejemplo: ahora los archivos se suben de verdad desde la página "Mis documentos".)
 

@@ -12,6 +12,7 @@ import pe.caminoiluminacion.dao.impl.ParroquiaDAOImpl;
 import pe.caminoiluminacion.modelo.Aviso;
 import pe.caminoiluminacion.modelo.Parroquia;
 import pe.caminoiluminacion.util.Json;
+import pe.caminoiluminacion.util.Registro;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -68,7 +69,7 @@ public class AvisosServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_OK);
             out.print(aJson(lista, nombres));
         } catch (SQLException e) {
-            getServletContext().log("Error al listar avisos", e);
+            Registro.error("Error al listar avisos", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             out.print(Json.error("No se pudieron cargar los avisos."));
         }

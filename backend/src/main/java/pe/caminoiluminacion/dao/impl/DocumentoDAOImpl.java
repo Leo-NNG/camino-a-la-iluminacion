@@ -60,14 +60,15 @@ public class DocumentoDAOImpl implements DocumentoDAO {
     }
 
     @Override
-    public boolean resolverPendiente(int idDocumento, String estado, String motivo) throws SQLException {
-        String sql = "UPDATE documento SET estado_validacion = ?, motivo_rechazo = ?, fecha_validacion = NOW() "
+    public boolean resolverPendiente(int idDocumento, String estado, String motivo, int idValidador) throws SQLException {
+        String sql = "UPDATE documento SET estado_validacion = ?, motivo_rechazo = ?, fecha_validacion = NOW(), id_validador = ? "
                    + "WHERE id_documento = ? AND estado_validacion = 'pendiente'";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, estado);
             ps.setString(2, "rechazado".equals(estado) ? motivo : null);
-            ps.setInt(3, idDocumento);
+            ps.setInt(3, idValidador);
+            ps.setInt(4, idDocumento);
             return ps.executeUpdate() > 0;
         }
     }
@@ -131,6 +132,8 @@ public class DocumentoDAOImpl implements DocumentoDAO {
         d.setRutaArchivo(rs.getString("ruta_archivo"));
         d.setEstadoValidacion(rs.getString("estado_validacion"));
         d.setMotivoRechazo(rs.getString("motivo_rechazo"));
+        int validador = rs.getInt("id_validador");
+        d.setIdValidador(rs.wasNull() ? null : validador);
         d.setTipoMime(rs.getString("tipo_mime"));
         long tam = rs.getLong("tamano_bytes");
         d.setTamanoBytes(rs.wasNull() ? null : tam);

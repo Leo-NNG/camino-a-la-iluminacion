@@ -17,7 +17,7 @@ public interface DocumentoDAO {
      * @param estado "validado" o "rechazado"; el motivo es obligatorio al rechazar
      * @return false si no existe o ya no estaba pendiente
      */
-    boolean resolverPendiente(int idDocumento, String estado, String motivo) throws SQLException;
+    boolean resolverPendiente(int idDocumento, String estado, String motivo, int idValidador) throws SQLException;
     boolean validar(int idDocumento) throws SQLException;
     boolean rechazar(int idDocumento, String motivo) throws SQLException;
 }

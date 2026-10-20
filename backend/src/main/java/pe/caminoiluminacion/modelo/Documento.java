@@ -13,6 +13,7 @@ public class Documento {
     private String motivoRechazo;
     private String tipoMime; // application/pdf, image/jpeg, image/png
     private Long tamanoBytes;
+    private Integer idValidador; // quién lo validó o rechazó
     private Timestamp fechaEnvio;
     private Timestamp fechaValidacion;
 
@@ -50,6 +51,9 @@ public class Documento {
 
     public String getTipoMime() { return tipoMime; }
     public void setTipoMime(String tipoMime) { this.tipoMime = tipoMime; }
+
+    public Integer getIdValidador() { return idValidador; }
+    public void setIdValidador(Integer idValidador) { this.idValidador = idValidador; }
 
     public Long getTamanoBytes() { return tamanoBytes; }
     public void setTamanoBytes(Long tamanoBytes) { this.tamanoBytes = tamanoBytes; }

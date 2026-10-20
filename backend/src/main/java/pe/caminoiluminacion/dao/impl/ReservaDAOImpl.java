@@ -13,8 +13,8 @@ public class ReservaDAOImpl implements ReservaDAO {
 
     @Override
     public Reserva insertar(Reserva r) throws SQLException {
-        String sql = "INSERT INTO reserva (id_usuario, id_parroquia, sacramento, nombre_solicitante, "
-                   + "fecha_solicitada, notas, estado) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO reserva (id_usuario, id_parroquia, id_sacramento, nombre_solicitante, "
+                   + "fecha_solicitada, notas, estado) VALUES (?, ?, (SELECT id_sacramento FROM sacramento WHERE codigo = ?), ?, ?, ?, ?)";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, r.getIdUsuario());
@@ -46,7 +46,7 @@ public class ReservaDAOImpl implements ReservaDAO {
                     }
                 }
                 try (PreparedStatement chk = con.prepareStatement(
-                        "SELECT 1 FROM reserva WHERE id_parroquia = ? AND sacramento = ? "
+                        "SELECT 1 FROM reserva WHERE id_parroquia = ? AND id_sacramento = (SELECT id_sacramento FROM sacramento WHERE codigo = ?) "
                       + "AND fecha_solicitada = ? AND estado <> 'rechazada' LIMIT 1")) {
                     chk.setInt(1, r.getIdParroquia());
                     chk.setString(2, r.getSacramento());
@@ -56,8 +56,8 @@ public class ReservaDAOImpl implements ReservaDAO {
                     }
                 }
                 try (PreparedStatement ins = con.prepareStatement(
-                        "INSERT INTO reserva (id_usuario, id_parroquia, sacramento, nombre_solicitante, "
-                      + "fecha_solicitada, notas, estado) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        "INSERT INTO reserva (id_usuario, id_parroquia, id_sacramento, nombre_solicitante, "
+                      + "fecha_solicitada, notas, estado) VALUES (?, ?, (SELECT id_sacramento FROM sacramento WHERE codigo = ?), ?, ?, ?, ?)",
                         Statement.RETURN_GENERATED_KEYS)) {
                     ins.setInt(1, r.getIdUsuario());
                     ins.setInt(2, r.getIdParroquia());
@@ -96,7 +96,7 @@ public class ReservaDAOImpl implements ReservaDAO {
 
     @Override
     public Optional<Reserva> buscarPorId(int idReserva) throws SQLException {
-        String sql = "SELECT * FROM reserva WHERE id_reserva = ?";
+        String sql = "SELECT r.id_reserva, r.id_usuario, r.id_parroquia, s.codigo AS sacramento, r.nombre_solicitante, r.fecha_solicitada, r.notas, r.estado, r.motivo_rechazo, r.creado_en FROM reserva r JOIN sacramento s ON s.id_sacramento = r.id_sacramento WHERE r.id_reserva = ?";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, idReserva);
@@ -108,7 +108,7 @@ public class ReservaDAOImpl implements ReservaDAO {
 
     @Override
     public List<Reserva> listarPorUsuario(int idUsuario) throws SQLException {
-        String sql = "SELECT * FROM reserva WHERE id_usuario = ? ORDER BY creado_en DESC";
+        String sql = "SELECT r.id_reserva, r.id_usuario, r.id_parroquia, s.codigo AS sacramento, r.nombre_solicitante, r.fecha_solicitada, r.notas, r.estado, r.motivo_rechazo, r.creado_en FROM reserva r JOIN sacramento s ON s.id_sacramento = r.id_sacramento WHERE r.id_usuario = ? ORDER BY r.creado_en DESC";
         List<Reserva> lista = new ArrayList<>();
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -122,7 +122,7 @@ public class ReservaDAOImpl implements ReservaDAO {
 
     @Override
     public List<Reserva> listarPorEstado(String estado) throws SQLException {
-        String sql = "SELECT * FROM reserva WHERE estado = ? ORDER BY fecha_solicitada";
+        String sql = "SELECT r.id_reserva, r.id_usuario, r.id_parroquia, s.codigo AS sacramento, r.nombre_solicitante, r.fecha_solicitada, r.notas, r.estado, r.motivo_rechazo, r.creado_en FROM reserva r JOIN sacramento s ON s.id_sacramento = r.id_sacramento WHERE r.estado = ? ORDER BY r.fecha_solicitada";
         List<Reserva> lista = new ArrayList<>();
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -136,7 +136,7 @@ public class ReservaDAOImpl implements ReservaDAO {
 
     @Override
     public List<Reserva> listarPorEstadoYParroquia(String estado, int idParroquia) throws SQLException {
-        String sql = "SELECT * FROM reserva WHERE estado = ? AND id_parroquia = ? ORDER BY fecha_solicitada";
+        String sql = "SELECT r.id_reserva, r.id_usuario, r.id_parroquia, s.codigo AS sacramento, r.nombre_solicitante, r.fecha_solicitada, r.notas, r.estado, r.motivo_rechazo, r.creado_en FROM reserva r JOIN sacramento s ON s.id_sacramento = r.id_sacramento WHERE r.estado = ? AND r.id_parroquia = ? ORDER BY r.fecha_solicitada";
         List<Reserva> lista = new ArrayList<>();
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {

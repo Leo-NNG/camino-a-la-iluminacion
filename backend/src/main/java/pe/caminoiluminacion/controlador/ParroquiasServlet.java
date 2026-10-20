@@ -9,6 +9,7 @@ import pe.caminoiluminacion.dao.ParroquiaDAO;
 import pe.caminoiluminacion.dao.impl.ParroquiaDAOImpl;
 import pe.caminoiluminacion.modelo.Parroquia;
 import pe.caminoiluminacion.util.Json;
+import pe.caminoiluminacion.util.Registro;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -70,7 +71,7 @@ public class ParroquiasServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_OK);
             out.print(json.append("]"));
         } catch (SQLException e) {
-            getServletContext().log("Error al listar parroquias", e);
+            Registro.error("Error al listar parroquias", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             out.print(Json.error("No se pudo cargar la información de las parroquias."));
         }

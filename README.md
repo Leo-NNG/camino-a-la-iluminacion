@@ -12,7 +12,9 @@ Aplicación web con backend Java (servlets, patrón DAO, JDBC) y base de datos M
 Ya funcionan de verdad (sin simulaciones): registro e inicio de sesión con **DNI**, roles
 (feligrés / personal de una parroquia), reservas de sacramentos con control de fechas,
 subida y validación de documentos, y parroquias, horarios y avisos desde la base de datos.
-Pendiente: reportes reales, capa de servicios, bitácora y pruebas con JUnit.
+También funcionan: sacramentos normalizados (catálogo y relación con las parroquias), reportes reales con
+descarga a Excel, bitácora de acciones, capa de servicios y pruebas JUnit (`mvn test` en `backend/`).
+Pendiente: despliegue como WAR y un antivirus para los archivos subidos.
 Para ponerlo en marcha: `backend/README.md` (variables de entorno, scripts SQL y migraciones).
 
 ## Estructura del proyecto
@@ -39,6 +41,7 @@ camino-a-la-iluminacion/
 ```
 
 ## Backend y base de datos
+- `database/migracion_05_normalizacion_bitacora.sql` — normaliza sacramentos y agrega la bitácora (hacer copia antes).
 - `database/migracion_01_dni_roles.sql` — migración para una base creada antes del acceso por DNI.
 - `database/camino_iluminacion.sql` — script con las 6 tablas del modelo entidad-relación (Capítulo 8.3) y datos de ejemplo.
 - `backend/` — proyecto Maven en Java con modelos y DAO para las 6 tablas. Ver `backend/README.md` para instrucciones de configuración y ejecución.

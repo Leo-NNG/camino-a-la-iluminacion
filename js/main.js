@@ -465,15 +465,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const paneles = document.querySelectorAll('.panel-paso');
     let pasoActual = 0;
 
-    const tarjetasSacramento = document.querySelectorAll('.tarjeta-sacramento');
+    /* Las tarjetas salen del catálogo de sacramentos de la base de datos (agregar uno nuevo no toca este código). */
+    const contenedorTarjetas = document.getElementById('tarjetas-sacramento');
     const campoSacramento = document.getElementById('sacramento');
-    tarjetasSacramento.forEach((t) => {
-      t.addEventListener('click', () => {
-        tarjetasSacramento.forEach((x) => x.classList.remove('elegido'));
-        t.classList.add('elegido');
-        campoSacramento.value = t.dataset.valor;
-        poblarParroquias();
-      });
+    fetch('/api/sacramentos', { cache: 'no-cache' })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((lista) => {
+        contenedorTarjetas.innerHTML = lista.length ? lista.map((sc) =>
+          `<div class="tarjeta-sacramento" data-valor="${escaparHtml(sc.nombre)}" data-codigo="${escaparHtml(sc.codigo)}">${escaparHtml(sc.nombre)}</div>`).join('')
+          : '<p style="color:var(--color-ink-soft)">No hay sacramentos disponibles por ahora.</p>';
+      })
+      .catch(() => { contenedorTarjetas.innerHTML = '<p style="color:var(--color-ink-soft)">No se pudieron cargar los sacramentos. Recarga la página.</p>'; });
+    contenedorTarjetas.addEventListener('click', (e) => {
+      const t = e.target.closest('.tarjeta-sacramento');
+      if (!t) return;
+      contenedorTarjetas.querySelectorAll('.tarjeta-sacramento').forEach((x) => x.classList.remove('elegido'));
+      t.classList.add('elegido');
+      campoSacramento.value = t.dataset.valor;
+      poblarParroquias();
     });
 
     /* El selector de parroquias sale de la base de datos y solo lista las que ofrecen el sacramento elegido. */
@@ -552,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   mensaje.style.color = '';
                   // Se limpia el formulario para poder hacer otra solicitud; el servidor impide duplicar una fecha ocupada.
                   formReserva.reset();
-                  tarjetasSacramento.forEach((x) => x.classList.remove('elegido'));
+                  contenedorTarjetas.querySelectorAll('.tarjeta-sacramento').forEach((x) => x.classList.remove('elegido'));
                   campoSacramento.value = '';
                   poblarParroquias();
                   pasoActual = 0;
@@ -1144,4 +1153,99 @@ document.addEventListener('DOMContentLoaded', () => {
     salirDeEdicion();
     cargar();
   }
+});
+
+/* ---------- panel admin: sacramentos que ofrece la parroquia ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('form-sacramentos');
+  if (!form) return;
+  const lista = document.getElementById('lista-sacramentos-admin');
+  const mensaje = document.getElementById('mensaje-sacramentos');
+  const leer = (r) => r.json().catch(() => ({})).then((data) => ({ ok: r.ok, data }));
+
+  fetch('/api/admin/sacramentos', { cache: 'no-store', credentials: 'same-origin' })
+    .then(leer)
+    .then(({ ok, data }) => {
+      if (!ok) { lista.textContent = data.error || 'No se pudieron cargar los sacramentos.'; return; }
+      lista.innerHTML = data.map((sc) => `
+        <label style="display:flex;gap:10px;align-items:center;">
+          <input type="checkbox" value="${escaparHtml(sc.codigo)}" ${sc.ofrece ? 'checked' : ''}>
+          <span>${escaparHtml(sc.nombre)}</span>
+        </label>`).join('');
+    })
+    .catch(() => { lista.textContent = 'No se pudo conectar con el servidor.'; });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const codigos = [...lista.querySelectorAll('input[type="checkbox"]:checked')].map((c) => c.value);
+    mensaje.classList.add('visible');
+    mensaje.style.color = '';
+    mensaje.textContent = 'Guardando…';
+    fetch('/api/admin/sacramentos', { method: 'POST', body: new URLSearchParams({ codigos: codigos.join(',') }), credentials: 'same-origin' })
+      .then(leer)
+      .then(({ ok, data }) => {
+        if (ok) mensaje.textContent = codigos.length ? 'Guardado. Los feligreses ya ven tu parroquia para esos sacramentos.' : 'Guardado. Tu parroquia no aparecerá al reservar ningún sacramento.';
+        else { mensaje.style.color = 'red'; mensaje.textContent = data.error || 'No se pudo guardar.'; }
+      })
+      .catch(() => { mensaje.style.color = 'red'; mensaje.textContent = 'No se pudo conectar con el servidor.'; });
+  });
+});
+
+/* ---------- panel admin: reportes reales y descarga a Excel ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  const tbodyTramites = document.getElementById('tabla-reporte-tramites');
+  if (!tbodyTramites) return; // solo existe en paginas/admin/reportes.html
+  const selectMes = document.getElementById('reporte-mes');
+  const enlaceTramites = document.getElementById('descargar-tramites');
+  const leer = (r) => r.json().catch(() => ({})).then((data) => ({ ok: r.ok, data }));
+  const pedir = (query) => fetch('/api/admin/reportes?' + query, { cache: 'no-store', credentials: 'same-origin' }).then(leer);
+
+  // Meses: "todos" y los últimos 12 (value AAAA-MM; <input type="month"> no existe en todos los navegadores).
+  const hoy = new Date();
+  const opciones = ['<option value="">Todos los meses</option>'];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+    const valor = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const etiqueta = d.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
+    opciones.push(`<option value="${valor}">${escaparHtml(etiqueta.charAt(0).toUpperCase() + etiqueta.slice(1))}</option>`);
+  }
+  selectMes.innerHTML = opciones.join('');
+
+  const filaVacia = (columnas, texto) => `<tr><td colspan="${columnas}">${escaparHtml(texto)}</td></tr>`;
+
+  const cargarTramites = () => {
+    const mes = selectMes.value;
+    enlaceTramites.href = '/api/admin/reportes?tipo=tramites&formato=xlsx' + (mes ? '&mes=' + encodeURIComponent(mes) : '');
+    return pedir('tipo=tramites' + (mes ? '&mes=' + encodeURIComponent(mes) : '')).then(({ ok, data }) => {
+      const nota = document.getElementById('nota-reporte-tramites');
+      if (!ok) { tbodyTramites.innerHTML = ''; nota.textContent = data.error || 'No se pudo generar el reporte.'; return; }
+      nota.textContent = '';
+      const total = data.reduce((t, f) => ({ s: t.s + f.solicitudes, c: t.c + f.confirmadas, p: t.p + f.pendientes, r: t.r + f.rechazadas }), { s: 0, c: 0, p: 0, r: 0 });
+      tbodyTramites.innerHTML = data.map((f) => `<tr><td>${escaparHtml(f.sacramento)}</td><td>${f.solicitudes}</td><td>${f.confirmadas}</td><td>${f.pendientes}</td><td>${f.rechazadas}</td></tr>`).join('')
+        + `<tr class="fila-total"><td><strong>Total</strong></td><td><strong>${total.s}</strong></td><td><strong>${total.c}</strong></td><td><strong>${total.p}</strong></td><td><strong>${total.r}</strong></td></tr>`;
+    }).catch(() => { document.getElementById('nota-reporte-tramites').textContent = 'No se pudo conectar con el servidor.'; });
+  };
+
+  const cargarDocumentos = () => pedir('tipo=documentos').then(({ ok, data }) => {
+    const tbody = document.getElementById('tabla-reporte-documentos');
+    const nota = document.getElementById('nota-reporte-documentos');
+    if (!ok) { tbody.innerHTML = ''; nota.textContent = data.error || 'No se pudo generar el reporte.'; return; }
+    nota.textContent = data.length ? '' : 'No hay documentos pendientes de revisión.';
+    tbody.innerHTML = data.map((f) => `<tr><td>${escaparHtml(f.feligres)}</td><td>${escaparHtml(f.documento)}</td>
+      <td>${escaparHtml([NOMBRES_SACRAMENTO[f.sacramento] || f.sacramento, f.solicitante].filter(Boolean).join(' · '))}</td>
+      <td>${formatearFecha(f.fechaEnvio)}</td><td>${Number(f.diasEspera)}</td></tr>`).join('');
+  }).catch(() => { document.getElementById('nota-reporte-documentos').textContent = 'No se pudo conectar con el servidor.'; });
+
+  const cargarAgenda = () => pedir('tipo=agenda').then(({ ok, data }) => {
+    const tbody = document.getElementById('tabla-reporte-agenda');
+    const nota = document.getElementById('nota-reporte-agenda');
+    if (!ok) { tbody.innerHTML = ''; nota.textContent = data.error || 'No se pudo generar el reporte.'; return; }
+    nota.textContent = data.length ? '' : 'No hay celebraciones confirmadas próximas.';
+    tbody.innerHTML = data.map((f) => `<tr><td>${formatearFecha(f.fecha)}</td><td>${escaparHtml(f.sacramento)}</td><td>${escaparHtml(f.solicitante)}</td><td>${escaparHtml(f.contacto)}</td></tr>`).join('');
+  }).catch(() => { document.getElementById('nota-reporte-agenda').textContent = 'No se pudo conectar con el servidor.'; });
+
+  selectMes.addEventListener('change', cargarTramites);
+  cargarTramites();
+  cargarDocumentos();
+  cargarAgenda();
 });

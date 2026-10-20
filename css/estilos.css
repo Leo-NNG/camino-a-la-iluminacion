@@ -841,3 +841,6 @@ h1, h2, h3 {
 
 /* Páginas protegidas por rol: se muestran solo cuando el servidor confirma la sesión (ver aplicarGuarda en main.js) */
 body[data-requiere-rol]:not(.sesion-ok) { visibility: hidden; }
+
+/* Fila de totales de los reportes */
+.tabla-tramites .fila-total td { border-top: 2px solid var(--color-wine); background: rgba(0, 0, 0, .03); }

@@ -24,11 +24,11 @@ public class Conexion {
     private static final String CONTRASENA = env("DB_PASSWORD", "1234");
 
     private static final String URL =
-            "jdbc:mysql://" + HOST + ":" + PUERTO + "/" + BASE_DATOS
-                    + "?useUnicode=true&characterEncoding=UTF-8"
-                    + "&connectionCollation=utf8mb4_unicode_ci"
-                    + "&serverTimezone=America/Lima"
-                    + "&useSSL=false&allowPublicKeyRetrieval=true";
+        "jdbc:mysql://" + HOST + ":" + PUERTO + "/" + BASE_DATOS
+        + "?useUnicode=true&characterEncoding=UTF-8"
+        + "&connectionCollation=utf8mb4_unicode_ci"
+        + "&serverTimezone=America/Lima"
+        + "&useSSL=false&allowPublicKeyRetrieval=true";
 
     private static String env(String clave, String porDefecto) {
         String v = System.getenv(clave);
