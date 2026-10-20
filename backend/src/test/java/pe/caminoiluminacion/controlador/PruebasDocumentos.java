@@ -179,6 +179,8 @@ public class PruebasDocumentos {
         check(r.status == 413, "el contenedor corta por tamaño (IllegalStateException) -> 413");
         r = new Resp(); sub.doPost(req(cAna, m("id_reserva", "1"), new Archivo("<html><script>alert(1)</script></html>".getBytes(), "inocente.pdf"), false), resp(r));
         check(r.status == 415 && docs.lista.isEmpty() && archivosEn(dir) == 0, "HTML disfrazado de .pdf -> 415 y no se guarda nada");
+        r = new Resp(); sub.doPost(req(cAna, m("id_reserva", "1"), new Archivo("%PDF-1.4\n1 0 obj << /S /JavaScript /JS (app.alert(1)) >> endobj".getBytes(StandardCharsets.ISO_8859_1), "con-script.pdf"), false), resp(r));
+        check(r.status == 422 && docs.lista.isEmpty() && archivosEn(dir) == 0, "PDF con JavaScript -> 422 y no se guarda nada");
         r = new Resp(); sub.doPost(req(cAna, m("id_reserva", "1"), new Archivo("MZ\u0090\u0000".getBytes(StandardCharsets.ISO_8859_1), "foto.png"), false), resp(r));
         check(r.status == 415 && archivosEn(dir) == 0, "ejecutable disfrazado de .png -> 415");
         r = new Resp(); sub.doPost(req(cAna, m("id_reserva", "1"), new Archivo("<svg onload=alert(1)>".getBytes(), "x.jpg"), false), resp(r));

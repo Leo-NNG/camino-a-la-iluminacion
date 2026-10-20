@@ -17,4 +17,8 @@ public final class Registro {
     public static void error(String mensaje, Throwable causa) {
         LOG.log(Level.SEVERE, mensaje, causa);
     }
+
+    public static void aviso(String mensaje) {
+        LOG.log(Level.WARNING, mensaje);
+    }
 }

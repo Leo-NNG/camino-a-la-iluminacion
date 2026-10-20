@@ -28,7 +28,8 @@ USE camino_iluminacion;
 -- ----------------------------------------------------------------------------
 CREATE TABLE usuario (
   id_usuario        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  dni               CHAR(8)      NOT NULL COMMENT 'Documento de identidad (8 dígitos): es la credencial de acceso',
+  dni               VARCHAR(120) NOT NULL COMMENT 'DNI CIFRADO (AES-256-GCM, formato v1:...): es la credencial de acceso; en claro solo existe en la aplicación',
+  dni_indice        CHAR(64)     NULL     COMMENT 'Huella HMAC-SHA256 del DNI: búsqueda y unicidad sin guardar el DNI en claro',
   nombre            VARCHAR(80)  NOT NULL,
   apellido          VARCHAR(80)  NOT NULL,
   correo            VARCHAR(120) NOT NULL,
@@ -39,9 +40,8 @@ CREATE TABLE usuario (
   id_parroquia      INT UNSIGNED NULL COMMENT 'Solo para personal (administrador): parroquia que gestiona',
   creado_en         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-  CONSTRAINT uq_usuario_dni    UNIQUE (dni),
-  CONSTRAINT uq_usuario_correo UNIQUE (correo),
-  CONSTRAINT ck_usuario_dni    CHECK (dni REGEXP '^[0-9]{8}$')
+  CONSTRAINT uq_usuario_dni    UNIQUE (dni_indice),
+  CONSTRAINT uq_usuario_correo UNIQUE (correo)
 ) ENGINE=InnoDB;
 
 -- ----------------------------------------------------------------------------
@@ -272,6 +272,7 @@ INSERT INTO horario (id_parroquia, dia_semana, hora, tipo) VALUES
 
 -- Usuarios de DEMOSTRACIÓN. Contraseña de todos: Demo1234  (cámbiala antes de cualquier uso real).
 -- DNI de ejemplo ficticios. El administrador gestiona la parroquia 1 (San José).
+-- Se insertan en claro y la aplicación los cifra sola al arrancar (MigracionDni); por eso dni_indice queda NULL aquí.
 INSERT INTO usuario (dni, nombre, apellido, correo, telefono, contrasena_hash, rol, id_parroquia) VALUES
   ('70000001', 'María',   'Fernández', 'maria.fernandez@example.com', '999111222', 'pbkdf2$120000$siMdRnNa8EYp3SuZXCNGSg==$k8pV0urFl7dy5jRq9Zm8mfyW05HCi9BOBpXGt6kDN4I=', 'feligres', NULL),
   ('70000002', 'Jorge',   'Ramírez',   'jorge.ramirez@example.com',   '999333444', 'pbkdf2$120000$dEaKG+4XMNm2PUfKungeog==$OJguo69V8mjkQ+BAYmc2PJOgiplAhp/NhQQs0G7ec80=', 'feligres', NULL),

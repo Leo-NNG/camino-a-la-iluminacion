@@ -72,6 +72,9 @@ public class DocumentoService {
         if (datos.length > AlmacenArchivos.MAX_BYTES) throw new ReglaNegocioException(413, "El archivo supera el máximo de 5 MB.");
         Tipo tipo = AlmacenArchivos.detectar(datos);
         if (tipo == null) throw new ReglaNegocioException(415, "Solo se aceptan archivos PDF, JPG o PNG.");
+        if (tipo == Tipo.PDF && AlmacenArchivos.tieneContenidoActivo(datos)) {
+            throw new ReglaNegocioException(422, "El PDF contiene elementos activos (scripts o archivos incrustados). Vuelve a guardarlo como PDF simple e inténtalo de nuevo.");
+        }
         if (documentoDAO.listarPorUsuario(idUsuario).size() >= MAX_DOCUMENTOS_POR_USUARIO) {
             throw new ReglaNegocioException(409, "Alcanzaste el máximo de documentos permitidos.");
         }

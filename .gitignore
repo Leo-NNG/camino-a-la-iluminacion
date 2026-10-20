@@ -12,3 +12,6 @@ out/
 *.iml
 .smarttomcat/
 database/respaldo_*.sql
+
+# Clave de cifrado generada en desarrollo (NUNCA subir)
+.data-key

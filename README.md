@@ -55,3 +55,18 @@ No necesita servidor: clona el repositorio y abre `index.html` en el navegador.
 3. Haz tus cambios y confírmalos: `git add . && git commit -m "Descripción breve"`
 4. Sube tu rama: `git push origin nombre-de-tu-cambio`
 5. Abre un Pull Request en GitHub para que el equipo revise antes de fusionar a `main`.
+
+## Seguridad de los datos (clave de cifrado del DNI)
+
+El DNI se guarda **cifrado** (AES-256-GCM) en `usuario.dni` y con una huella HMAC en `usuario.dni_indice` para poder
+buscar y evitar repetidos. La clave NO está en el código ni en la base de datos:
+
+- **Recomendado (y obligatorio en el despliegue):** variable de entorno `CAI_DATA_KEY` con 32 bytes en base64.
+  Para generar una: `[Convert]::ToBase64String((1..32 | % { Get-Random -Maximum 256 }))` (PowerShell) u
+  `openssl rand -base64 32`. En SmartTomcat: *Run > Edit Configurations > Environment variables*.
+- **Solo desarrollo:** si no defines nada, la aplicación crea el archivo `.data-key` (ignorado por git) en su carpeta de
+  trabajo. **Respáldalo**: sin la clave no se pueden leer los DNI ya cifrados. Todos los integrantes que compartan una
+  base de datos deben usar LA MISMA clave.
+- Base existente: aplica `database/migracion_06_dni_cifrado.sql`; al arrancar, la aplicación cifra sola los DNI pendientes.
+- Además: cabeceras de seguridad en todas las respuestas (`CabecerasSeguridad`: CSP, nosniff, anti-frames, HSTS con HTTPS),
+  PDF con scripts o archivos incrustados rechazados al subir, y fuentes y mapa (Leaflet) servidos desde `vendor/`.

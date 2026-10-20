@@ -77,4 +77,14 @@ class AlmacenArchivosTest {
         assertNull(Tipo.porMime("text/html"));
         assertNull(Tipo.porMime(null));
     }
+
+    @Test
+    void detectaPdfConContenidoActivo() {
+        assertTrue(AlmacenArchivos.tieneContenidoActivo(bytes("%PDF-1.4\n1 0 obj << /S /JavaScript /JS (app.alert(1)) >> endobj")));
+        assertTrue(AlmacenArchivos.tieneContenidoActivo(bytes("%PDF-1.4\n<< /Type /Action /S /Launch /F (cmd.exe) >>")));
+        assertTrue(AlmacenArchivos.tieneContenidoActivo(bytes("%PDF-1.7\n<< /Type /EmbeddedFile >>")));
+        assertFalse(AlmacenArchivos.tieneContenidoActivo(bytes("%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj")));
+        assertFalse(AlmacenArchivos.tieneContenidoActivo(bytes("%PDF-1.4 ... /JSON no es una accion ...")));
+        assertFalse(AlmacenArchivos.tieneContenidoActivo(null));
+    }
 }
