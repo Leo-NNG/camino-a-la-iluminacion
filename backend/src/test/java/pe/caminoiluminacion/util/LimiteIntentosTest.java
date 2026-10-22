@@ -58,4 +58,20 @@ class LimiteIntentosTest {
         limite.registrarFallo("a");
         assertFalse(limite.estaBloqueado("a"));
     }
+
+    @Test
+    void rechazaConfiguracionInvalida() {
+        assertThrows(IllegalArgumentException.class, () -> new LimiteIntentos(0, 1000, 1000, () -> 0));
+        assertThrows(IllegalArgumentException.class, () -> new LimiteIntentos(3, 0, 1000, () -> 0));
+    }
+
+    @Test
+    void lasClavesSinActividadCaducanSolas() {
+        limite.registrarFallo("a");
+        limite.registrarFallo("a");
+        ahora = 10 * 60_000; // pasó más que ventana + bloqueo sin tocar la clave
+        limite.registrarFallo("a");
+        limite.registrarFallo("a");
+        assertFalse(limite.estaBloqueado("a"), "los fallos viejos no deben sumarse a los nuevos");
+    }
 }

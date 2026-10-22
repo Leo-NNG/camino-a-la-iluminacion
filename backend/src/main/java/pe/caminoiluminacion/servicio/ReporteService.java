@@ -4,7 +4,7 @@ import pe.caminoiluminacion.dao.ReporteDAO;
 import pe.caminoiluminacion.dao.ReporteDAO.FilaAgenda;
 import pe.caminoiluminacion.dao.ReporteDAO.FilaDocumento;
 import pe.caminoiluminacion.dao.ReporteDAO.FilaTramites;
-import pe.caminoiluminacion.util.ExcelSimple;
+import pe.caminoiluminacion.util.ExcelReporte;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -57,7 +57,7 @@ public class ReporteService {
             }
             datos.add(new ArrayList<>(List.of("Total", s, c, p, r)));
             archivo = new Archivo("tramites-" + (mes == null ? "todos" : mes) + ".xlsx",
-                    ExcelSimple.generar("Trámites por sacramento",
+                    ExcelReporte.generar("Trámites por sacramento",
                             List.of("Sacramento", "Solicitudes", "Confirmadas", "Pendientes", "Rechazadas"), datos, true));
         } else if ("documentos".equals(tipo)) {
             List<List<Object>> datos = new ArrayList<>();
@@ -65,7 +65,7 @@ public class ReporteService {
                 datos.add(new ArrayList<>(List.of(f.feligres(), f.documento(), f.sacramento(), f.solicitante(), f.fechaEnvio(), f.diasEspera())));
             }
             archivo = new Archivo("documentos-pendientes.xlsx",
-                    ExcelSimple.generar("Documentos pendientes",
+                    ExcelReporte.generar("Documentos pendientes",
                             List.of("Feligrés", "Documento", "Sacramento", "Solicitante", "Enviado el", "Días de espera"), datos, false));
         } else if ("agenda".equals(tipo)) {
             List<List<Object>> datos = new ArrayList<>();
@@ -73,7 +73,7 @@ public class ReporteService {
                 datos.add(new ArrayList<>(List.of(f.fecha(), f.sacramento(), f.solicitante(), f.contacto() == null ? "" : f.contacto())));
             }
             archivo = new Archivo("agenda-reservas.xlsx",
-                    ExcelSimple.generar("Agenda de reservas",
+                    ExcelReporte.generar("Agenda de reservas",
                             List.of("Fecha", "Sacramento", "Solicitante", "Contacto"), datos, false));
         } else {
             throw new ReglaNegocioException(400, "Reporte no válido.");

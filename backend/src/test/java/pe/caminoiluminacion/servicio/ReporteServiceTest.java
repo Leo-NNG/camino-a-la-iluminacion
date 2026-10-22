@@ -1,5 +1,9 @@
 package pe.caminoiluminacion.servicio;
 
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pe.caminoiluminacion.controlador.Pruebas.FakeBitacora;
@@ -7,12 +11,9 @@ import pe.caminoiluminacion.dao.ReporteDAO;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,12 +44,21 @@ class ReporteServiceTest {
         }, new BitacoraService(bitacoraDao));
     }
 
+    /** Lee la primera hoja con Apache POI y devuelve el texto de cada fila con las celdas separadas por "|". */
     private static String hoja(byte[] xlsx) throws IOException {
-        try (ZipInputStream z = new ZipInputStream(new ByteArrayInputStream(xlsx))) {
-            ZipEntry e;
-            while ((e = z.getNextEntry()) != null) if (e.getName().equals("xl/worksheets/sheet1.xml")) return new String(z.readAllBytes(), StandardCharsets.UTF_8);
+        DataFormatter formato = new DataFormatter();
+        StringBuilder sb = new StringBuilder();
+        try (XSSFWorkbook libro = new XSSFWorkbook(new ByteArrayInputStream(xlsx))) {
+            Sheet hoja = libro.getSheetAt(0);
+            for (Row fila : hoja) {
+                for (int c = 0; c < fila.getLastCellNum(); c++) {
+                    if (c > 0) sb.append('|');
+                    if (fila.getCell(c) != null) sb.append(formato.formatCellValue(fila.getCell(c)));
+                }
+                sb.append('\n');
+            }
         }
-        throw new AssertionError("no hay hoja");
+        return sb.toString();
     }
 
     @Test
@@ -75,8 +85,7 @@ class ReporteServiceTest {
         assertEquals("tramites-2026-10.xlsx", a.nombre());
         String xml = hoja(a.datos());
         assertTrue(xml.contains("Sacramento") && xml.contains("Bautizo") && xml.contains("Total"));
-        assertTrue(xml.contains("<v>7</v>"), "total de solicitudes 5+2+0");
-        assertTrue(xml.contains("<v>4</v>"), "total de confirmadas 3+1+0");
+        assertTrue(xml.contains("Total|7|4|"), "totales: solicitudes 5+2+0 y confirmadas 3+1+0");
         assertTrue(bitacoraDao.hay("REPORTE_EXPORTADO"));
     }
 

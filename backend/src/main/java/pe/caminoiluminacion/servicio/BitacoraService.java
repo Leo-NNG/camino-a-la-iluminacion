@@ -1,10 +1,10 @@
 package pe.caminoiluminacion.servicio;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pe.caminoiluminacion.dao.BitacoraDAO;
 
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Registra acciones críticas (RNF09). Es de "mejor esfuerzo": si la bitácora falla, la acción del usuario
@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class BitacoraService {
 
-    private static final Logger LOG = Logger.getLogger(BitacoraService.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(BitacoraService.class);
 
     private final BitacoraDAO dao;
 
@@ -25,7 +25,7 @@ public class BitacoraService {
         try {
             dao.registrar(idUsuario, accion, detalle, ip);
         } catch (SQLException | RuntimeException e) {
-            LOG.log(Level.WARNING, "No se pudo registrar en la bitácora la acción " + accion, e);
+            LOG.warn("No se pudo registrar en la bitácora la acción {}", accion, e);
         }
     }
 }
