@@ -81,6 +81,8 @@ ORDER BY b.creado_en DESC LIMIT 50;
 
 ## Documentos (subida real)
 - Variable de entorno **`DOCS_DIR`**: carpeta donde se guardan los archivos (por defecto `~/camino_iluminacion_docs`). Debe estar **fuera** de la carpeta pública de la aplicación y con permisos de escritura para el usuario que ejecuta Tomcat. Respáldala junto con la base de datos.
+- Los comprobantes de pago (Yape/Plin) se guardan en la **misma** carpeta `DOCS_DIR` (con nombre aleatorio); la base de datos solo guarda el nombre. Aplica `database/migracion_07_pagos.sql` si tu base es anterior.
+- Variable de entorno **`CAI_LOG_DIR`**: carpeta de los registros de Logback (por defecto `~/camino_iluminacion_logs`; un archivo por día, 30 días).
 - Solo **PDF, JPG o PNG de hasta 5 MB**. El tipo se decide por el **contenido** del archivo (no por la extensión ni por lo que declare el navegador). Cada archivo se guarda con un nombre aleatorio; el nombre original solo se muestra.
 - Todo documento pertenece a una **solicitud de reserva** del propio feligrés (así se sabe a qué parroquia corresponde). Máximo 50 documentos por usuario.
 - Solo abre un archivo su **dueño** o el **administrador de la parroquia** de esa solicitud (`/api/documentos/archivo?id=N`; cualquier otro recibe 404). Se sirve con `nosniff`, sin caché y con `Content-Security-Policy` restrictiva.

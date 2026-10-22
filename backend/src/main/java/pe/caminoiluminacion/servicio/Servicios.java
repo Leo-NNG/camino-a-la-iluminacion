@@ -1,9 +1,13 @@
 package pe.caminoiluminacion.servicio;
 
+import pe.caminoiluminacion.dao.impl.ArancelDAOImpl;
 import pe.caminoiluminacion.dao.impl.AvisoDAOImpl;
 import pe.caminoiluminacion.dao.impl.BitacoraDAOImpl;
+import pe.caminoiluminacion.dao.impl.CuentaPagoDAOImpl;
 import pe.caminoiluminacion.dao.impl.DocumentoDAOImpl;
 import pe.caminoiluminacion.dao.impl.HorarioDAOImpl;
+import pe.caminoiluminacion.dao.impl.NotificacionDAOImpl;
+import pe.caminoiluminacion.dao.impl.PagoDAOImpl;
 import pe.caminoiluminacion.dao.impl.ParroquiaDAOImpl;
 import pe.caminoiluminacion.dao.impl.ReporteDAOImpl;
 import pe.caminoiluminacion.dao.impl.ReservaDAOImpl;
@@ -34,6 +38,12 @@ public final class Servicios {
 
     private static final ReporteService REPORTE_SERVICE = new ReporteService(new ReporteDAOImpl(), BITACORA);
 
+    private static final NotificacionDAOImpl NOTIFICACIONES = new NotificacionDAOImpl();
+    private static final PagoService PAGO_SERVICE = new PagoService(new PagoDAOImpl(), new ArancelDAOImpl(),
+            new CuentaPagoDAOImpl(), NOTIFICACIONES, RESERVAS, PARROQUIAS, SACRAMENTOS, USUARIOS,
+            AlmacenArchivos.porDefecto(), BITACORA);
+    private static final NotificacionService NOTIFICACION_SERVICE = new NotificacionService(NOTIFICACIONES);
+
     private Servicios() { }
 
     public static BitacoraService bitacora() { return BITACORA; }
@@ -42,4 +52,6 @@ public final class Servicios {
     public static DocumentoService documentos() { return DOCUMENTO_SERVICE; }
     public static ContenidoService contenido() { return CONTENIDO_SERVICE; }
     public static ReporteService reportes() { return REPORTE_SERVICE; }
+    public static PagoService pagos() { return PAGO_SERVICE; }
+    public static NotificacionService notificaciones() { return NOTIFICACION_SERVICE; }
 }

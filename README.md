@@ -14,6 +14,8 @@ Ya funcionan de verdad (sin simulaciones): registro e inicio de sesión con **DN
 subida y validación de documentos, y parroquias, horarios y avisos desde la base de datos.
 También funcionan: sacramentos normalizados (catálogo y relación con las parroquias), reportes reales con
 descarga a Excel, bitácora de acciones, capa de servicios y pruebas JUnit (`mvn test` en `backend/`).
+Pagos por **Yape y Plin** con verificación manual (arancel de reservas, donaciones y diezmos), con el número de cobro de
+cada parroquia, comprobante en el almacén privado y avisos dentro de la plataforma. No hay pasarela ni se reciben datos de tarjeta.
 Pendiente: despliegue como WAR y un antivirus para los archivos subidos.
 Para ponerlo en marcha: `backend/README.md` (variables de entorno, scripts SQL y migraciones).
 
@@ -41,6 +43,7 @@ camino-a-la-iluminacion/
 ```
 
 ## Backend y base de datos
+- `database/migracion_07_pagos.sql` — pagos Yape/Plin por parroquia, aranceles y notificaciones (hacer copia antes).
 - `database/migracion_05_normalizacion_bitacora.sql` — normaliza sacramentos y agrega la bitácora (hacer copia antes).
 - `database/migracion_01_dni_roles.sql` — migración para una base creada antes del acceso por DNI.
 - `database/camino_iluminacion.sql` — script con las 6 tablas del modelo entidad-relación (Capítulo 8.3) y datos de ejemplo.
@@ -70,3 +73,11 @@ buscar y evitar repetidos. La clave NO está en el código ni en la base de dato
 - Base existente: aplica `database/migracion_06_dni_cifrado.sql`; al arrancar, la aplicación cifra sola los DNI pendientes.
 - Además: cabeceras de seguridad en todas las respuestas (`CabecerasSeguridad`: CSP, nosniff, anti-frames, HSTS con HTTPS),
   PDF con scripts o archivos incrustados rechazados al subir, y fuentes y mapa (Leaflet) servidos desde `vendor/`.
+
+## Librerías de apoyo (APF3)
+| Librería | Para qué se usa | Dónde |
+| --- | --- | --- |
+| Apache POI | Reportes en Excel (.xlsx); el texto va siempre como celda de texto (sin inyección de fórmulas) | `util/ExcelReporte` |
+| Logback (SLF4J) | Registro de eventos con archivo rotativo diario (`CAI_LOG_DIR` o `~/camino_iluminacion_logs`) | `logback.xml`, `util/Registro` |
+| Google Guava | Caché con expiración para el límite de intentos de login; `ImmutableSet`, `Strings` | `util/LimiteIntentos`, `servicio/PagoService` |
+| Apache Commons Codec | SHA-256 del comprobante para detectar un voucher reutilizado | `servicio/PagoService` |
