@@ -45,6 +45,31 @@ function destinoSeguro(next, rol) {
   return rutaPaginas() + next;
 }
 
+// Campana de avisos: muestra cuántas notificaciones sin leer tiene el feligrés (RF13).
+function crearCampana() {
+  const item = document.createElement('li');
+  item.id = 'nav-campana';
+  const enlace = document.createElement('a');
+  enlace.className = 'campana';
+  enlace.href = rutaPaginas() + 'bandeja.html';
+  enlace.setAttribute('aria-label', 'Mi bandeja de avisos');
+  enlace.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>'
+    + '<span class="campana-n" hidden>0</span>';
+  item.appendChild(enlace);
+  fetch('/api/notificaciones', { cache: 'no-store', credentials: 'same-origin' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => { if (d) actualizarCampana(d.noLeidas); })
+    .catch(() => {});
+  return item;
+}
+
+function actualizarCampana(n) {
+  const punto = document.querySelector('#nav-campana .campana-n');
+  if (!punto) return;
+  punto.textContent = n > 9 ? '9+' : String(n);
+  punto.hidden = !(n > 0);
+}
+
 function pintarNavCuenta() {
   const navLinks = document.querySelector('.nav-links');
   if (!navLinks || document.getElementById('nav-cuenta')) return;
@@ -64,6 +89,22 @@ function pintarNavCuenta() {
     enlace.textContent = 'Panel administrador';
     liPanel.appendChild(enlace);
     navLinks.appendChild(liPanel);
+  }
+
+  if (sesion && sesion.rol === 'feligres') {
+    // Pagos, intenciones de misa y campana de avisos: se agregan aquí para que aparezcan en todas las páginas.
+    const actual = window.location.pathname.split('/').pop();
+    [['pagos.html', 'Pagos'], ['intenciones.html', 'Intenciones']].forEach(([href, texto]) => {
+      if (navLinks.querySelector('a[href$="' + href + '"]')) return;
+      const item = document.createElement('li');
+      const enlace = document.createElement('a');
+      enlace.href = rutaPaginas() + href;
+      enlace.textContent = texto;
+      if (actual === href) enlace.className = 'activo';
+      item.appendChild(enlace);
+      navLinks.appendChild(item);
+    });
+    navLinks.appendChild(crearCampana());
   }
 
   const li = document.createElement('li');
@@ -168,13 +209,15 @@ function cargarMisReservas() {
         const [clase, texto] = ESTADOS_RESERVA[r.estado] || ['pendiente', escaparHtml(r.estado)];
         const detalle = r.estado === 'rechazada' && r.motivo ? `Motivo: ${escaparHtml(r.motivo)}`
           : (r.estado === 'confirmada' ? 'La parroquia confirmó tu fecha.' : 'En revisión por la parroquia.');
+        // Solo las solicitudes vigentes se pagan; la pantalla de pagos muestra el arancel y el estado del pago.
+        const pagar = r.estado === 'rechazada' ? '' : `<br><a href="pagos.html?reserva=${Number(r.id)}">Pagar arancel</a>`;
         return `<tr>
           <td>${escaparHtml(NOMBRES_SACRAMENTO[r.sacramento] || r.sacramento)}</td>
           <td>${escaparHtml(r.parroquia)}</td>
           <td>${escaparHtml(r.solicitante)}</td>
           <td>${formatearFecha(r.fecha)}</td>
           <td><span class="insignia ${clase}">${texto}</span></td>
-          <td>${detalle}</td>
+          <td>${detalle}${pagar}</td>
         </tr>`;
       }).join('');
     })

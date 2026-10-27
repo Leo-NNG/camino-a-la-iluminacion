@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel administrador — Pagos</title>
+<link rel="stylesheet" href="../../css/estilos.css">
+<link rel="stylesheet" href="../../css/ios.css">
+<link rel="stylesheet" href="../../css/pagos.css">
+</head>
+<body data-requiere-rol="administrador">
+
+<div class="franja-admin">Panel de personal parroquial — <span id="franja-parroquia">tu parroquia</span> · <a href="../../index.html">Ver el sitio público</a></div>
+
+<header class="sitio-header">
+  <nav class="barra-nav">
+    <a href="documentos.html" class="marca">
+      <span class="marca-arco"></span>
+      <span class="marca-texto">Camino a la Iluminación<small>Panel administrador</small></span>
+    </a>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="documentos.html">Validar documentos</a></li>
+      <li><a href="avisos.html">Publicar aviso</a></li>
+      <li><a href="horarios.html">Gestionar horarios</a></li>
+      <li><a href="reportes.html">Reportes</a></li>
+      <li><a href="pagos.html" class="activo">Pagos</a></li>
+      <li><a href="intenciones.html">Intenciones</a></li>
+      <li><a href="cobros.html">Cobros</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <section class="seccion" style="padding-top:56px">
+    <div class="envolvente">
+      <div class="encabezado-seccion">
+        <p class="eyebrow">Verificación de pagos</p>
+        <h1>Pagos Yape y Plin</h1>
+        <p style="color:var(--color-ink-soft)">Compara el monto, el número de operación y el celular con tu app de Yape o Plin. Si algo no coincide, rechaza el pago indicando el motivo: el feligrés lo verá y podrá reenviarlo.</p>
+      </div>
+
+      <div class="ios-panel">
+        <div class="campo" style="max-width:240px">
+          <label for="ingresos-mes">Ingresos verificados del mes</label>
+          <input type="month" id="ingresos-mes">
+        </div>
+        <div class="ios-kpis" id="ingresos-cajas"></div>
+      </div>
+
+      <div class="ios-seg" id="pestanas-estado" role="tablist" aria-label="Estado del pago">
+        <button type="button" data-tab="pendiente">Por verificar</button>
+        <button type="button" data-tab="aprobado">Verificados</button>
+        <button type="button" data-tab="rechazado">Rechazados</button>
+      </div>
+
+      <div class="tabla-scroll" style="margin-top:16px">
+        <table class="tabla-tramites">
+          <thead><tr><th>Feligrés</th><th>Concepto</th><th>Monto</th><th>Operación</th><th>Comprobante</th><th>Acción</th></tr></thead>
+          <tbody id="tabla-pagos-admin"></tbody>
+        </table>
+      </div>
+      <p id="nota-pagos-admin" class="ayuda"></p>
+    </div>
+  </section>
+</main>
+
+<footer class="sitio-footer">
+  <div class="envolvente">
+    Camino a la Iluminación — Proyecto final. Curso Integrador I.
+  </div>
+</footer>
+
+<script src="../../js/main.js"></script>
+<script src="../../js/pagos.js"></script>
+</body>
+</html>

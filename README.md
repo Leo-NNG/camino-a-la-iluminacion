@@ -17,6 +17,7 @@ descarga a Excel, bitácora de acciones, capa de servicios y pruebas JUnit (`mvn
 Pagos por **Yape y Plin** con verificación manual (arancel de reservas, donaciones y diezmos), con el número de cobro de
 cada parroquia, comprobante en el almacén privado y avisos dentro de la plataforma. No hay pasarela ni se reciben datos de tarjeta.
 Incluye **intenciones de misa con ofrenda** (cupo por misa, agenda para el personal) y **recibo en PDF** de cada pago aprobado.
+Pantallas: `paginas/pagos.html` (pagar un trámite, donar o diezmar, mis pagos), `paginas/intenciones.html`, `paginas/bandeja.html` (avisos y campana en la barra) y, en el panel, `admin/pagos.html` (verificar pagos e ingresos), `admin/cobros.html` (Yape/Plin, ofrenda y aranceles) y `admin/intenciones.html` (agenda imprimible para el párroco). Su lógica está en `js/pagos.js`.
 Pendiente: despliegue como WAR y un antivirus para los archivos subidos.
 Para ponerlo en marcha: `backend/README.md` (variables de entorno, scripts SQL y migraciones).
 

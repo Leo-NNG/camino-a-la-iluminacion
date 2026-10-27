@@ -90,3 +90,8 @@ background:rgba(255,252,245,.8)!important;-webkit-backdrop-filter:saturate(180%)
 @media (max-width:860px){.sitio-header{flex-wrap:wrap}.barra-nav{flex:1 1 100%}#nav-cuenta{flex:1 1 100%;justify-content:center}}
 
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+/* ===== Campana de avisos del feligrés (barra de navegación) ===== */
+.campana{position:relative;display:inline-flex;align-items:center;padding:6px 8px!important}
+.campana svg{width:20px;height:20px;fill:none;stroke:#6E1F2A;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.campana-n{position:absolute;top:-2px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#B8893B;color:#fff;font-size:.7rem;font-weight:700;line-height:18px;text-align:center}

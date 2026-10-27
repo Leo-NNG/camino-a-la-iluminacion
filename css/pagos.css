@@ -1,0 +1,58 @@
+/* Pagos Yape/Plin, intenciones de misa, bandeja y paneles de cobro.
+   Reutiliza la paleta (vino, oro, marfil) y los componentes iOS de ios.css. */
+
+[hidden] { display: none !important; }
+
+.panel-pestana { margin-top: 16px; }
+.ios-seg { margin-bottom: 4px; }
+
+/* ----- bloque de cobro ----- */
+.caja-cobro { margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--color-line, #DCCCA6); }
+.cobro-titulo { font-weight: 700; color: #4E151D; margin: 18px 0 4px; }
+.cobro-monto { margin: 0 0 14px; color: var(--ios-sec, #7A6A63); }
+.cobro-monto strong { display: block; font-size: 2rem; letter-spacing: -.02em; color: #6E1F2A; }
+.cobro-cuenta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin: 14px 0; padding: 14px 16px; border-radius: 16px; background: rgba(184,137,59,.12); border: 1px solid rgba(184,137,59,.35); }
+.cuenta-etiqueta { flex: 1 0 100%; font-size: .8rem; color: var(--ios-sec, #7A6A63); }
+.cuenta-numero { font-size: 1.35rem; font-weight: 700; letter-spacing: .06em; color: #4E151D; font-variant-numeric: tabular-nums; }
+.cobro-pasos { margin: 0 0 18px; padding-left: 20px; color: var(--color-ink-soft, #5B5449); font-size: .92rem; line-height: 1.55; }
+.cobro-vista { display: block; max-width: 220px; max-height: 260px; margin-top: 10px; border-radius: 14px; border: 1px solid var(--ios-sep); object-fit: contain; background: #fff; }
+.exito-pago { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: #E4EBDD; color: #3f5a3a; font-weight: 600; }
+.nota-cobro { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: rgba(110,31,42,.06); color: var(--color-ink-soft, #5B5449); }
+.ayuda { margin: 6px 0 0; font-size: .85rem; color: var(--ios-sec, #7A6A63); }
+.ios-panel h3 { margin: 0 0 12px; color: #4E151D; font-size: 1.05rem; }
+.cobro-form input[type="file"] { padding: 10px; }
+
+/* ----- fechas sugeridas de una misa ----- */
+.chips-fecha { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.chip { border: 1.5px solid #B8893B; background: transparent; color: #6E1F2A; border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: .85rem; cursor: pointer; }
+.chip:hover { background: rgba(184,137,59,.16); }
+
+/* ----- bandeja de avisos ----- */
+.bandeja { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.bandeja-item { background: #fff; border: 1px solid var(--ios-sep); border-radius: 16px; padding: 14px 16px; }
+.bandeja-item.nueva { border-left: 5px solid #B8893B; background: #FFF9EC; }
+.bandeja-item p { margin: 6px 0 0; color: var(--color-ink-soft, #5B5449); }
+.bandeja-cabecera { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.bandeja-cabecera small { color: var(--ios-sec, #7A6A63); }
+
+/* ----- panel: pagos ----- */
+.ios-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 6px; }
+.kpi-total .ios-kpi-v { color: #4E151D; }
+.miniatura img { display: block; width: 72px; height: 72px; object-fit: cover; border-radius: 12px; border: 1px solid var(--ios-sep); background: #f4efe4; }
+.fila-accion { white-space: nowrap; }
+.fila-accion .boton-mini { margin: 2px 4px 2px 0; }
+.monto-arancel { width: 120px; padding: 8px 10px; border-radius: 12px; border: 1.5px solid #E5E5EA; font: inherit; }
+
+/* ----- panel: agenda de intenciones ----- */
+.filtros-agenda .boton { margin-right: 8px; }
+.agenda-misa { background: #fff; border: 1px solid var(--ios-sep); border-radius: 18px; padding: 16px 20px; margin-bottom: 14px; break-inside: avoid; }
+.agenda-misa h3 { margin: 0 0 10px; color: #4E151D; }
+.agenda-misa ul { margin: 0; padding-left: 20px; line-height: 1.7; }
+.agenda-misa small { color: var(--ios-sec, #7A6A63); }
+
+@media print {
+  .sitio-header, .franja-admin, .sitio-footer, .filtros-agenda, .encabezado-seccion p, #nota-agenda { display: none !important; }
+  body { background: #fff !important; }
+  .agenda-misa { border: 0; border-bottom: 1px solid #999; border-radius: 0; box-shadow: none; padding: 10px 0; }
+  .encabezado-seccion h1 { font-size: 1.3rem; }
+}
