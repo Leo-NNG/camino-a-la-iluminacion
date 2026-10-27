@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Camino a la Iluminación — Reservar sacramento</title>
 <link rel="stylesheet" href="../css/estilos.css">
+<link rel="stylesheet" href="../css/ios.css">
 </head>
 <body data-requiere-rol="feligres">
 
@@ -45,12 +46,7 @@
 
         <div class="panel-paso">
           <label style="font-weight:600;font-size:.88rem;display:block;margin-bottom:10px;">¿Qué sacramento deseas reservar?</label>
-          <div class="tarjetas-sacramento">
-            <div class="tarjeta-sacramento" data-valor="Bautizo">Bautizo</div>
-            <div class="tarjeta-sacramento" data-valor="Matrimonio">Matrimonio</div>
-            <div class="tarjeta-sacramento" data-valor="Primera Comunión">Primera Comunión</div>
-            <div class="tarjeta-sacramento" data-valor="Confirmación">Confirmación</div>
-          </div>
+          <div class="tarjetas-sacramento" id="tarjetas-sacramento"><p style="color:var(--color-ink-soft)">Cargando sacramentos…</p></div>
           <input type="hidden" id="sacramento" required>
           <button type="button" class="boton boton-primario" style="margin-top:24px;" data-siguiente>Continuar</button>
         </div>

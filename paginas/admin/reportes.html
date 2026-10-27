@@ -5,10 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Panel administrador — Reportes</title>
 <link rel="stylesheet" href="../../css/estilos.css">
+<link rel="stylesheet" href="../../css/ios.css">
 </head>
 <body data-requiere-rol="administrador">
 
 <div class="franja-admin">Panel de personal parroquial — <span id="franja-parroquia">tu parroquia</span> · <a href="../../index.html">Ver el sitio público</a></div>
+
 
 <header class="sitio-header">
   <nav class="barra-nav">
@@ -22,6 +24,9 @@
       <li><a href="avisos.html">Publicar aviso</a></li>
       <li><a href="horarios.html">Gestionar horarios</a></li>
       <li><a href="reportes.html" class="activo">Reportes</a></li>
+      <li><a href="pagos.html">Pagos</a></li>
+      <li><a href="intenciones.html">Intenciones</a></li>
+      <li><a href="cobros.html">Cobros</a></li>
     </ul>
   </nav>
 </header>
@@ -30,40 +35,69 @@
   <section class="seccion" style="padding-top:56px">
     <div class="envolvente">
       <div class="encabezado-seccion">
-        <p class="eyebrow">Este mes</p>
+        <p class="eyebrow">Reportes de tu parroquia</p>
         <h1>Trámites por sacramento</h1>
       </div>
-
+      <div class="campo" style="max-width:320px;margin-bottom:16px;">
+        <label for="reporte-mes">Mes en que se hizo la solicitud</label>
+        <select id="reporte-mes"></select>
+      </div>
       <div class="tabla-scroll">
       <table class="tabla-tramites">
         <thead>
           <tr>
             <th>Sacramento</th>
-            <th>Solicitudes del mes</th>
-            <th>Validadas</th>
-            <th>Pendientes / rechazadas</th>
+            <th>Solicitudes</th>
+            <th>Confirmadas</th>
+            <th>Pendientes</th>
+            <th>Rechazadas</th>
           </tr>
         </thead>
-        <tbody>
-          <tr><td>Bautizo</td><td>12</td><td>9</td><td>3</td></tr>
-          <tr><td>Matrimonio</td><td>4</td><td>2</td><td>2</td></tr>
-          <tr><td>Primera Comunión</td><td>20</td><td>18</td><td>2</td></tr>
-          <tr><td>Confirmación</td><td>7</td><td>5</td><td>2</td></tr>
-        </tbody>
+        <tbody id="tabla-reporte-tramites"></tbody>
       </table>
       </div>
-      <p style="font-size:.82rem;color:var(--color-ink-soft);margin-top:12px;">
-        Datos de ejemplo para el prototipo. En la versión final se calcularán a partir de la base de datos real.
-      </p>
+      <p id="nota-reporte-tramites" style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;"></p>
+      <a class="boton boton-secundario" id="descargar-tramites" href="/api/admin/reportes?tipo=tramites&amp;formato=xlsx">Descargar en Excel</a>
+
+      <h2 style="margin-top:56px;">Documentos pendientes de validación</h2>
+      <p style="font-size:.9rem;color:var(--color-ink-soft);">Del más antiguo al más reciente: los que llevan más días esperando van primero.</p>
+      <div class="tabla-scroll">
+      <table class="tabla-tramites">
+        <thead>
+          <tr>
+            <th>Feligrés</th>
+            <th>Documento</th>
+            <th>Trámite</th>
+            <th>Enviado el</th>
+            <th>Días de espera</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-reporte-documentos"></tbody>
+      </table>
+      </div>
+      <p id="nota-reporte-documentos" style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;"></p>
+      <a class="boton boton-secundario" href="/api/admin/reportes?tipo=documentos&amp;formato=xlsx">Descargar en Excel</a>
+
+      <h2 style="margin-top:56px;">Agenda de celebraciones confirmadas</h2>
+      <p style="font-size:.9rem;color:var(--color-ink-soft);">Reservas confirmadas desde hoy en adelante, para planificar las celebraciones.</p>
+      <div class="tabla-scroll">
+      <table class="tabla-tramites">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Sacramento</th>
+            <th>Solicitante</th>
+            <th>Contacto</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-reporte-agenda"></tbody>
+      </table>
+      </div>
+      <p id="nota-reporte-agenda" style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;"></p>
+      <a class="boton boton-secundario" href="/api/admin/reportes?tipo=agenda&amp;formato=xlsx">Descargar en Excel</a>
     </div>
   </section>
 </main>
-
-<footer class="sitio-footer">
-  <div class="envolvente">
-    Camino a la Iluminación — Prototipo estático de uso académico. Curso Integrador I.
-  </div>
-</footer>
 
 <script src="../../js/main.js"></script>
 </body>

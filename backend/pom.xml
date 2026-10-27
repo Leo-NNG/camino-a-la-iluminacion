@@ -29,11 +29,57 @@
     </dependency>
 
 
+    <!-- ================= Librerías de apoyo (APF3) ================= -->
+    <!-- Apache POI: genera los reportes en Excel (.xlsx). Las celdas de texto se guardan como texto, nunca como fórmula. -->
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml</artifactId>
+      <version>5.2.5</version>
+    </dependency>
+    <!-- POI escribe sus mensajes con Log4j API; este puente los manda a SLF4J/Logback (un solo registro para todo). -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-to-slf4j</artifactId>
+      <version>2.21.1</version>
+    </dependency>
+    <!-- SLF4J 2.x declarado de forma explícita: sin esto Maven elige la 1.7 que trae log4j-to-slf4j y Logback no se enlaza (logger NOP). -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>2.0.9</version>
+    </dependency>
+    <!-- Logback (con SLF4J): registro de eventos y errores del servidor, con archivo rotativo (ver logback.xml). -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.4.14</version>
+    </dependency>
+    <!-- Google Guava: caché con expiración (límite de intentos de login) y utilidades de validación/colecciones inmutables. -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>33.0.0-jre</version>
+    </dependency>
+    <!-- Apache Commons Codec: hash SHA-256 de comprobantes (detectar un voucher reutilizado). -->
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.16.1</version>
+    </dependency>
+
     <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
       <version>6.0.0</version>
       <scope>provided</scope>
+    </dependency>
+
+    <!-- Pruebas automáticas: se ejecutan con  mvn test  (no van dentro del programa final). -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.10.2</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -48,6 +94,11 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
         <version>3.3.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.5</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

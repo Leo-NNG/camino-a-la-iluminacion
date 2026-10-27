@@ -9,6 +9,7 @@ import pe.caminoiluminacion.dao.HorarioDAO;
 import pe.caminoiluminacion.dao.impl.HorarioDAOImpl;
 import pe.caminoiluminacion.modelo.Horario;
 import pe.caminoiluminacion.util.Json;
+import pe.caminoiluminacion.util.Registro;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -48,7 +49,7 @@ public class HorariosServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_OK);
             out.print(aJson(lista));
         } catch (SQLException e) {
-            getServletContext().log("Error al listar horarios", e);
+            Registro.error("Error al listar horarios", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             out.print(Json.error("No se pudieron cargar los horarios."));
         }

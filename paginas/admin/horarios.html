@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Panel administrador — Gestionar horarios</title>
 <link rel="stylesheet" href="../../css/estilos.css">
+<link rel="stylesheet" href="../../css/ios.css">
 </head>
 <body data-requiere-rol="administrador">
 
@@ -22,6 +23,9 @@
       <li><a href="avisos.html">Publicar aviso</a></li>
       <li><a href="horarios.html" class="activo">Gestionar horarios</a></li>
       <li><a href="reportes.html">Reportes</a></li>
+      <li><a href="pagos.html">Pagos</a></li>
+      <li><a href="intenciones.html">Intenciones</a></li>
+      <li><a href="cobros.html">Cobros</a></li>
     </ul>
   </nav>
 </header>
@@ -76,6 +80,14 @@
         </table>
       </div>
       <p id="nota-horarios-admin" style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;"></p>
+
+      <h2 style="margin-top:48px;">Sacramentos que ofrece tu parroquia</h2>
+      <p style="font-size:.9rem;color:var(--color-ink-soft);">Los feligreses solo podrán reservar los sacramentos que marques aquí, y solo verán tu parroquia al elegirlos.</p>
+      <form class="formulario" id="form-sacramentos" style="max-width:760px;">
+        <div id="lista-sacramentos-admin" style="display:grid;gap:10px;margin-bottom:16px;"></div>
+        <button type="submit" class="boton boton-primario">Guardar sacramentos</button>
+        <div class="mensaje-confirmacion" id="mensaje-sacramentos"></div>
+      </form>
     </div>
   </section>
 </main>

@@ -13,18 +13,17 @@ public class ParroquiaDAOImpl implements ParroquiaDAO {
 
     @Override
     public Parroquia insertar(Parroquia p) throws SQLException {
-        String sql = "INSERT INTO parroquia (nombre, direccion, latitud, longitud, sacramentos_disponibles, "
-                   + "foto_url, foto_interior_url, horario_tramites) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO parroquia (nombre, direccion, latitud, longitud, "
+                   + "foto_url, foto_interior_url, horario_tramites) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, p.getNombre());
             ps.setString(2, p.getDireccion());
             ps.setBigDecimal(3, p.getLatitud());
             ps.setBigDecimal(4, p.getLongitud());
-            ps.setString(5, p.getSacramentosDisponibles());
-            ps.setString(6, p.getFotoUrl());
-            ps.setString(7, p.getFotoInteriorUrl());
-            ps.setString(8, p.getHorarioTramites());
+            ps.setString(5, p.getFotoUrl());
+            ps.setString(6, p.getFotoInteriorUrl());
+            ps.setString(7, p.getHorarioTramites());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) p.setIdParroquia(keys.getInt(1));
@@ -35,7 +34,7 @@ public class ParroquiaDAOImpl implements ParroquiaDAO {
 
     @Override
     public Optional<Parroquia> buscarPorId(int idParroquia) throws SQLException {
-        String sql = "SELECT * FROM parroquia WHERE id_parroquia = ?";
+        String sql = "SELECT p.*, (SELECT GROUP_CONCAT(s.nombre ORDER BY s.id_sacramento SEPARATOR ',') FROM parroquia_sacramento ps JOIN sacramento s ON s.id_sacramento = ps.id_sacramento WHERE ps.id_parroquia = p.id_parroquia) AS sacramentos_disponibles FROM parroquia p WHERE p.id_parroquia = ?";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, idParroquia);
@@ -47,7 +46,7 @@ public class ParroquiaDAOImpl implements ParroquiaDAO {
 
     @Override
     public List<Parroquia> listarTodas() throws SQLException {
-        String sql = "SELECT * FROM parroquia ORDER BY nombre";
+        String sql = "SELECT p.*, (SELECT GROUP_CONCAT(s.nombre ORDER BY s.id_sacramento SEPARATOR ',') FROM parroquia_sacramento ps JOIN sacramento s ON s.id_sacramento = ps.id_sacramento WHERE ps.id_parroquia = p.id_parroquia) AS sacramentos_disponibles FROM parroquia p ORDER BY p.nombre";
         List<Parroquia> lista = new ArrayList<>();
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql);
@@ -59,7 +58,7 @@ public class ParroquiaDAOImpl implements ParroquiaDAO {
 
     @Override
     public boolean actualizar(Parroquia p) throws SQLException {
-        String sql = "UPDATE parroquia SET nombre=?, direccion=?, latitud=?, longitud=?, sacramentos_disponibles=?, "
+        String sql = "UPDATE parroquia SET nombre=?, direccion=?, latitud=?, longitud=?, "
                    + "foto_url=?, foto_interior_url=?, horario_tramites=? WHERE id_parroquia=?";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -67,11 +66,10 @@ public class ParroquiaDAOImpl implements ParroquiaDAO {
             ps.setString(2, p.getDireccion());
             ps.setBigDecimal(3, p.getLatitud());
             ps.setBigDecimal(4, p.getLongitud());
-            ps.setString(5, p.getSacramentosDisponibles());
-            ps.setString(6, p.getFotoUrl());
-            ps.setString(7, p.getFotoInteriorUrl());
-            ps.setString(8, p.getHorarioTramites());
-            ps.setInt(9, p.getIdParroquia());
+            ps.setString(5, p.getFotoUrl());
+            ps.setString(6, p.getFotoInteriorUrl());
+            ps.setString(7, p.getHorarioTramites());
+            ps.setInt(8, p.getIdParroquia());
             return ps.executeUpdate() > 0;
         }
     }

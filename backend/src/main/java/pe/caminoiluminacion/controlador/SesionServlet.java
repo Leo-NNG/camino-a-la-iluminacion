@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import pe.caminoiluminacion.dao.ParroquiaDAO;
 import pe.caminoiluminacion.dao.impl.ParroquiaDAOImpl;
 import pe.caminoiluminacion.util.Json;
+import pe.caminoiluminacion.util.Registro;
 import pe.caminoiluminacion.util.Sesion;
 
 import java.io.IOException;
@@ -44,7 +45,7 @@ public class SesionServlet extends HttpServlet {
                 parroquiaDAO.buscarPorId(Sesion.idParroquia(request)).ifPresent(p ->
                         json.append(",\"parroquia\":\"").append(Json.esc(p.getNombre())).append("\""));
             } catch (SQLException e) {
-                getServletContext().log("No se pudo leer la parroquia del administrador", e);
+                Registro.error("No se pudo leer la parroquia del administrador", e);
             }
         }
         response.getWriter().print(json.append("}"));

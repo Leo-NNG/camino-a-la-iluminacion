@@ -5,7 +5,6 @@
    Motivo firma: arco de ventanal (puerta de iglesia / vitral)
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap');
 
 :root {
   --color-bg: #F2E9D6;
@@ -841,3 +840,6 @@ h1, h2, h3 {
 
 /* Páginas protegidas por rol: se muestran solo cuando el servidor confirma la sesión (ver aplicarGuarda en main.js) */
 body[data-requiere-rol]:not(.sesion-ok) { visibility: hidden; }
+
+/* Fila de totales de los reportes */
+.tabla-tramites .fila-total td { border-top: 2px solid var(--color-wine); background: rgba(0, 0, 0, .03); }

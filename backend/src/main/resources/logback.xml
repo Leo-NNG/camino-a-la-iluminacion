@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Configuración de Logback (registro de eventos del servidor).
+  - Consola: para ver los mensajes en IntelliJ / SmartTomcat.
+  - Archivo rotativo: un archivo por día en ${CAI_LOG_DIR} (variable de entorno) o ~/camino_iluminacion_logs;
+    se conservan 30 días. NUNCA se registran contraseñas, DNI ni números de operación completos.
+-->
+<configuration>
+  <property name="LOG_DIR" value="${CAI_LOG_DIR:-${user.home}/camino_iluminacion_logs}"/>
+
+  <appender name="CONSOLA" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} %-5level %logger{20} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="ARCHIVO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_DIR}/camino-iluminacion.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_DIR}/camino-iluminacion.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{30} - %msg%n</pattern>
+      <charset>UTF-8</charset>
+    </encoder>
+  </appender>
+
+  <logger name="pe.caminoiluminacion" level="INFO"/>
+  <logger name="org.apache.poi" level="WARN"/>
+
+  <root level="WARN">
+    <appender-ref ref="CONSOLA"/>
+    <appender-ref ref="ARCHIVO"/>
+  </root>
+</configuration>

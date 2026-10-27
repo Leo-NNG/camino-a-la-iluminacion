@@ -64,6 +64,19 @@ public final class AlmacenArchivos {
         return null;
     }
 
+    /**
+     * Un PDF puede llevar JavaScript, acciones de lanzamiento o archivos incrustados; en un trámite parroquial
+     * no hacen falta y son un riesgo para quien lo abra. Se rechazan los PDF que los declaren.
+     * (Los marcadores se buscan en el texto crudo del archivo: es una barrera básica, no un antivirus.)
+     */
+    public static boolean tieneContenidoActivo(byte[] b) {
+        if (b == null) return false;
+        String t = new String(b, java.nio.charset.StandardCharsets.ISO_8859_1);
+        // No se busca "/JS" a secas: son 3 bytes y aparecerían por casualidad dentro de los datos comprimidos de
+        // un PDF grande (falso positivo). Toda acción de JavaScript declara además "/JavaScript".
+        return t.contains("/JavaScript") || t.contains("/Launch") || t.contains("/EmbeddedFile");
+    }
+
     /** @return el nombre generado (lo que se guarda en la base de datos como ruta_archivo). */
     public String guardar(byte[] datos, Tipo tipo) throws IOException {
         Files.createDirectories(base);

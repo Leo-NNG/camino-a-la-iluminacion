@@ -12,8 +12,8 @@ public class AvisoDAOImpl implements AvisoDAO {
 
     @Override
     public Aviso insertar(Aviso a) throws SQLException {
-        String sql = "INSERT INTO aviso (id_parroquia, titulo, descripcion, tipo, urgente, fecha_evento) "
-                   + "VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO aviso (id_parroquia, titulo, descripcion, tipo, urgente, fecha_evento, id_autor) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, a.getIdParroquia());
@@ -22,6 +22,7 @@ public class AvisoDAOImpl implements AvisoDAO {
             ps.setString(4, a.getTipo());
             ps.setBoolean(5, a.isUrgente());
             ps.setDate(6, a.getFechaEvento());
+            ps.setObject(7, a.getIdAutor(), Types.INTEGER);
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) a.setIdAviso(keys.getInt(1));
@@ -103,6 +104,8 @@ public class AvisoDAOImpl implements AvisoDAO {
         a.setTipo(rs.getString("tipo"));
         a.setUrgente(rs.getBoolean("urgente"));
         a.setFechaEvento(rs.getDate("fecha_evento"));
+        int autor = rs.getInt("id_autor");
+        a.setIdAutor(rs.wasNull() ? null : autor);
         a.setPublicadoEn(rs.getTimestamp("publicado_en"));
         return a;
     }

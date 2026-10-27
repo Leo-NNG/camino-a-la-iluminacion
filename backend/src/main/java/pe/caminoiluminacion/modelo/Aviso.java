@@ -12,6 +12,7 @@ public class Aviso {
     private String tipo; // santa_cena, ayuno, vigilia, celebracion, cambio_horario, otro
     private boolean urgente;
     private Date fechaEvento;
+    private Integer idAutor; // quién lo publicó
     private Timestamp publicadoEn;
 
     public Aviso() {
@@ -47,6 +48,9 @@ public class Aviso {
 
     public Date getFechaEvento() { return fechaEvento; }
     public void setFechaEvento(Date fechaEvento) { this.fechaEvento = fechaEvento; }
+
+    public Integer getIdAutor() { return idAutor; }
+    public void setIdAutor(Integer idAutor) { this.idAutor = idAutor; }
 
     public Timestamp getPublicadoEn() { return publicadoEn; }
     public void setPublicadoEn(Timestamp publicadoEn) { this.publicadoEn = publicadoEn; }
