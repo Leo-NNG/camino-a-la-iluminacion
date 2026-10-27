@@ -2,7 +2,6 @@ package pe.caminoiluminacion.servicio;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.codec.digest.DigestUtils;
 import pe.caminoiluminacion.dao.ArancelDAO;
 import pe.caminoiluminacion.dao.CuentaPagoDAO;
 import pe.caminoiluminacion.dao.NotificacionDAO;
@@ -53,14 +52,12 @@ public class PagoService {
     static final ImmutableSet<String> LIBRES = ImmutableSet.of(Pago.DONACION, Pago.DIEZMO);
     private static final ImmutableSet<String> ESTADOS = ImmutableSet.of(Pago.PENDIENTE, Pago.APROBADO, Pago.RECHAZADO);
 
-    private static final Pattern OPERACION = Pattern.compile("^\\d{6,12}$");
     private static final Pattern CELULAR = Pattern.compile("^9\\d{8}$");
     private static final Pattern IMPORTE = Pattern.compile("^\\d{1,6}([.,]\\d{1,2})?$");
     private static final Pattern MES = Pattern.compile("^\\d{4}-(0[1-9]|1[0-2])$");
 
     private static final BigDecimal MONTO_MAXIMO_LIBRE = new BigDecimal("10000");
     private static final BigDecimal MONTO_MAXIMO_ARANCEL = new BigDecimal("5000");
-    private static final int MAX_PENDIENTES_POR_USUARIO = 5;
 
     /** Lo que ve el feligrés antes de pagar: cuánto y a qué número. */
     public record InfoPago(BigDecimal monto, String concepto, String detalle, String parroquia, CuentaPago cuenta, Pago pagoVigente) { }
@@ -69,6 +66,9 @@ public class PagoService {
     public record PagoVista(Pago pago, String parroquia, String feligres, String celular, String detalle) { }
 
     public record Descarga(Pago pago, Tipo tipo, Path ruta) { }
+
+    /** Datos legibles de un recibo de pago aprobado. {@code numero} tiene la forma R-000123. */
+    public record Recibo(Pago pago, String numero, String parroquia, String direccion, String feligres, String detalle) { }
 
     private final PagoDAO pagoDAO;
     private final ArancelDAO arancelDAO;
@@ -79,6 +79,7 @@ public class PagoService {
     private final SacramentoDAO sacramentoDAO;
     private final UsuarioDAO usuarioDAO;
     private final AlmacenArchivos almacen;
+    private final ComprobanteService comprobantes;
     private final BitacoraService bitacora;
 
     public PagoService(PagoDAO pagoDAO, ArancelDAO arancelDAO, CuentaPagoDAO cuentaDAO, NotificacionDAO notificacionDAO,
@@ -93,6 +94,7 @@ public class PagoService {
         this.sacramentoDAO = sacramentoDAO;
         this.usuarioDAO = usuarioDAO;
         this.almacen = almacen;
+        this.comprobantes = new ComprobanteService(pagoDAO, almacen);
         this.bitacora = bitacora;
     }
 
@@ -135,7 +137,7 @@ public class PagoService {
         }
         exigirCuenta(reserva.getIdParroquia(), metodo);
 
-        Comprobante c = leerComprobante(idUsuario, metodo, operacionTxt, celularTxt, comprobante);
+        ComprobanteService.Comprobante c = comprobantes.leer(idUsuario, metodo, operacionTxt, celularTxt, comprobante);
         Pago nuevo = nuevoPago(idUsuario, reserva.getIdParroquia(), reserva.getIdReserva(), Pago.ARANCEL, monto, metodo, c);
         Pago guardado = guardar(nuevo, c, true);
         bitacora.registrar(idUsuario, "PAGO_REGISTRADO", "pago " + guardado.idPago() + " arancel reserva " + reserva.getIdReserva(), ip);
@@ -153,7 +155,7 @@ public class PagoService {
         BigDecimal monto = montoLibre(montoTxt);
         exigirCuenta(parroquia.getIdParroquia(), metodo);
 
-        Comprobante c = leerComprobante(idUsuario, metodo, operacionTxt, celularTxt, comprobante);
+        ComprobanteService.Comprobante c = comprobantes.leer(idUsuario, metodo, operacionTxt, celularTxt, comprobante);
         Pago nuevo = nuevoPago(idUsuario, parroquia.getIdParroquia(), null, tipo, monto, metodo, c);
         Pago guardado = guardar(nuevo, c, false);
         bitacora.registrar(idUsuario, "PAGO_REGISTRADO", "pago " + guardado.idPago() + " " + tipo, ip);
@@ -188,14 +190,34 @@ public class PagoService {
     /** Autoriza y localiza el comprobante: solo su dueño o el administrador de la parroquia del pago; si no, 404. */
     public Descarga paraDescarga(String rol, int idUsuario, Integer idParroquiaAdmin, String idTxt) throws SQLException {
         Pago pago = pagoDAO.buscarPorId(entero(idTxt)).orElse(null);
-        boolean permitido = pago != null && (Sesion.ROL_FELIGRES.equals(rol)
-                ? pago.idUsuario() == idUsuario
-                : Sesion.ROL_ADMIN.equals(rol) && idParroquiaAdmin != null && pago.idParroquia() == idParroquiaAdmin);
-        if (!permitido) throw new ReglaNegocioException(404, "El comprobante no existe.");
+        if (!puedeVer(rol, idUsuario, idParroquiaAdmin, pago)) throw new ReglaNegocioException(404, "El comprobante no existe.");
         Path ruta = almacen.resolver(pago.rutaVoucher());
         Tipo tipo = tipoPorNombre(pago.rutaVoucher());
         if (ruta == null || tipo == null) throw new ReglaNegocioException(404, "El archivo no está disponible.");
         return new Descarga(pago, tipo, ruta);
+    }
+
+    /**
+     * Datos del recibo de un pago. Solo existe cuando la parroquia APROBÓ el pago, y lo pide su dueño o el personal de la
+     * parroquia del pago; para cualquier otra persona el recibo "no existe" (404).
+     */
+    public Recibo paraRecibo(String rol, int idUsuario, Integer idParroquiaAdmin, String idTxt) throws SQLException {
+        Pago pago = pagoDAO.buscarPorId(entero(idTxt)).orElse(null);
+        if (!puedeVer(rol, idUsuario, idParroquiaAdmin, pago)) throw new ReglaNegocioException(404, "El recibo no existe.");
+        if (!Pago.APROBADO.equals(pago.estado())) {
+            throw new ReglaNegocioException(409, "El recibo estará disponible cuando la parroquia verifique el pago.");
+        }
+        Parroquia parroquia = parroquiaDAO.buscarPorId(pago.idParroquia()).orElse(null);
+        String feligres = usuarioDAO.buscarPorId(pago.idUsuario()).map(u -> u.getNombre() + " " + u.getApellido()).orElse("");
+        return new Recibo(pago, String.format("R-%06d", pago.idPago()),
+                parroquia == null ? "" : parroquia.getNombre(), parroquia == null ? "" : Strings.nullToEmpty(parroquia.getDireccion()),
+                feligres, detalle(pago));
+    }
+
+    private static boolean puedeVer(String rol, int idUsuario, Integer idParroquiaAdmin, Pago pago) {
+        if (pago == null) return false;
+        if (Sesion.ROL_FELIGRES.equals(rol)) return pago.idUsuario() == idUsuario;
+        return Sesion.ROL_ADMIN.equals(rol) && idParroquiaAdmin != null && pago.idParroquia() == idParroquiaAdmin;
     }
 
     // ------------------------------------------------------------------ verificación por el personal
@@ -228,7 +250,7 @@ public class PagoService {
     // ------------------------------------------------------------------ configuración (personal)
 
     public CuentaPago cuentaDe(int idParroquia) throws SQLException {
-        return cuentaDAO.buscar(idParroquia).orElse(new CuentaPago(idParroquia, null, null, null, null));
+        return cuentaDAO.buscar(idParroquia).orElse(new CuentaPago(idParroquia, null, null, null, null, null));
     }
 
     public void guardarCuenta(int idAdmin, int idParroquia, String yapeNumero, String yapeTitular, String plinNumero,
@@ -237,8 +259,22 @@ public class PagoService {
         String pn = numeroOpcional(plinNumero, "Plin");
         String yt = titular(yapeTitular, yn, "Yape");
         String pt = titular(plinTitular, pn, "Plin");
-        cuentaDAO.guardar(new CuentaPago(idParroquia, yn, yt, pn, pt));
+        cuentaDAO.guardar(new CuentaPago(idParroquia, yn, yt, pn, pt, null)); // no toca la ofrenda de intenciones
         bitacora.registrar(idAdmin, "CUENTA_PAGO_EDITADA", "parroquia " + idParroquia, ip);
+    }
+
+    /** Ofrenda de una intención de misa en la parroquia; vacío desactiva las intenciones en línea. */
+    public void guardarOfrenda(int idAdmin, int idParroquia, String montoTxt, String ip) throws SQLException {
+        String t = Strings.nullToEmpty(montoTxt).trim();
+        BigDecimal monto = null;
+        if (!t.isEmpty()) {
+            monto = importe(t, false);
+            if (monto.compareTo(BigDecimal.ONE) < 0 || monto.compareTo(new BigDecimal("500")) > 0) {
+                throw new ReglaNegocioException(400, "La ofrenda debe estar entre S/ 1 y S/ 500.");
+            }
+        }
+        cuentaDAO.guardarOfrenda(idParroquia, monto);
+        bitacora.registrar(idAdmin, "OFRENDA_INTENCION_EDITADA", "parroquia " + idParroquia, ip);
     }
 
     public List<Arancel> arancelesDe(int idParroquia) throws SQLException {
@@ -265,52 +301,17 @@ public class PagoService {
 
     // ------------------------------------------------------------------ auxiliares
 
-    /** Contenido ya validado de un comprobante. */
-    private record Comprobante(byte[] datos, Tipo tipo, String sha256, String metodo, String operacion, String celularCifrado) { }
-
-    private Comprobante leerComprobante(int idUsuario, String metodo, String operacionTxt, String celularTxt, InputStream contenido)
-            throws SQLException, IOException {
-        String operacion = Strings.nullToEmpty(operacionTxt).trim();
-        if (!OPERACION.matcher(operacion).matches()) {
-            throw new ReglaNegocioException(400, "El número de operación debe tener entre 6 y 12 dígitos.");
-        }
-        String celular = Strings.nullToEmpty(celularTxt).replaceAll("\\s", "");
-        if (!CELULAR.matcher(celular).matches()) {
-            throw new ReglaNegocioException(400, "Ingresa el celular desde el que pagaste (9 dígitos, empieza con 9).");
-        }
-        if (contenido == null) throw new ReglaNegocioException(400, "Sube la captura del comprobante.");
-        // Se lee con tope: no se confía en el tamaño que declare el cliente.
-        byte[] datos = contenido.readNBytes(AlmacenArchivos.MAX_BYTES + 1);
-        if (datos.length == 0) throw new ReglaNegocioException(400, "Sube la captura del comprobante.");
-        if (datos.length > AlmacenArchivos.MAX_BYTES) throw new ReglaNegocioException(413, "El comprobante supera el máximo de 5 MB.");
-        Tipo tipo = AlmacenArchivos.detectar(datos);
-        if (tipo != Tipo.JPEG && tipo != Tipo.PNG) throw new ReglaNegocioException(415, "El comprobante debe ser una imagen JPG o PNG.");
-
-        String sha = DigestUtils.sha256Hex(datos);
-        if (pagoDAO.existeOperacionVigente(metodo, operacion)) {
-            throw new ReglaNegocioException(409, "Ese número de operación ya fue registrado en otro pago.");
-        }
-        if (pagoDAO.existeVoucherVigente(sha)) {
-            throw new ReglaNegocioException(409, "Ese comprobante ya fue usado en otro pago.");
-        }
-        long pendientes = pagoDAO.listarPorUsuario(idUsuario).stream().filter(p -> Pago.PENDIENTE.equals(p.estado())).count();
-        if (pendientes >= MAX_PENDIENTES_POR_USUARIO) {
-            throw new ReglaNegocioException(429, "Tienes varios pagos esperando verificación. Espera a que la parroquia los revise.");
-        }
-        return new Comprobante(datos, tipo, sha, metodo, operacion, Cripto.cifrar(celular));
-    }
-
     private static Pago nuevoPago(int idUsuario, int idParroquia, Integer idReserva, String concepto, BigDecimal monto,
-                                  String metodo, Comprobante c) {
+                                  String metodo, ComprobanteService.Comprobante c) {
         return new Pago(null, idUsuario, idParroquia, idReserva, concepto, monto, metodo, c.celularCifrado(),
-                c.operacion(), null, c.sha256(), Pago.PENDIENTE, null, null);
+                c.operacion(), null, c.sha256(), Pago.PENDIENTE, null, null, null);
     }
 
     /** Guarda el archivo y el registro; si la base de datos falla, no deja el archivo suelto. */
-    private Pago guardar(Pago base, Comprobante c, boolean arancel) throws SQLException, IOException {
-        String archivo = almacen.guardar(c.datos(), c.tipo());
+    private Pago guardar(Pago base, ComprobanteService.Comprobante c, boolean arancel) throws SQLException, IOException {
+        String archivo = comprobantes.guardarArchivo(c);
         Pago listo = new Pago(null, base.idUsuario(), base.idParroquia(), base.idReserva(), base.concepto(), base.monto(),
-                base.metodo(), base.celularOrigen(), base.numeroOperacion(), archivo, base.voucherSha256(), base.estado(), null, null);
+                base.metodo(), base.celularOrigen(), base.numeroOperacion(), archivo, base.voucherSha256(), base.estado(), null, null, null);
         boolean registrado = false;
         try {
             Pago guardado;
@@ -329,7 +330,7 @@ public class PagoService {
             throw new ReglaNegocioException(409, m.contains("uq_pago_voucher")
                     ? "Ese comprobante ya fue usado en otro pago." : "Ese número de operación ya fue registrado en otro pago.");
         } finally {
-            if (!registrado) almacen.borrar(archivo);
+            if (!registrado) comprobantes.borrarArchivo(archivo);
         }
     }
 
@@ -372,12 +373,17 @@ public class PagoService {
     private String detalle(Pago p) throws SQLException {
         if (Pago.ARANCEL.equals(p.concepto())) {
             Optional<Reserva> r = p.idReserva() == null ? Optional.empty() : reservaDAO.buscarPorId(p.idReserva());
-            return r.map(x -> "Arancel de " + x.getSacramento().replace('_', ' ')).orElse("Arancel");
+            if (r.isEmpty()) return "Arancel";
+            // El nombre sale del catálogo ("Primera Comunión"), no del código interno ("primera_comunion").
+            String nombre = sacramentoDAO.buscarPorCodigo(r.get().getSacramento()).map(Sacramento::getNombre)
+                    .orElse(r.get().getSacramento().replace('_', ' '));
+            return "Arancel de " + nombre;
         }
+        if (Pago.INTENCION.equals(p.concepto())) return "Intención de misa";
         return Pago.DIEZMO.equals(p.concepto()) ? "Diezmo" : "Donación";
     }
 
-    private static String metodo(String txt) {
+    static String metodo(String txt) {
         String m = Strings.nullToEmpty(txt).trim().toLowerCase();
         if (!METODOS.contains(m)) throw new ReglaNegocioException(400, "Elige Yape o Plin.");
         return m;

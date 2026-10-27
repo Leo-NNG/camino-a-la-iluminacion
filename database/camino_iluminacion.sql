@@ -219,6 +219,7 @@ CREATE TABLE cuenta_pago (
   yape_titular   VARCHAR(100) NULL,
   plin_numero    CHAR(9)      NULL,
   plin_titular   VARCHAR(100) NULL,
+  ofrenda_intencion DECIMAL(8,2) NULL COMMENT 'Ofrenda de una intención de misa en esta parroquia; NULL = no se piden en línea',
   actualizado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_cuenta_parroquia FOREIGN KEY (id_parroquia)
     REFERENCES parroquia (id_parroquia)
@@ -246,7 +247,7 @@ CREATE TABLE pago (
   id_usuario       INT UNSIGNED NOT NULL,
   id_parroquia     INT UNSIGNED NOT NULL,
   id_reserva       INT UNSIGNED NULL COMMENT 'Solo para el concepto arancel',
-  concepto         ENUM('arancel','donacion','diezmo') NOT NULL DEFAULT 'arancel',
+  concepto         ENUM('arancel','donacion','diezmo','intencion') NOT NULL DEFAULT 'arancel',
   monto            DECIMAL(8,2) NOT NULL,
   metodo           ENUM('yape','plin') NOT NULL,
   celular_origen   VARCHAR(120) NULL COMMENT 'Celular desde el que se pagó, CIFRADO (AES-256-GCM, formato v1:...)',
@@ -279,6 +280,36 @@ CREATE TABLE pago (
   CONSTRAINT fk_pago_revisor FOREIGN KEY (revisado_por)
     REFERENCES usuario (id_usuario)
     ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- INTENCION_MISA: el feligrés pide que una misa se ofrezca por alguien o algo y deja una ofrenda (se paga como cualquier
+-- pago Yape/Plin). El personal la ve en su agenda solo cuando el pago está APROBADO.
+CREATE TABLE intencion_misa (
+  id_intencion INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id_usuario   INT UNSIGNED NOT NULL,
+  id_parroquia INT UNSIGNED NOT NULL,
+  id_horario   INT UNSIGNED NULL COMMENT 'Misa del horario; queda NULL si el horario se elimina (se conserva hora_misa)',
+  hora_misa    VARCHAR(120) NOT NULL COMMENT 'Copia del texto de la hora, para que la intención no dependa del horario',
+  fecha_misa   DATE NOT NULL,
+  tipo         ENUM('difunto','accion_gracias','salud','otra') NOT NULL,
+  texto        VARCHAR(200) NOT NULL,
+  id_pago      INT UNSIGNED NOT NULL,
+  creada_en    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT uq_intencion_pago UNIQUE (id_pago),
+  INDEX ix_intencion_agenda (id_parroquia, fecha_misa),
+  INDEX ix_intencion_usuario (id_usuario),
+  CONSTRAINT fk_intencion_usuario FOREIGN KEY (id_usuario)
+    REFERENCES usuario (id_usuario)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_intencion_parroquia FOREIGN KEY (id_parroquia)
+    REFERENCES parroquia (id_parroquia)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_intencion_horario FOREIGN KEY (id_horario)
+    REFERENCES horario (id_horario)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT fk_intencion_pago FOREIGN KEY (id_pago)
+    REFERENCES pago (id_pago)
+    ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 -- NOTIFICACION: avisos dentro de la plataforma al feligrés (RF13): pago verificado, pago observado, etc.
@@ -384,8 +415,8 @@ INSERT INTO aviso (id_parroquia, titulo, descripcion, tipo, urgente, fecha_event
 
 -- Pagos (datos de EJEMPLO): el personal cambia los números y los montos desde el panel.
 -- Los números 900000000 y 900000001 son ficticios: reemplázalos por los reales de la parroquia.
-INSERT INTO cuenta_pago (id_parroquia, yape_numero, yape_titular, plin_numero, plin_titular)
-SELECT id_parroquia, '900000000', 'Parroquia (ejemplo)', '900000001', 'Parroquia (ejemplo)' FROM parroquia;
+INSERT INTO cuenta_pago (id_parroquia, yape_numero, yape_titular, plin_numero, plin_titular, ofrenda_intencion)
+SELECT id_parroquia, '900000000', 'Parroquia (ejemplo)', '900000001', 'Parroquia (ejemplo)', 10.00 FROM parroquia;
 
 INSERT INTO arancel (id_parroquia, id_sacramento, monto)
 SELECT p.id_parroquia, s.id_sacramento,

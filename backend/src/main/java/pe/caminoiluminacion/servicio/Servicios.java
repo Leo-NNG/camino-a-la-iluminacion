@@ -6,6 +6,7 @@ import pe.caminoiluminacion.dao.impl.BitacoraDAOImpl;
 import pe.caminoiluminacion.dao.impl.CuentaPagoDAOImpl;
 import pe.caminoiluminacion.dao.impl.DocumentoDAOImpl;
 import pe.caminoiluminacion.dao.impl.HorarioDAOImpl;
+import pe.caminoiluminacion.dao.impl.IntencionDAOImpl;
 import pe.caminoiluminacion.dao.impl.NotificacionDAOImpl;
 import pe.caminoiluminacion.dao.impl.PagoDAOImpl;
 import pe.caminoiluminacion.dao.impl.ParroquiaDAOImpl;
@@ -39,10 +40,14 @@ public final class Servicios {
     private static final ReporteService REPORTE_SERVICE = new ReporteService(new ReporteDAOImpl(), BITACORA);
 
     private static final NotificacionDAOImpl NOTIFICACIONES = new NotificacionDAOImpl();
-    private static final PagoService PAGO_SERVICE = new PagoService(new PagoDAOImpl(), new ArancelDAOImpl(),
-            new CuentaPagoDAOImpl(), NOTIFICACIONES, RESERVAS, PARROQUIAS, SACRAMENTOS, USUARIOS,
-            AlmacenArchivos.porDefecto(), BITACORA);
+    private static final PagoDAOImpl PAGOS = new PagoDAOImpl();
+    private static final CuentaPagoDAOImpl CUENTAS = new CuentaPagoDAOImpl();
+    private static final AlmacenArchivos ALMACEN_PAGOS = AlmacenArchivos.porDefecto();
+    private static final PagoService PAGO_SERVICE = new PagoService(PAGOS, new ArancelDAOImpl(), CUENTAS, NOTIFICACIONES,
+            RESERVAS, PARROQUIAS, SACRAMENTOS, USUARIOS, ALMACEN_PAGOS, BITACORA);
     private static final NotificacionService NOTIFICACION_SERVICE = new NotificacionService(NOTIFICACIONES);
+    private static final IntencionService INTENCION_SERVICE = new IntencionService(new IntencionDAOImpl(), new HorarioDAOImpl(),
+            CUENTAS, PARROQUIAS, USUARIOS, new ComprobanteService(PAGOS, ALMACEN_PAGOS), BITACORA, IntencionService.relojDePeru());
 
     private Servicios() { }
 
@@ -54,4 +59,5 @@ public final class Servicios {
     public static ReporteService reportes() { return REPORTE_SERVICE; }
     public static PagoService pagos() { return PAGO_SERVICE; }
     public static NotificacionService notificaciones() { return NOTIFICACION_SERVICE; }
+    public static IntencionService intenciones() { return INTENCION_SERVICE; }
 }

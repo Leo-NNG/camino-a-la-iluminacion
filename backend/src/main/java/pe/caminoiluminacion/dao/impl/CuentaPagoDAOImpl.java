@@ -14,13 +14,13 @@ public class CuentaPagoDAOImpl implements CuentaPagoDAO {
 
     @Override
     public Optional<CuentaPago> buscar(int idParroquia) throws SQLException {
-        String sql = "SELECT id_parroquia, yape_numero, yape_titular, plin_numero, plin_titular FROM cuenta_pago WHERE id_parroquia = ?";
+        String sql = "SELECT id_parroquia, yape_numero, yape_titular, plin_numero, plin_titular, ofrenda_intencion FROM cuenta_pago WHERE id_parroquia = ?";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, idParroquia);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next()
-                        ? Optional.of(new CuentaPago(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5)))
+                        ? Optional.of(new CuentaPago(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getBigDecimal(6)))
                         : Optional.empty();
             }
         }
@@ -38,6 +38,18 @@ public class CuentaPagoDAOImpl implements CuentaPagoDAO {
             ps.setString(3, c.yapeTitular());
             ps.setString(4, c.plinNumero());
             ps.setString(5, c.plinTitular());
+            ps.executeUpdate();
+        }
+    }
+
+    @Override
+    public void guardarOfrenda(int idParroquia, java.math.BigDecimal monto) throws SQLException {
+        String sql = "INSERT INTO cuenta_pago (id_parroquia, ofrenda_intencion) VALUES (?, ?) "
+                   + "ON DUPLICATE KEY UPDATE ofrenda_intencion = VALUES(ofrenda_intencion)";
+        try (Connection con = Conexion.obtener();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idParroquia);
+            ps.setBigDecimal(2, monto);
             ps.executeUpdate();
         }
     }

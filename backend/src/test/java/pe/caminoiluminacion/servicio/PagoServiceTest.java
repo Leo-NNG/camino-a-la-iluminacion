@@ -72,7 +72,8 @@ class PagoServiceTest {
             Pago p = buscarPorId(id).orElse(null);
             if (p == null || !Pago.PENDIENTE.equals(p.estado())) return false;
             reemplazar(new Pago(p.idPago(), p.idUsuario(), p.idParroquia(), p.idReserva(), p.concepto(), p.monto(), p.metodo(),
-                    p.celularOrigen(), p.numeroOperacion(), p.rutaVoucher(), p.voucherSha256(), estado, obs, p.creadoEn()));
+                    p.celularOrigen(), p.numeroOperacion(), p.rutaVoucher(), p.voucherSha256(), estado, obs, p.creadoEn(),
+                    new java.sql.Timestamp(System.currentTimeMillis())));
             return true;
         }
         public List<FilaIngreso> ingresosPorConcepto(int pq, String mes) {
@@ -92,7 +93,15 @@ class PagoServiceTest {
     static class FakeCuentas implements CuentaPagoDAO {
         final Map<Integer, CuentaPago> cuentas = new java.util.HashMap<>();
         public Optional<CuentaPago> buscar(int p) { return Optional.ofNullable(cuentas.get(p)); }
-        public void guardar(CuentaPago c) { cuentas.put(c.idParroquia(), c); }
+        public void guardar(CuentaPago c) {
+            CuentaPago previa = cuentas.get(c.idParroquia());
+            cuentas.put(c.idParroquia(), new CuentaPago(c.idParroquia(), c.yapeNumero(), c.yapeTitular(), c.plinNumero(), c.plinTitular(),
+                    previa == null ? null : previa.ofrendaIntencion())); // igual que la BD: guardar() no toca la ofrenda
+        }
+        public void guardarOfrenda(int p, BigDecimal monto) {
+            CuentaPago c = cuentas.getOrDefault(p, new CuentaPago(p, null, null, null, null, null));
+            cuentas.put(p, new CuentaPago(p, c.yapeNumero(), c.yapeTitular(), c.plinNumero(), c.plinTitular(), monto));
+        }
     }
 
     static class FakeNotificaciones implements NotificacionDAO {
@@ -134,7 +143,7 @@ class PagoServiceTest {
         aranceles.guardar(1, 1, new BigDecimal("50.00"));   // bautizo en San José
         aranceles.guardar(1, 2, new BigDecimal("250.00"));  // matrimonio
         aranceles.guardar(1, 3, BigDecimal.ZERO);           // primera comunión: sin arancel en línea
-        cuentas.guardar(new CuentaPago(1, "911111111", "Parroquia San José", null, null)); // solo Yape
+        cuentas.guardar(new CuentaPago(1, "911111111", "Parroquia San José", null, null, null)); // solo Yape
         servicio = new PagoService(pagos, aranceles, cuentas, notificaciones, reservas, new FakeParroquias(),
                 new FakeSacramentos(), usuarios, new AlmacenArchivos(carpeta), new BitacoraService(bitacoraDao));
     }
@@ -450,5 +459,50 @@ class PagoServiceTest {
         assertEquals(404, estado(() -> servicio.infoArancel(2, String.valueOf(r.getIdReserva()))), "reserva ajena");
         assertEquals("Parroquia San José", servicio.infoLibre("1").parroquia());
         assertEquals(404, estado(() -> servicio.infoLibre("99")));
+    }
+
+    // ------------------------------------------------------------ recibo, ofrenda y detalle
+
+    @Test
+    void elReciboSoloExisteConElPagoAprobadoYLoVenSuDuenoOElPersonalDeLaParroquia() throws Exception {
+        Pago p = pagarBautizo(1, reserva(1, 1, "bautizo", "pendiente"), "123456");
+        String id = String.valueOf(p.idPago());
+        assertEquals(409, estado(() -> servicio.paraRecibo("feligres", 1, null, id)), "aún pendiente");
+        servicio.resolver(3, 1, id, true, "", "ip");
+
+        PagoService.Recibo r = servicio.paraRecibo("feligres", 1, null, id);
+        assertEquals("R-000001", r.numero());
+        assertEquals("Parroquia San José", r.parroquia());
+        assertEquals("Ana Torres", r.feligres());
+        assertEquals("Arancel de Bautizo", r.detalle(), "el nombre sale del catálogo");
+        assertNotNull(r.pago().revisadoEn(), "el recibo lleva la fecha de verificación");
+        assertNotNull(servicio.paraRecibo("administrador", 3, 1, id));
+
+        assertEquals(404, estado(() -> servicio.paraRecibo("feligres", 2, null, id)), "otro feligrés");
+        assertEquals(404, estado(() -> servicio.paraRecibo("administrador", 9, 2, id)), "personal de otra parroquia");
+        assertEquals(404, estado(() -> servicio.paraRecibo("administrador", 9, null, id)));
+        assertEquals(404, estado(() -> servicio.paraRecibo("feligres", 1, null, "999")));
+        assertEquals(400, estado(() -> servicio.paraRecibo("feligres", 1, null, "abc")));
+    }
+
+    @Test
+    void unPagoRechazadoNoTieneRecibo() throws Exception {
+        Pago p = pagarBautizo(1, reserva(1, 1, "bautizo", "pendiente"), "123456");
+        servicio.resolver(3, 1, String.valueOf(p.idPago()), false, "No coincide", "ip");
+        assertEquals(409, estado(() -> servicio.paraRecibo("feligres", 1, null, String.valueOf(p.idPago()))));
+    }
+
+    @Test
+    void guardaLaOfrendaDeLasIntencionesYValidaElMonto() throws Exception {
+        servicio.guardarOfrenda(3, 1, "15,50", "ip");
+        assertEquals(new BigDecimal("15.50"), servicio.cuentaDe(1).ofrendaIntencion());
+        assertTrue(bitacoraDao.hay("OFRENDA_INTENCION_EDITADA"));
+        servicio.guardarCuenta(3, 1, "922333444", "Parroquia", "", "", "ip");
+        assertEquals(new BigDecimal("15.50"), servicio.cuentaDe(1).ofrendaIntencion(), "editar Yape/Plin no borra la ofrenda");
+        for (String mala : new String[]{"0", "0.5", "501", "-3", "abc", "1e2", "10.555"}) {
+            assertEquals(400, estado(() -> servicio.guardarOfrenda(3, 1, mala, "ip")), "ofrenda " + mala);
+        }
+        servicio.guardarOfrenda(3, 1, "", "ip");
+        assertNull(servicio.cuentaDe(1).ofrendaIntencion(), "vacío desactiva las intenciones en línea");
     }
 }

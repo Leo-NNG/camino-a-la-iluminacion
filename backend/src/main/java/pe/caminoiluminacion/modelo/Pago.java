@@ -10,11 +10,12 @@ import java.sql.Timestamp;
 public record Pago(Integer idPago, int idUsuario, int idParroquia, Integer idReserva, String concepto,
                    BigDecimal monto, String metodo, String celularOrigen, String numeroOperacion,
                    String rutaVoucher, String voucherSha256, String estado, String observacion,
-                   Timestamp creadoEn) {
+                   Timestamp creadoEn, Timestamp revisadoEn) {
 
     public static final String ARANCEL = "arancel";
     public static final String DONACION = "donacion";
     public static final String DIEZMO = "diezmo";
+    public static final String INTENCION = "intencion";
 
     public static final String PENDIENTE = "pendiente";
     public static final String APROBADO = "aprobado";
@@ -22,6 +23,6 @@ public record Pago(Integer idPago, int idUsuario, int idParroquia, Integer idRes
 
     public Pago conId(int id) {
         return new Pago(id, idUsuario, idParroquia, idReserva, concepto, monto, metodo, celularOrigen,
-                numeroOperacion, rutaVoucher, voucherSha256, estado, observacion, creadoEn);
+                numeroOperacion, rutaVoucher, voucherSha256, estado, observacion, creadoEn, revisadoEn);
     }
 }

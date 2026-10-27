@@ -23,9 +23,10 @@ import java.util.List;
 
 /**
  * Panel: a dónde se paga y cuánto cuesta cada trámite, de SU parroquia.
- * GET  /api/admin/pagos/config : {cuenta:{yape,plin}, aranceles:[{idSacramento,sacramento,monto}]}
+ * GET  /api/admin/pagos/config : {cuenta:{yape,plin}, ofrendaIntencion, aranceles:[{idSacramento,sacramento,monto}]}
  * POST /api/admin/pagos/config : accion=cuenta (yape_numero, yape_titular, plin_numero, plin_titular)
  *                                accion=arancel (id_sacramento, monto)
+ *                                accion=ofrenda (monto de la ofrenda de una intención de misa; vacío = no recibir en línea)
  */
 @WebServlet("/api/admin/pagos/config")
 public class PagosConfigAdminServlet extends HttpServlet {
@@ -46,7 +47,9 @@ public class PagosConfigAdminServlet extends HttpServlet {
         try {
             CuentaPago cuenta = pagos.cuentaDe(idParroquia);
             List<Arancel> aranceles = pagos.arancelesDe(idParroquia);
-            StringBuilder json = new StringBuilder("{\"cuenta\":").append(PagoJson.cuenta(cuenta)).append(",\"aranceles\":[");
+            StringBuilder json = new StringBuilder("{\"cuenta\":").append(PagoJson.cuenta(cuenta))
+                    .append(",\"ofrendaIntencion\":").append(cuenta.ofrendaIntencion() == null ? "null" : cuenta.ofrendaIntencion().toPlainString())
+                    .append(",\"aranceles\":[");
             for (int i = 0; i < aranceles.size(); i++) {
                 Arancel a = aranceles.get(i);
                 if (i > 0) json.append(",");
@@ -76,6 +79,8 @@ public class PagosConfigAdminServlet extends HttpServlet {
                         request.getParameter("plin_numero"), request.getParameter("plin_titular"), request.getRemoteAddr());
             } else if ("arancel".equals(accion)) {
                 pagos.guardarArancel(idAdmin, idParroquia, request.getParameter("id_sacramento"), request.getParameter("monto"), request.getRemoteAddr());
+            } else if ("ofrenda".equals(accion)) {
+                pagos.guardarOfrenda(idAdmin, idParroquia, request.getParameter("monto"), request.getRemoteAddr());
             } else {
                 Respuesta.error(response, out, 400, "Acción no válida.");
                 return;

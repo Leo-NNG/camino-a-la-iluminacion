@@ -16,7 +16,7 @@ class PagoJsonTest {
 
     private static Pago pago() {
         return new Pago(7, 1, 1, 3, "arancel", new BigDecimal("50.00"), "yape", Cripto.cifrar("987654321"), "123456",
-                "0123456789abcdef0123456789abcdef.png", "a".repeat(64), "pendiente", null, Timestamp.valueOf("2026-10-21 10:00:00"));
+                "0123456789abcdef0123456789abcdef.png", "a".repeat(64), "pendiente", null, Timestamp.valueOf("2026-10-21 10:00:00"), null);
     }
 
     @Test
@@ -39,7 +39,7 @@ class PagoJsonTest {
     @Test
     void laCuentaMuestraSoloLosMediosConfigurados() {
         assertEquals("{\"yape\":{\"numero\":\"911111111\",\"titular\":\"Parroquia\"},\"plin\":null}",
-                PagoJson.cuenta(new CuentaPago(1, "911111111", "Parroquia", null, null)));
+                PagoJson.cuenta(new CuentaPago(1, "911111111", "Parroquia", null, null, null)));
         assertEquals("{\"yape\":null,\"plin\":null}", PagoJson.cuenta(null));
         assertEquals("[]", PagoJson.pagos(List.of()));
     }

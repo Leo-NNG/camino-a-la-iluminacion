@@ -57,7 +57,8 @@ public class PagoDAOImpl implements PagoDAO {
         }
     }
 
-    private static Pago insertar(Connection con, Pago p) throws SQLException {
+    /** Inserta el pago con la conexión dada (la usa también IntencionDAOImpl dentro de su transacción). */
+    static Pago insertar(Connection con, Pago p) throws SQLException {
         try (PreparedStatement ps = con.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, p.idUsuario());
             ps.setInt(2, p.idParroquia());
@@ -174,6 +175,6 @@ public class PagoDAOImpl implements PagoDAO {
         return new Pago(rs.getInt("id_pago"), rs.getInt("id_usuario"), rs.getInt("id_parroquia"), reserva,
                 rs.getString("concepto"), rs.getBigDecimal("monto"), rs.getString("metodo"), rs.getString("celular_origen"),
                 rs.getString("numero_operacion"), rs.getString("ruta_voucher"), rs.getString("voucher_sha256"),
-                rs.getString("estado"), rs.getString("observacion"), rs.getTimestamp("creado_en"));
+                rs.getString("estado"), rs.getString("observacion"), rs.getTimestamp("creado_en"), rs.getTimestamp("revisado_en"));
     }
 }

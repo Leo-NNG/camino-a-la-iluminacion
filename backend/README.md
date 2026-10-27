@@ -81,7 +81,7 @@ ORDER BY b.creado_en DESC LIMIT 50;
 
 ## Documentos (subida real)
 - Variable de entorno **`DOCS_DIR`**: carpeta donde se guardan los archivos (por defecto `~/camino_iluminacion_docs`). Debe estar **fuera** de la carpeta pública de la aplicación y con permisos de escritura para el usuario que ejecuta Tomcat. Respáldala junto con la base de datos.
-- Los comprobantes de pago (Yape/Plin) se guardan en la **misma** carpeta `DOCS_DIR` (con nombre aleatorio); la base de datos solo guarda el nombre. Aplica `database/migracion_07_pagos.sql` si tu base es anterior.
+- Los comprobantes de pago (Yape/Plin) se guardan en la **misma** carpeta `DOCS_DIR` (con nombre aleatorio); la base de datos solo guarda el nombre. Aplica `database/migracion_07_pagos.sql` y luego `database/migracion_08_intenciones_misa.sql` si tu base es anterior.
 - Variable de entorno **`CAI_LOG_DIR`**: carpeta de los registros de Logback (por defecto `~/camino_iluminacion_logs`; un archivo por día, 30 días).
 - Solo **PDF, JPG o PNG de hasta 5 MB**. El tipo se decide por el **contenido** del archivo (no por la extensión ni por lo que declare el navegador). Cada archivo se guarda con un nombre aleatorio; el nombre original solo se muestra.
 - Todo documento pertenece a una **solicitud de reserva** del propio feligrés (así se sabe a qué parroquia corresponde). Máximo 50 documentos por usuario.
@@ -122,3 +122,9 @@ src/main/java/pe/caminoiluminacion/
 ├── dao/impl/     Implementaciones con JDBC puro
 └── PruebaConexion.java   Clase de demostración end-to-end
 ```
+
+## Intenciones de misa y recibos (resumen técnico)
+- `IntencionService`: el feligrés elige una misa del horario, una fecha (desde mañana, hasta 90 días, en el día de la semana de esa misa), escribe la intención y paga la ofrenda por Yape/Plin. Máximo de 8 intenciones vigentes por misa y fecha; un pago rechazado libera el cupo. El cupo se controla en `IntencionDAOImpl` con una transacción que bloquea la fila del horario (`SELECT ... FOR UPDATE`), así que dos envíos simultáneos no pueden pasarse del límite.
+- Los comprobantes de las intenciones pasan por el mismo `ComprobanteService` que los demás pagos (imagen real por su contenido, tope de 5 MB, operación y comprobante no reutilizables).
+- `ReciboPdf`: genera el recibo (PDF 1.4, una página A4, fuente Helvetica estándar) sin librerías externas. Todo texto del usuario se sanea y se escapa antes de escribirse. Solo existe para pagos APROBADOS y lo descarga su dueño o el personal de la parroquia del pago (`GET /api/pagos/recibo?id=N`).
+- Endpoints: `GET /api/intenciones/info`, `GET|POST /api/intenciones`, `GET /api/admin/intenciones`, `GET /api/pagos/recibo` y, en la configuración de pagos del panel, `accion=ofrenda`.

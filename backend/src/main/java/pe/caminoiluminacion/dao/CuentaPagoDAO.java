@@ -10,6 +10,9 @@ public interface CuentaPagoDAO {
 
     Optional<CuentaPago> buscar(int idParroquia) throws SQLException;
 
-    /** Crea o reemplaza la cuenta de la parroquia. */
+    /** Crea o actualiza los números Yape/Plin de la parroquia. NO modifica la ofrenda de intenciones. */
     void guardar(CuentaPago cuenta) throws SQLException;
+
+    /** Fija la ofrenda de una intención de misa (null la desactiva). */
+    void guardarOfrenda(int idParroquia, java.math.BigDecimal monto) throws SQLException;
 }
