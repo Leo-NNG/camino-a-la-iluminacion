@@ -3,11 +3,13 @@ package pe.caminoiluminacion.servicio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pe.caminoiluminacion.controlador.Pruebas.FakeBitacora;
+import pe.caminoiluminacion.controlador.Pruebas.FakeFechas;
 import pe.caminoiluminacion.controlador.Pruebas.FakeParroquias;
 import pe.caminoiluminacion.controlador.Pruebas.FakeReservas;
 import pe.caminoiluminacion.controlador.Pruebas.FakeSacramentos;
 import pe.caminoiluminacion.controlador.Pruebas.FakeUsuarios;
 import pe.caminoiluminacion.controlador.Pruebas;
+import pe.caminoiluminacion.modelo.FechaDisponible;
 import pe.caminoiluminacion.modelo.Reserva;
 
 import java.sql.SQLException;
@@ -23,6 +25,7 @@ class ReservaServiceTest {
     private FakeReservas reservas;
     private FakeBitacora bitacoraDao;
     private FakeSacramentos sacramentos;
+    private FakeFechas fechas;
     private ReservaService servicio;
 
     @BeforeEach
@@ -32,7 +35,8 @@ class ReservaServiceTest {
         sacramentos = new FakeSacramentos();
         FakeUsuarios usuarios = new FakeUsuarios();
         usuarios.insertar(Pruebas.usuario("70000001", "ana@x.pe", "Clave123", "feligres", null));
-        servicio = new ReservaService(reservas, new FakeParroquias(), sacramentos, usuarios, new BitacoraService(bitacoraDao), () -> HOY);
+        fechas = new FakeFechas(reservas);
+        servicio = new ReservaService(reservas, fechas, new FakeParroquias(), sacramentos, usuarios, new BitacoraService(bitacoraDao), () -> HOY);
     }
 
     private Reserva crear(String sacramento, String parroquia, String fecha) throws SQLException {
@@ -153,5 +157,79 @@ class ReservaServiceTest {
         List<ReservaService.ReservaPropia> lista = servicio.delUsuario(1);
         assertEquals(1, lista.size());
         assertEquals("Parroquia San José", lista.get(0).parroquia());
+    }
+
+    // ---- fechas publicadas por la parroquia (opción B: sin fechas publicadas, la fecha es libre)
+
+    private void publicar(int parroquia, int sacramento, String fecha, int cupo) throws SQLException {
+        fechas.insertar(new FechaDisponible(parroquia, sacramento, LocalDate.parse(fecha), null, cupo));
+    }
+
+    @Test
+    void sinFechasPublicadasLaFechaSigueSiendoLibre() throws SQLException {
+        assertFalse(servicio.disponibilidad("1", "Bautizo").publicadas());
+        assertNotNull(crear("Bautizo", "1", "2026-12-24"));
+    }
+
+    @Test
+    void conFechasPublicadasSoloSePuedeElegirEntreEllas() throws SQLException {
+        publicar(1, 1, "2026-11-14", 2);
+        assertEquals(400, estadoDelError("Bautizo", "1", "2026-11-15"), "otra fecha no publicada");
+        assertEquals("2026-11-14", crear("Bautizo", "1", "2026-11-14").getFechaSolicitada().toString());
+    }
+
+    @Test
+    void lasFechasPublicadasSoloAfectanASuParroquiaYSacramento() throws SQLException {
+        publicar(1, 1, "2026-11-14", 1);
+        assertNotNull(crear("Matrimonio", "1", "2026-11-15"), "otro sacramento de la misma parroquia sigue libre");
+        assertNotNull(crear("Bautizo", "2", "2026-11-15"), "otra parroquia sigue libre");
+    }
+
+    @Test
+    void elCupoPermiteVariasSolicitudesYSeAgota() throws SQLException {
+        publicar(1, 1, "2026-11-14", 2);
+        crear("Bautizo", "1", "2026-11-14");
+        crear("Bautizo", "1", "2026-11-14");
+        ReglaNegocioException e = assertThrows(ReglaNegocioException.class, () -> crear("Bautizo", "1", "2026-11-14"));
+        assertEquals(409, e.getEstado());
+        assertTrue(e.getMessage().contains("cupo"));
+    }
+
+    @Test
+    void unaSolicitudRechazadaDevuelveElCupo() throws SQLException {
+        publicar(1, 1, "2026-11-14", 1);
+        Reserva r = crear("Bautizo", "1", "2026-11-14");
+        assertEquals(409, estadoDelError("Bautizo", "1", "2026-11-14"));
+        servicio.resolver(9, 1, String.valueOf(r.getIdReserva()), "rechazada", "Falta documentación", "ip");
+        assertNotNull(crear("Bautizo", "1", "2026-11-14"));
+    }
+
+    @Test
+    void disponibilidadListaSoloLasFechasFuturasConCupoLibre() throws SQLException {
+        publicar(1, 1, "2026-10-08", 5);   // hoy: no cuenta
+        publicar(1, 1, "2026-11-14", 1);
+        publicar(1, 1, "2026-11-21", 3);
+        crear("Bautizo", "1", "2026-11-14");   // llena la del 14
+        ReservaService.Disponibilidad d = servicio.disponibilidad("1", "bautizo");
+        assertTrue(d.publicadas());
+        assertEquals(1, d.fechas().size());
+        assertEquals(LocalDate.parse("2026-11-21"), d.fechas().get(0).getFecha());
+        assertEquals(3, d.fechas().get(0).getLibres());
+    }
+
+    @Test
+    void siTodasLasFechasPublicadasEstanLlenasNoSeVuelveALibre() throws SQLException {
+        publicar(1, 1, "2026-11-14", 1);
+        crear("Bautizo", "1", "2026-11-14");
+        ReservaService.Disponibilidad d = servicio.disponibilidad("1", "Bautizo");
+        assertTrue(d.publicadas());
+        assertTrue(d.fechas().isEmpty());
+        assertEquals(400, estadoDelError("Bautizo", "1", "2026-11-28"));
+    }
+
+    @Test
+    void disponibilidadValidaParroquiaYSacramento() {
+        assertEquals(400, assertThrows(ReglaNegocioException.class, () -> servicio.disponibilidad("99", "Bautizo")).getEstado());
+        assertEquals(400, assertThrows(ReglaNegocioException.class, () -> servicio.disponibilidad("1", "Inventado")).getEstado());
     }
 }

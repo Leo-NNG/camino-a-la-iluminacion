@@ -158,6 +158,30 @@ CREATE TABLE reserva (
 ) ENGINE=InnoDB;
 
 -- ----------------------------------------------------------------------------
+-- FECHA_DISPONIBLE
+-- Fechas que la parroquia publica para un sacramento, con su cupo. Si una parroquia no publicó
+-- ninguna fecha futura para un sacramento, el feligrés propone una fecha libre y el personal la valida.
+-- ----------------------------------------------------------------------------
+CREATE TABLE fecha_disponible (
+  id_fecha      INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id_parroquia  INT UNSIGNED NOT NULL,
+  id_sacramento TINYINT UNSIGNED NOT NULL,
+  fecha         DATE NOT NULL,
+  hora_inicio   TIME NULL COMMENT 'Hora de la celebración; solo informativa para el feligrés',
+  cupo          SMALLINT UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Solicitudes activas (pendientes o confirmadas) que admite esa fecha',
+  creada_en     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT uq_fecha_disponible UNIQUE (id_parroquia, id_sacramento, fecha),
+  INDEX ix_fecha_disponible_busqueda (id_parroquia, id_sacramento, fecha),
+  CONSTRAINT fk_fecha_parroquia FOREIGN KEY (id_parroquia)
+    REFERENCES parroquia (id_parroquia)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_fecha_sacramento FOREIGN KEY (id_sacramento)
+    REFERENCES sacramento (id_sacramento)
+    ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- ----------------------------------------------------------------------------
 -- DOCUMENTO
 -- id_reserva es NULL-able: un documento puede subirse antes de que el
 -- trámite quede formalmente asociado a una reserva (tal como ocurre hoy

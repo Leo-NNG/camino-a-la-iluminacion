@@ -33,7 +33,7 @@ public class ReservaDAOImpl implements ReservaDAO {
     }
 
     @Override
-    public boolean insertarSiDisponible(Reserva r) throws SQLException {
+    public boolean insertarSiDisponible(Reserva r, int cupo) throws SQLException {
         try (Connection con = Conexion.obtener()) {
             con.setAutoCommit(false);
             try {
@@ -46,13 +46,13 @@ public class ReservaDAOImpl implements ReservaDAO {
                     }
                 }
                 try (PreparedStatement chk = con.prepareStatement(
-                        "SELECT 1 FROM reserva WHERE id_parroquia = ? AND id_sacramento = (SELECT id_sacramento FROM sacramento WHERE codigo = ?) "
-                      + "AND fecha_solicitada = ? AND estado <> 'rechazada' LIMIT 1")) {
+                        "SELECT COUNT(*) FROM reserva WHERE id_parroquia = ? AND id_sacramento = (SELECT id_sacramento FROM sacramento WHERE codigo = ?) "
+                      + "AND fecha_solicitada = ? AND estado <> 'rechazada'")) {
                     chk.setInt(1, r.getIdParroquia());
                     chk.setString(2, r.getSacramento());
                     chk.setDate(3, r.getFechaSolicitada());
                     try (ResultSet rs = chk.executeQuery()) {
-                        if (rs.next()) { con.rollback(); return false; }
+                        if (rs.next() && rs.getInt(1) >= cupo) { con.rollback(); return false; }
                     }
                 }
                 try (PreparedStatement ins = con.prepareStatement(

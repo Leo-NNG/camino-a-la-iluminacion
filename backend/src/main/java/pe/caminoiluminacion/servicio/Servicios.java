@@ -5,6 +5,7 @@ import pe.caminoiluminacion.dao.impl.AvisoDAOImpl;
 import pe.caminoiluminacion.dao.impl.BitacoraDAOImpl;
 import pe.caminoiluminacion.dao.impl.CuentaPagoDAOImpl;
 import pe.caminoiluminacion.dao.impl.DocumentoDAOImpl;
+import pe.caminoiluminacion.dao.impl.FechaDisponibleDAOImpl;
 import pe.caminoiluminacion.dao.impl.HorarioDAOImpl;
 import pe.caminoiluminacion.dao.impl.IntencionDAOImpl;
 import pe.caminoiluminacion.dao.impl.NotificacionDAOImpl;
@@ -29,9 +30,11 @@ public final class Servicios {
     private static final ReservaDAOImpl RESERVAS = new ReservaDAOImpl();
     private static final ParroquiaDAOImpl PARROQUIAS = new ParroquiaDAOImpl();
     private static final SacramentoDAOImpl SACRAMENTOS = new SacramentoDAOImpl();
+    private static final FechaDisponibleDAOImpl FECHAS = new FechaDisponibleDAOImpl();
 
     private static final UsuarioService USUARIO_SERVICE = new UsuarioService(USUARIOS, new LimiteIntentos(), BITACORA);
-    private static final ReservaService RESERVA_SERVICE = new ReservaService(RESERVAS, PARROQUIAS, SACRAMENTOS, USUARIOS, BITACORA);
+    private static final ReservaService RESERVA_SERVICE = new ReservaService(RESERVAS, FECHAS, PARROQUIAS, SACRAMENTOS, USUARIOS, BITACORA);
+    private static final FechaDisponibleService FECHA_SERVICE = new FechaDisponibleService(FECHAS, SACRAMENTOS, BITACORA);
     private static final DocumentoService DOCUMENTO_SERVICE = new DocumentoService(
             new DocumentoDAOImpl(), RESERVAS, PARROQUIAS, USUARIOS, AlmacenArchivos.porDefecto(), BITACORA);
     private static final ContenidoService CONTENIDO_SERVICE = new ContenidoService(
@@ -54,6 +57,7 @@ public final class Servicios {
     public static BitacoraService bitacora() { return BITACORA; }
     public static UsuarioService usuarios() { return USUARIO_SERVICE; }
     public static ReservaService reservas() { return RESERVA_SERVICE; }
+    public static FechaDisponibleService fechas() { return FECHA_SERVICE; }
     public static DocumentoService documentos() { return DOCUMENTO_SERVICE; }
     public static ContenidoService contenido() { return CONTENIDO_SERVICE; }
     public static ReporteService reportes() { return REPORTE_SERVICE; }

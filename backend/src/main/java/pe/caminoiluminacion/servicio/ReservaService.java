@@ -1,9 +1,11 @@
 package pe.caminoiluminacion.servicio;
 
+import pe.caminoiluminacion.dao.FechaDisponibleDAO;
 import pe.caminoiluminacion.dao.ParroquiaDAO;
 import pe.caminoiluminacion.dao.ReservaDAO;
 import pe.caminoiluminacion.dao.SacramentoDAO;
 import pe.caminoiluminacion.dao.UsuarioDAO;
+import pe.caminoiluminacion.modelo.FechaDisponible;
 import pe.caminoiluminacion.modelo.Parroquia;
 import pe.caminoiluminacion.modelo.Reserva;
 import pe.caminoiluminacion.modelo.Sacramento;
@@ -30,21 +32,30 @@ public class ReservaService {
     /** Una reserva pendiente con los datos de contacto de quien la pidió (para el panel). */
     public record ReservaPendiente(Reserva reserva, String contacto) { }
 
+    /**
+     * Qué fechas puede elegir el feligrés. {@code publicadas} = la parroquia publicó fechas para ese sacramento: solo
+     * vale elegir entre {@code fechas} (las que aún tienen cupo). Si es false, la fecha es libre y la parroquia la valida.
+     */
+    public record Disponibilidad(boolean publicadas, List<FechaDisponible> fechas) { }
+
     private final ReservaDAO reservaDAO;
+    private final FechaDisponibleDAO fechaDAO;
     private final ParroquiaDAO parroquiaDAO;
     private final SacramentoDAO sacramentoDAO;
     private final UsuarioDAO usuarioDAO;
     private final BitacoraService bitacora;
     private final Supplier<LocalDate> hoy;
 
-    public ReservaService(ReservaDAO reservaDAO, ParroquiaDAO parroquiaDAO, SacramentoDAO sacramentoDAO,
-                          UsuarioDAO usuarioDAO, BitacoraService bitacora) {
-        this(reservaDAO, parroquiaDAO, sacramentoDAO, usuarioDAO, bitacora, LocalDate::now);
+    public ReservaService(ReservaDAO reservaDAO, FechaDisponibleDAO fechaDAO, ParroquiaDAO parroquiaDAO,
+                          SacramentoDAO sacramentoDAO, UsuarioDAO usuarioDAO, BitacoraService bitacora) {
+        this(reservaDAO, fechaDAO, parroquiaDAO, sacramentoDAO, usuarioDAO, bitacora, LocalDate::now);
     }
 
-    public ReservaService(ReservaDAO reservaDAO, ParroquiaDAO parroquiaDAO, SacramentoDAO sacramentoDAO,
-                          UsuarioDAO usuarioDAO, BitacoraService bitacora, Supplier<LocalDate> hoy) {
+    public ReservaService(ReservaDAO reservaDAO, FechaDisponibleDAO fechaDAO, ParroquiaDAO parroquiaDAO,
+                          SacramentoDAO sacramentoDAO, UsuarioDAO usuarioDAO, BitacoraService bitacora,
+                          Supplier<LocalDate> hoy) {
         this.reservaDAO = reservaDAO;
+        this.fechaDAO = fechaDAO;
         this.parroquiaDAO = parroquiaDAO;
         this.sacramentoDAO = sacramentoDAO;
         this.usuarioDAO = usuarioDAO;
@@ -78,13 +89,40 @@ public class ReservaService {
             throw new ReglaNegocioException(400, "Esa parroquia no ofrece este sacramento. Elige otra parroquia.");
         }
 
+        // Si la parroquia publicó fechas para este sacramento, solo se puede reservar en ellas y hasta agotar su cupo.
+        // Si no publicó ninguna, la fecha es libre (cupo 1) y la parroquia la valida al confirmar.
+        List<FechaDisponible> publicadas = fechaDAO.listarDesde(parroquia.getIdParroquia(), sacramento.getIdSacramento(), hoyDia.plusDays(1));
+        int cupo = 1;
+        if (!publicadas.isEmpty()) {
+            FechaDisponible elegida = publicadas.stream().filter(f -> f.getFecha().equals(fecha)).findFirst()
+                    .orElseThrow(() -> new ReglaNegocioException(400,
+                            "Esa fecha no está entre las que la parroquia tiene disponibles. Elige una de la lista."));
+            cupo = elegida.getCupo();
+        }
+
         Reserva nueva = new Reserva(idUsuario, parroquia.getIdParroquia(), sacramento.getCodigo(), nombre,
                 Date.valueOf(fecha), observaciones.isEmpty() ? null : observaciones);
-        if (!reservaDAO.insertarSiDisponible(nueva)) {
-            throw new ReglaNegocioException(409, "Esa fecha ya no está disponible para ese sacramento en esa parroquia. Elige otra fecha.");
+        if (!reservaDAO.insertarSiDisponible(nueva, cupo)) {
+            throw new ReglaNegocioException(409, publicadas.isEmpty()
+                    ? "Esa fecha ya no está disponible para ese sacramento en esa parroquia. Elige otra fecha."
+                    : "Esa fecha ya no tiene cupo. Elige otra de las fechas disponibles.");
         }
         bitacora.registrar(idUsuario, "RESERVA_CREADA", "reserva " + nueva.getIdReserva(), ip);
         return nueva;
+    }
+
+    /**
+     * Fechas que el feligrés puede elegir para un sacramento en una parroquia: las publicadas que aún tienen cupo,
+     * o ninguna restricción si la parroquia no publicó fechas (opción de fecha libre).
+     */
+    public Disponibilidad disponibilidad(String idParroquiaTxt, String sacramentoTxt) throws SQLException {
+        Sacramento sacramento = resolverSacramento(sacramentoTxt);
+        Parroquia parroquia = buscarParroquia(idParroquiaTxt);
+        if (parroquia == null) throw new ReglaNegocioException(400, "Selecciona una parroquia válida.");
+        List<FechaDisponible> publicadas = fechaDAO.listarDesde(parroquia.getIdParroquia(), sacramento.getIdSacramento(), hoy.get().plusDays(1));
+        List<FechaDisponible> conCupo = new ArrayList<>();
+        for (FechaDisponible f : publicadas) if (f.getLibres() > 0) conCupo.add(f);
+        return new Disponibilidad(!publicadas.isEmpty(), conCupo);
     }
 
     /** Las reservas del propio usuario (nunca se filtra por un dato que mande el cliente). */

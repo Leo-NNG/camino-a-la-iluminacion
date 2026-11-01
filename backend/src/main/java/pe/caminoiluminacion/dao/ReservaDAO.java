@@ -14,13 +14,18 @@ public interface ReservaDAO {
     boolean actualizarEstado(int idReserva, String nuevoEstado) throws SQLException;
 
     /**
-     * Inserta la reserva solo si esa parroquia no tiene ya otra solicitud activa (pendiente o
-     * confirmada) del mismo sacramento en la misma fecha. La comprobación y el INSERT ocurren en
-     * una transacción que bloquea la fila de la parroquia, así dos solicitudes simultáneas no
-     * pueden ocupar la misma fecha.
-     * @return true si se registró; false si la fecha ya estaba ocupada
+     * Inserta la reserva solo si esa parroquia tiene menos de {@code cupo} solicitudes activas (pendientes o
+     * confirmadas) del mismo sacramento en la misma fecha. La comprobación y el INSERT ocurren en una transacción
+     * que bloquea la fila de la parroquia, así dos solicitudes simultáneas no pueden pasarse del cupo.
+     * @param cupo cuántas solicitudes activas admite la fecha (1 si la parroquia no publicó fechas)
+     * @return true si se registró; false si la fecha ya no tiene cupo
      */
-    boolean insertarSiDisponible(Reserva reserva) throws SQLException;
+    boolean insertarSiDisponible(Reserva reserva, int cupo) throws SQLException;
+
+    /** Igual que {@link #insertarSiDisponible(Reserva, int)} con cupo 1: una sola solicitud activa por fecha. */
+    default boolean insertarSiDisponible(Reserva reserva) throws SQLException {
+        return insertarSiDisponible(reserva, 1);
+    }
 
     /**
      * Confirma o rechaza una solicitud que sigue PENDIENTE (una ya resuelta no se puede volver a cambiar).

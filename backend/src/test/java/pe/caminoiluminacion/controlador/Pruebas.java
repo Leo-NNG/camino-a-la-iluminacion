@@ -87,9 +87,10 @@ public class Pruebas {
         public List<Reserva> listarPorEstadoYParroquia(String e, int p) {
             List<Reserva> x = new ArrayList<>(); for (Reserva r : lista) if (r.getEstado().equals(e) && r.getIdParroquia() == p) x.add(r); return x; }
         public boolean actualizarEstado(int id, String e) { buscarPorId(id).get().setEstado(e); return true; }
-        public boolean insertarSiDisponible(Reserva n) {
-            for (Reserva x : lista) if (x.getIdParroquia().equals(n.getIdParroquia()) && x.getSacramento().equals(n.getSacramento())
-                    && x.getFechaSolicitada().equals(n.getFechaSolicitada()) && !x.getEstado().equals("rechazada")) return false;
+        public boolean insertarSiDisponible(Reserva n, int cupo) {
+            long activas = lista.stream().filter(x -> x.getIdParroquia().equals(n.getIdParroquia()) && x.getSacramento().equals(n.getSacramento())
+                    && x.getFechaSolicitada().equals(n.getFechaSolicitada()) && !x.getEstado().equals("rechazada")).count();
+            if (activas >= cupo) return false;
             insertar(n); return true;
         }
         public boolean resolverPendiente(int id, String e, String motivo) {
@@ -97,6 +98,39 @@ public class Pruebas {
             if (x == null || !x.getEstado().equals("pendiente")) return false;
             x.setEstado(e); x.setMotivoRechazo(e.equals("rechazada") ? motivo : null); return true;
         }
+    }
+    /** Fechas publicadas en memoria; los ocupados se calculan sobre las reservas falsas que se le pasen (o 0 si es null). */
+    public static class FakeFechas implements FechaDisponibleDAO {
+        public List<FechaDisponible> lista = new ArrayList<>(); int sig = 1;
+        private final FakeReservas reservas;
+        private final FakeSacramentos catalogo = new FakeSacramentos();
+        public FakeFechas(FakeReservas reservas) { this.reservas = reservas; }
+        private FechaDisponible conDatos(FechaDisponible f) {
+            Sacramento s = catalogo.catalogo.stream().filter(x -> x.getIdSacramento() == f.getIdSacramento()).findFirst().get();
+            f.setCodigoSacramento(s.getCodigo()); f.setNombreSacramento(s.getNombre());
+            f.setOcupados(reservas == null ? 0 : (int) reservas.lista.stream().filter(r -> r.getIdParroquia().equals(f.getIdParroquia())
+                    && r.getSacramento().equals(s.getCodigo()) && r.getFechaSolicitada().toLocalDate().equals(f.getFecha())
+                    && !r.getEstado().equals("rechazada")).count());
+            return f;
+        }
+        public FechaDisponible insertar(FechaDisponible f) throws SQLException {
+            for (FechaDisponible x : lista) if (x.getIdParroquia().equals(f.getIdParroquia()) && x.getIdSacramento().equals(f.getIdSacramento()) && x.getFecha().equals(f.getFecha()))
+                throw new java.sql.SQLIntegrityConstraintViolationException("duplicada");
+            f.setIdFecha(sig++); lista.add(f); return conDatos(f);
+        }
+        public Optional<FechaDisponible> buscarPorId(int id) { return lista.stream().filter(f -> f.getIdFecha() == id).findFirst().map(this::conDatos); }
+        public List<FechaDisponible> listarDesde(int p, java.time.LocalDate d) {
+            List<FechaDisponible> x = new ArrayList<>();
+            for (FechaDisponible f : lista) if (f.getIdParroquia() == p && !f.getFecha().isBefore(d)) x.add(conDatos(f));
+            x.sort(java.util.Comparator.comparing(FechaDisponible::getFecha)); return x; }
+        public List<FechaDisponible> listarDesde(int p, int s, java.time.LocalDate d) {
+            List<FechaDisponible> x = new ArrayList<>();
+            for (FechaDisponible f : listarDesde(p, d)) if (f.getIdSacramento() == s) x.add(f);
+            return x; }
+        public boolean actualizar(int id, int cupo, java.time.LocalTime hora) {
+            Optional<FechaDisponible> f = lista.stream().filter(x -> x.getIdFecha() == id).findFirst();
+            if (f.isEmpty()) return false; f.get().setCupo(cupo); f.get().setHoraInicio(hora); return true; }
+        public boolean eliminar(int id) { return lista.removeIf(f -> f.getIdFecha() == id); }
     }
     public static class FakeParroquias implements ParroquiaDAO {
         static Parroquia p(int id, String nombre, String sacramentos) { Parroquia x = new Parroquia(); x.setIdParroquia(id); x.setNombre(nombre); x.setSacramentosDisponibles(sacramentos); return x; }
@@ -134,7 +168,7 @@ public class Pruebas {
     public static final FakeBitacora BITACORA = new FakeBitacora();
     public static final BitacoraService BIT = new BitacoraService(BITACORA);
     static UsuarioService servicioUsuarios(UsuarioDAO us, LimiteIntentos lim) { return new UsuarioService(us, lim, BIT); }
-    static ReservaService servicioReservas(ReservaDAO rs, UsuarioDAO us) { return new ReservaService(rs, new FakeParroquias(), new FakeSacramentos(), us, BIT); }
+    static ReservaService servicioReservas(ReservaDAO rs, UsuarioDAO us) { return new ReservaService(rs, new FakeFechas(rs instanceof FakeReservas ? (FakeReservas) rs : null), new FakeParroquias(), new FakeSacramentos(), us, BIT); }
     static LoginServlet loginServlet(UsuarioDAO us) { return new LoginServlet(servicioUsuarios(us, new LimiteIntentos())); }
 
     public static Usuario usuario(String dni, String correo, String clave, String rol, Integer parroquia) {

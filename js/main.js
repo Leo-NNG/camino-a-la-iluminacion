@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
       contenedorTarjetas.querySelectorAll('.tarjeta-sacramento').forEach((x) => x.classList.remove('elegido'));
       t.classList.add('elegido');
       campoSacramento.value = t.dataset.valor;
-      poblarParroquias();
+      poblarParroquias().then(cargarFechas);
     });
 
     /* El selector de parroquias sale de la base de datos y solo lista las que ofrecen el sacramento elegido. */
@@ -547,6 +547,62 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ofrecen.some((p) => String(p.id) === previo)) selectParroquia.value = previo;
       });
     }
+
+    /* Fecha: no se puede elegir una pasada (min/max) y, si la parroquia publicó fechas para el sacramento,
+       solo se elige entre ellas. Si no publicó ninguna, la fecha es libre y la parroquia la valida. */
+    const inputFecha = document.getElementById('fecha');
+    const selectFecha = document.getElementById('fecha-publicada');
+    const notaFecha = document.getElementById('nota-fecha');
+    let modoFecha = 'libre';
+    let ultimaConsultaFechas = 0;
+
+    const aIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    function limitesDeFecha() {
+      const manana = new Date(); manana.setDate(manana.getDate() + 1);
+      const tope = new Date(); tope.setFullYear(tope.getFullYear() + 2);
+      inputFecha.min = aIso(manana);
+      inputFecha.max = aIso(tope);
+    }
+    const fechaElegida = () => (modoFecha === 'publicada' ? selectFecha : inputFecha).value;
+    function mostrarModoFecha(modo) {
+      modoFecha = modo;
+      const publicada = modo === 'publicada';
+      inputFecha.style.display = publicada ? 'none' : '';
+      inputFecha.disabled = publicada;
+      inputFecha.required = !publicada;
+      selectFecha.style.display = publicada ? '' : 'none';
+      selectFecha.disabled = !publicada;
+      selectFecha.required = publicada;
+    }
+    function cargarFechas() {
+      const consulta = ++ultimaConsultaFechas;
+      mostrarModoFecha('libre');
+      notaFecha.textContent = '';
+      if (!selectParroquia.value || !campoSacramento.value) return Promise.resolve();
+      const url = '/api/fechas-disponibles?parroquia=' + encodeURIComponent(selectParroquia.value)
+                + '&sacramento=' + encodeURIComponent(campoSacramento.value);
+      return fetch(url, { cache: 'no-store', credentials: 'same-origin' })
+        .then((r) => r.json().catch(() => ({})).then((data) => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+          if (consulta !== ultimaConsultaFechas || !ok) return;   // una consulta más nueva ya ocupó su lugar
+          if (!data.publicadas) {
+            notaFecha.textContent = 'Esta parroquia no publicó fechas para este sacramento: propón la que prefieras y la parroquia la confirmará.';
+            return;
+          }
+          mostrarModoFecha('publicada');
+          if (!data.fechas.length) {
+            selectFecha.innerHTML = '<option value="">Sin fechas con cupo</option>';
+            notaFecha.textContent = 'Esta parroquia no tiene fechas con cupo para este sacramento por ahora. Prueba con otra parroquia.';
+            return;
+          }
+          selectFecha.innerHTML = '<option value="">Elige una fecha</option>' + data.fechas.map((f) =>
+            `<option value="${escaparHtml(f.fecha)}">${escaparHtml(formatearFecha(f.fecha))}${f.hora ? ' · ' + escaparHtml(f.hora) : ''} — ${Number(f.libres)} cupo(s)</option>`).join('');
+          notaFecha.textContent = 'La parroquia celebra este sacramento en estas fechas.';
+        })
+        .catch(() => { /* sin conexión: se deja la fecha libre y el servidor validará al enviar */ });
+    }
+    selectParroquia.addEventListener('change', cargarFechas);
+    limitesDeFecha();
 
     function mostrarPaso(i) {
       paneles.forEach((p, idx) => p.style.display = idx === i ? 'block' : 'none');
@@ -574,7 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     mostrarPaso(0);
-    poblarParroquias();
+    poblarParroquias().then(cargarFechas);
     cargarMisReservas();
 
     formReserva.addEventListener('submit', (e) => {
@@ -592,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
           datos.append('sacramento', document.getElementById('sacramento').value);
           datos.append('id_parroquia', selectParroquia.value);
           datos.append('nombre_solicitante', document.getElementById('nombre').value);
-          datos.append('fecha', document.getElementById('fecha').value);
+          datos.append('fecha', fechaElegida());
           datos.append('notas', document.getElementById('notas').value);
 
           // 2. Enviar los datos al Servlet de Java
@@ -606,7 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   formReserva.reset();
                   contenedorTarjetas.querySelectorAll('.tarjeta-sacramento').forEach((x) => x.classList.remove('elegido'));
                   campoSacramento.value = '';
-                  poblarParroquias();
+                  poblarParroquias().then(cargarFechas);
                   pasoActual = 0;
                   mostrarPaso(0);
                   cargarMisReservas();
@@ -1291,4 +1347,124 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarTramites();
   cargarDocumentos();
   cargarAgenda();
+});
+
+/* ---------- panel admin: fechas disponibles para reservar sacramentos ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('form-fecha');
+  if (!form) return;
+  const leer = (r) => r.json().catch(() => ({})).then((data) => ({ ok: r.ok, data }));
+  const campoId = document.getElementById('f-id');
+  const selectSacramento = document.getElementById('f-sacramento');
+  const campoFecha = document.getElementById('f-fecha');
+  const campoHora = document.getElementById('f-hora');
+  const campoCupo = document.getElementById('f-cupo');
+  const botonGuardar = document.getElementById('f-guardar');
+  const botonCancelar = document.getElementById('f-cancelar');
+  const mensaje = document.getElementById('mensaje-fechas');
+  const tbody = document.getElementById('tabla-fechas-admin');
+  const nota = document.getElementById('nota-fechas-admin');
+  let fechas = [];
+
+  const aIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const manana = new Date(); manana.setDate(manana.getDate() + 1);
+  const tope = new Date(); tope.setFullYear(tope.getFullYear() + 2);
+  campoFecha.min = aIso(manana);
+  campoFecha.max = aIso(tope);
+
+  const salirDeEdicion = () => {
+    form.reset();
+    campoId.value = '';
+    selectSacramento.disabled = false;
+    campoFecha.disabled = false;
+    campoCupo.value = '1';
+    botonGuardar.textContent = 'Publicar fecha';
+    botonCancelar.style.display = 'none';
+  };
+
+  const cargarSacramentos = () => fetch('/api/admin/sacramentos', { cache: 'no-store', credentials: 'same-origin' })
+    .then(leer)
+    .then(({ ok, data }) => {
+      if (!ok) { nota.textContent = data.error || 'No se pudieron cargar los sacramentos.'; return; }
+      const ofrecidos = data.filter((sc) => sc.ofrece);
+      selectSacramento.innerHTML = ofrecidos.length
+        ? ofrecidos.map((sc) => `<option value="${escaparHtml(sc.codigo)}">${escaparHtml(sc.nombre)}</option>`).join('')
+        : '<option value="">Tu parroquia no ofrece ningún sacramento todavía</option>';
+    })
+    .catch(() => { nota.textContent = 'No se pudo conectar con el servidor.'; });
+
+  const cargar = () => fetch('/api/admin/fechas-disponibles', { cache: 'no-store', credentials: 'same-origin' })
+    .then(leer)
+    .then(({ ok, data }) => {
+      if (!ok) { tbody.innerHTML = ''; nota.textContent = data.error || 'No se pudieron cargar las fechas.'; return; }
+      fechas = data;
+      nota.textContent = data.length ? '' : 'Todavía no publicaste fechas: mientras tanto los feligreses proponen una fecha libre y tú la confirmas.';
+      tbody.innerHTML = data.map((f) => `
+        <tr data-id="${Number(f.id)}">
+          <td>${escaparHtml(f.nombre)}</td>
+          <td>${escaparHtml(formatearFecha(f.fecha))}</td>
+          <td>${f.hora ? escaparHtml(f.hora) : '—'}</td>
+          <td>${Number(f.cupo)}</td>
+          <td>${Number(f.ocupados)}</td>
+          <td class="fila-accion">
+            <button class="boton-mini" data-accion="editar-fecha">Editar cupo</button>
+            <button class="boton-mini rechazar" data-accion="eliminar-fecha" ${Number(f.ocupados) > 0 ? 'disabled title="Tiene solicitudes activas"' : ''}>Retirar</button>
+          </td>
+        </tr>`).join('');
+    })
+    .catch(() => { nota.textContent = 'No se pudo conectar con el servidor.'; });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const datos = new URLSearchParams({ hora: campoHora.value, cupo: campoCupo.value });
+    if (campoId.value) datos.append('id', campoId.value);
+    else { datos.append('sacramento', selectSacramento.value); datos.append('fecha', campoFecha.value); }
+    mensaje.classList.add('visible');
+    mensaje.style.color = '';
+    mensaje.textContent = 'Guardando…';
+    fetch('/api/admin/fechas-disponibles', { method: 'POST', body: datos, credentials: 'same-origin' })
+      .then(leer)
+      .then(({ ok, data }) => {
+        if (ok) {
+          mensaje.textContent = 'Fecha guardada. Los feligreses ya la ven al reservar.';
+          salirDeEdicion();
+          cargar();
+        } else {
+          mensaje.style.color = 'red';
+          mensaje.textContent = data.error || 'No se pudo guardar la fecha.';
+        }
+      })
+      .catch(() => { mensaje.style.color = 'red'; mensaje.textContent = 'No se pudo conectar con el servidor.'; });
+  });
+
+  botonCancelar.addEventListener('click', salirDeEdicion);
+
+  tbody.addEventListener('click', (e) => {
+    const boton = e.target.closest('[data-accion]');
+    if (!boton || boton.disabled) return;
+    const id = boton.closest('tr').dataset.id;
+    if (boton.dataset.accion === 'editar-fecha') {
+      const f = fechas.find((x) => String(x.id) === id);
+      if (!f) return;
+      campoId.value = String(f.id);
+      selectSacramento.innerHTML = `<option value="${escaparHtml(f.sacramento)}">${escaparHtml(f.nombre)}</option>`;
+      selectSacramento.disabled = true;
+      campoFecha.disabled = true;
+      campoFecha.value = f.fecha;
+      campoHora.value = f.hora || '';
+      campoCupo.value = String(f.cupo);
+      botonGuardar.textContent = 'Guardar cambios';
+      botonCancelar.style.display = '';
+      campoCupo.focus();
+    } else if (boton.dataset.accion === 'eliminar-fecha') {
+      if (!window.confirm('¿Retirar esta fecha? Los feligreses ya no podrán elegirla.')) return;
+      boton.disabled = true;
+      fetch('/api/admin/fechas-disponibles?id=' + encodeURIComponent(id), { method: 'DELETE', credentials: 'same-origin' })
+        .then(leer)
+        .then(({ ok, data }) => { if (campoId.value === id) salirDeEdicion(); return cargar().then(() => { if (!ok) nota.textContent = data.error || 'No se pudo retirar la fecha.'; }); })
+        .catch(() => { nota.textContent = 'No se pudo conectar con el servidor.'; });
+    }
+  });
+
+  cargarSacramentos().then(() => { salirDeEdicion(); return cargar(); });
 });
