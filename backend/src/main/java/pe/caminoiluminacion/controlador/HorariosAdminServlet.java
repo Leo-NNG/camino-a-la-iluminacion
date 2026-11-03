@@ -64,7 +64,7 @@ public class HorariosAdminServlet extends HttpServlet {
         if (idParroquia == null) return;
         try {
             Horario h = contenido.guardarHorario(Sesion.idUsuario(request), idParroquia, request.getParameter("id"),
-                    request.getParameter("dia"), request.getParameter("tipo"), request.getParameter("hora"), request.getRemoteAddr());
+                    request.getParameter("dia"), request.getParameter("tipo"), request.getParameter("hora_inicio"), request.getParameter("detalle"), request.getRemoteAddr());
             response.setStatus(HttpServletResponse.SC_OK);
             out.print("{\"exito\":true,\"id\":" + h.getIdHorario() + "}");
         } catch (ReglaNegocioException e) {

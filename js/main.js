@@ -288,6 +288,32 @@ function prepararSelectorParroquia(select, lista, alCambiar) {
 }
 
 /* Agrupa los horarios de un mismo tipo: si de lunes a viernes dicen lo mismo, se muestra "Lunes a viernes". */
+// "Próxima misa": la primera celebración de tipo misa que todavía no pasó, contando desde ahora y hasta 7 días adelante.
+// Es una función pura (recibe la lista y la fecha): se puede probar sin pantalla.
+const DIA_POR_NUMERO = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+function proximaMisa(horarios, ahora) {
+  const ahoraD = ahora || new Date();
+  const misas = (horarios || []).filter((h) => h.tipo === 'misa' && /^\d{2}:\d{2}$/.test(h.horaInicio || ''));
+  const minutosAhora = ahoraD.getHours() * 60 + ahoraD.getMinutes();
+  for (let desfase = 0; desfase <= 7; desfase++) {
+    const fecha = new Date(ahoraD.getFullYear(), ahoraD.getMonth(), ahoraD.getDate() + desfase);
+    const delDia = misas.filter((h) => h.dia === DIA_POR_NUMERO[fecha.getDay()])
+      .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
+    for (const h of delDia) {
+      const [hh, mm] = h.horaInicio.split(':').map(Number);
+      if (desfase > 0 || hh * 60 + mm > minutosAhora) return { misa: h, fecha, desfase };
+    }
+  }
+  return null;
+}
+
+function textoProximaMisa(r) {
+  if (!r) return '';
+  const cuando = r.desfase === 0 ? 'Hoy' : r.desfase === 1 ? 'Mañana'
+    : `${NOMBRES_DIA[DIA_POR_NUMERO[r.fecha.getDay()]]} ${String(r.fecha.getDate()).padStart(2, '0')}/${String(r.fecha.getMonth() + 1).padStart(2, '0')}`;
+  return `${cuando} · ${r.misa.hora}`;
+}
+
 function agruparHorarios(lista) {
   const porDia = {};
   lista.forEach((h) => { (porDia[h.dia] = porDia[h.dia] || []).push(h.hora); });
@@ -847,6 +873,12 @@ document.addEventListener('DOMContentLoaded', () => {
           listaActividades.innerHTML = actividades.length ? actividades.map((h) => `
             <li class="fila-horario"><span class="dia">${escaparHtml(NOMBRES_DIA[h.dia] || h.dia)}</span><span class="detalle">${escaparHtml(h.hora)}</span></li>`).join('')
             : '<li class="fila-horario"><span class="detalle">Sin actividades registradas por ahora.</span></li>';
+          const proxima = document.getElementById('proxima-misa');
+          if (proxima) {
+            const texto = textoProximaMisa(proximaMisa(horarios));
+            proxima.hidden = !texto;
+            proxima.innerHTML = texto ? `<strong>Próxima misa</strong> ${escaparHtml(texto)}` : '';
+          }
           const tabActiva = document.querySelector('.pestana-dia.activo');
           if (tabActiva) aplicarFiltroDia(tabActiva.dataset.dia);
         })
@@ -1202,7 +1234,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const datos = new URLSearchParams({
         dia: document.getElementById('h-dia').value,
         tipo: document.getElementById('h-tipo').value,
-        hora: document.getElementById('h-hora').value.trim(),
+        hora_inicio: document.getElementById('h-hora-inicio').value,
+        detalle: document.getElementById('h-detalle').value.trim(),
       });
       if (campoId.value) datos.append('id', campoId.value);
       mensaje.classList.add('visible');
@@ -1225,6 +1258,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     botonCancelar.addEventListener('click', salirDeEdicion);
 
+    // En una actividad el detalle es su nombre y es obligatorio; en una misa es opcional (por ejemplo, "vigilia").
+    const actualizarObligatorio = () => { document.getElementById('h-detalle').required = document.getElementById('h-tipo').value === 'actividad'; };
+    document.getElementById('h-tipo').addEventListener('change', actualizarObligatorio);
+    actualizarObligatorio();
+
     tbody.addEventListener('click', (e) => {
       const boton = e.target.closest('[data-accion]');
       if (!boton) return;
@@ -1235,10 +1273,12 @@ document.addEventListener('DOMContentLoaded', () => {
         campoId.value = String(h.id);
         document.getElementById('h-dia').value = h.dia;
         document.getElementById('h-tipo').value = h.tipo;
-        document.getElementById('h-hora').value = h.hora;
+        actualizarObligatorio();
+        document.getElementById('h-hora-inicio').value = h.horaInicio || '';
+        document.getElementById('h-detalle').value = h.detalle || '';
         botonGuardar.textContent = 'Guardar cambios';
         botonCancelar.style.display = '';
-        document.getElementById('h-hora').focus();
+        document.getElementById('h-hora-inicio').focus();
       } else if (boton.dataset.accion === 'eliminar-horario') {
         if (!window.confirm('¿Eliminar este horario?')) return;
         boton.disabled = true;

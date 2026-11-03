@@ -39,9 +39,16 @@ public class DocumentoService {
     private final UsuarioDAO usuarioDAO;
     private final AlmacenArchivos almacen;
     private final BitacoraService bitacora;
+    private final Avisador avisador;
 
     public DocumentoService(DocumentoDAO documentoDAO, ReservaDAO reservaDAO, ParroquiaDAO parroquiaDAO,
                             UsuarioDAO usuarioDAO, AlmacenArchivos almacen, BitacoraService bitacora) {
+        this(documentoDAO, reservaDAO, parroquiaDAO, usuarioDAO, almacen, bitacora, Avisador.ninguno());
+    }
+
+    public DocumentoService(DocumentoDAO documentoDAO, ReservaDAO reservaDAO, ParroquiaDAO parroquiaDAO,
+                            UsuarioDAO usuarioDAO, AlmacenArchivos almacen, BitacoraService bitacora, Avisador avisador) {
+        this.avisador = avisador;
         this.documentoDAO = documentoDAO;
         this.reservaDAO = reservaDAO;
         this.parroquiaDAO = parroquiaDAO;
@@ -160,6 +167,15 @@ public class DocumentoService {
         if (reserva.isEmpty() || reserva.get().getIdParroquia() != idParroquiaAdmin) throw new ReglaNegocioException(404, "El documento no existe.");
         if (!documentoDAO.resolverPendiente(id, estado, razon, idAdmin)) throw new ReglaNegocioException(409, "Este documento ya fue resuelto.");
         bitacora.registrar(idAdmin, "rechazado".equals(estado) ? "DOCUMENTO_RECHAZADO" : "DOCUMENTO_VALIDADO", "documento " + id, ip);
+        if (doc.get().getIdUsuario() != null) { // RF13: el feligrés se entera sin tener que volver a revisar la pantalla
+            String nombre = doc.get().getNombreArchivo();
+            if ("rechazado".equals(estado)) {
+                avisador.avisar(doc.get().getIdUsuario(), "Documento rechazado", "Tu documento «" + nombre + "» fue rechazado: " + razon
+                        + ". Súbelo de nuevo corregido en «Mis documentos».");
+            } else {
+                avisador.avisar(doc.get().getIdUsuario(), "Documento validado", "Tu documento «" + nombre + "» fue validado por la parroquia.");
+            }
+        }
     }
 
     // ---------------------------------------------------------------- auxiliares

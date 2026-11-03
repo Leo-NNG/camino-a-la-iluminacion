@@ -62,8 +62,13 @@
           </select>
         </div>
         <div class="campo">
-          <label for="h-hora">Hora o detalle</label>
-          <input type="text" id="h-hora" maxlength="120" placeholder="Ej. 7:00 a.m. y 7:00 p.m.  —  o  —  Catequesis de Primera Comunión — 5:00 p.m." required>
+          <label for="h-hora-inicio">Hora de inicio</label>
+          <input type="time" id="h-hora-inicio" required>
+        </div>
+        <div class="campo">
+          <label for="h-detalle">Detalle <small>(opcional en las misas, obligatorio en las actividades)</small></label>
+          <input type="text" id="h-detalle" maxlength="120" placeholder="Ej. vigilia  —  o  —  Catequesis de Primera Comunión">
+          <p class="ayuda">Cada hora es un horario aparte: si hay misa a las 7:00 a.m. y a las 7:00 p.m., agrega dos.</p>
         </div>
         <button type="submit" class="boton boton-primario" id="h-guardar">Agregar horario</button>
         <button type="button" class="boton boton-secundario" id="h-cancelar" style="display:none;">Cancelar edición</button>

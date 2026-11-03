@@ -79,10 +79,10 @@ public class PruebasContenido {
 
         // ===== HORARIOS (público) y AVISOS (público)
         FakeHorarios fh = new FakeHorarios(); FakeAvisos fa = new FakeAvisos();
-        fh.insertar(new Horario(1, "lunes", "7:00 a.m. y 7:00 p.m.", "misa")); fh.insertar(new Horario(2, "sabado", "5:00 p.m. (vigilia)", "misa"));
+        fh.insertar(new Horario(1, "lunes", java.time.LocalTime.of(7, 0), null, "misa")); fh.insertar(new Horario(1, "lunes", java.time.LocalTime.of(19, 0), null, "misa")); fh.insertar(new Horario(2, "sabado", java.time.LocalTime.of(17, 0), "vigilia", "misa"));
         HorariosServlet hs = new HorariosServlet(fh);
         r = new Resp(); hs.doGet(PruebasDocumentos.req(anon, m("parroquia", "1"), null, false), PruebasDocumentos.resp(r));
-        check(r.status == 200 && cuerpo(r).contains("7:00 a.m. y 7:00 p.m.") && !cuerpo(r).contains("vigilia"), "horarios públicos solo de la parroquia pedida");
+        check(r.status == 200 && cuerpo(r).contains("7:00 a.m.") && cuerpo(r).contains("7:00 p.m.") && cuerpo(r).contains("\"horaInicio\":\"07:00\"") && !cuerpo(r).contains("vigilia"), "horarios públicos solo de la parroquia pedida");
         r = new Resp(); hs.doGet(PruebasDocumentos.req(anon, m(), null, false), PruebasDocumentos.resp(r));
         check(r.status == 400, "horarios sin parroquia -> 400");
         fa.insertar(new Aviso(1, "Aviso uno", "d", "otro", false, null)); fa.insertar(new Aviso(1, "Urgente A", "d", "cambio_horario", true, null));
@@ -142,7 +142,7 @@ public class PruebasContenido {
         // ===== HORARIOS (admin)
         FakeHorarios fh2 = new FakeHorarios();
         HorariosAdminServlet ha = new HorariosAdminServlet(new ContenidoService(new FakeAvisos(), fh2, fsac, Pruebas.BIT));
-        Map<String,String> hv = m("dia", "domingo", "tipo", "misa", "hora", "8:00 a.m. y 6:00 p.m.");
+        Map<String,String> hv = m("dia", "domingo", "tipo", "misa", "hora_inicio", "08:00");
         r = new Resp(); ha.doPost(PruebasDocumentos.req(anon, hv, null, false), PruebasDocumentos.resp(r));
         check(r.status == 401 && fh2.lista.isEmpty(), "crear horario sin sesión -> 401");
         r = new Resp(); ha.doPost(PruebasDocumentos.req(cFel, hv, null, false), PruebasDocumentos.resp(r));
@@ -152,20 +152,20 @@ public class PruebasContenido {
         Map<String,String> hAjeno = new HashMap<>(hv); hAjeno.put("id_parroquia", "2");
         r = new Resp(); ha.doPost(PruebasDocumentos.req(cA1, hAjeno, null, false), PruebasDocumentos.resp(r));
         check(r.status == 200 && fh2.lista.size() == 1 && fh2.lista.get(0).getIdParroquia() == 1, "crea en SU parroquia aunque mande id_parroquia=2");
-        for (String[] kv : new String[][]{{"dia", "funday"}, {"dia", ""}, {"tipo", "otra"}, {"hora", ""}, {"hora", "h".repeat(121)}}) {
+        for (String[] kv : new String[][]{{"dia", "funday"}, {"dia", ""}, {"tipo", "otra"}, {"hora_inicio", ""}, {"hora_inicio", "25:00"}, {"hora_inicio", "8am"}, {"hora_inicio", "10:61"}, {"detalle", "d".repeat(121)}}) {
             Map<String,String> mal = new HashMap<>(hv); mal.put(kv[0], kv[1]);
             r = new Resp(); ha.doPost(PruebasDocumentos.req(cA1, mal, null, false), PruebasDocumentos.resp(r));
             check(r.status == 400, "horario inválido rechazado: " + kv[0] + "='" + (kv[1].length() > 10 ? "…" : kv[1]) + "'");
         }
         check(fh2.lista.size() == 1, "ningún horario inválido se guardó");
         int hid = fh2.lista.get(0).getIdHorario();
-        r = new Resp(); ha.doPost(PruebasDocumentos.req(cA1, m("id", "" + hid, "dia", "sabado", "tipo", "actividad", "hora", "Catequesis — 4:00 p.m."), null, false), PruebasDocumentos.resp(r));
+        r = new Resp(); ha.doPost(PruebasDocumentos.req(cA1, m("id", "" + hid, "dia", "sabado", "tipo", "actividad", "hora_inicio", "16:00", "detalle", "Catequesis"), null, false), PruebasDocumentos.resp(r));
         Horario h0 = fh2.buscarPorId(hid).get();
         check(r.status == 200 && h0.getDiaSemana().equals("sabado") && h0.getTipo().equals("actividad") && h0.getHora().startsWith("Catequesis") && h0.getIdParroquia() == 1, "modifica su horario (sin cambiar de parroquia)");
-        Horario ajeno = fh2.insertar(new Horario(2, "lunes", "6:30 a.m.", "misa"));
-        r = new Resp(); ha.doPost(PruebasDocumentos.req(cA1, m("id", "" + ajeno.getIdHorario(), "dia", "martes", "tipo", "misa", "hora", "hackeado"), null, false), PruebasDocumentos.resp(r));
+        Horario ajeno = fh2.insertar(new Horario(2, "lunes", java.time.LocalTime.of(6, 30), null, "misa"));
+        r = new Resp(); ha.doPost(PruebasDocumentos.req(cA1, m("id", "" + ajeno.getIdHorario(), "dia", "martes", "tipo", "misa", "hora_inicio", "10:00"), null, false), PruebasDocumentos.resp(r));
         check(r.status == 404 && ajeno.getHora().equals("6:30 a.m."), "no modifica horarios de otra parroquia");
-        r = new Resp(); ha.doPost(PruebasDocumentos.req(cA1, m("id", "abc", "dia", "martes", "tipo", "misa", "hora", "x"), null, false), PruebasDocumentos.resp(r));
+        r = new Resp(); ha.doPost(PruebasDocumentos.req(cA1, m("id", "abc", "dia", "martes", "tipo", "misa", "hora_inicio", "10:00"), null, false), PruebasDocumentos.resp(r));
         check(r.status == 400, "id de horario no numérico -> 400");
         r = new Resp(); ha.doDelete(PruebasDocumentos.req(cA1, m("id", "" + ajeno.getIdHorario()), null, false), PruebasDocumentos.resp(r));
         check(r.status == 404 && fh2.buscarPorId(ajeno.getIdHorario()).isPresent(), "no elimina horarios de otra parroquia");

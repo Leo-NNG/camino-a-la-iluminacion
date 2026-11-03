@@ -12,13 +12,14 @@ public class HorarioDAOImpl implements HorarioDAO {
 
     @Override
     public Horario insertar(Horario h) throws SQLException {
-        String sql = "INSERT INTO horario (id_parroquia, dia_semana, hora, tipo) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO horario (id_parroquia, dia_semana, hora_inicio, detalle, tipo) VALUES (?, ?, ?, ?, ?)";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, h.getIdParroquia());
             ps.setString(2, h.getDiaSemana());
-            ps.setString(3, h.getHora());
-            ps.setString(4, h.getTipo());
+            ps.setTime(3, java.sql.Time.valueOf(h.getHoraInicio()));
+            ps.setString(4, h.getDetalle());
+            ps.setString(5, h.getTipo());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) h.setIdHorario(keys.getInt(1));
@@ -42,7 +43,7 @@ public class HorarioDAOImpl implements HorarioDAO {
     @Override
     public List<Horario> listarPorParroquia(int idParroquia) throws SQLException {
         String sql = "SELECT * FROM horario WHERE id_parroquia = ? "
-                   + "ORDER BY tipo, FIELD(dia_semana,'lunes','martes','miercoles','jueves','viernes','sabado','domingo'), id_horario";
+                   + "ORDER BY tipo, FIELD(dia_semana,'lunes','martes','miercoles','jueves','viernes','sabado','domingo'), hora_inicio, id_horario";
         List<Horario> lista = new ArrayList<>();
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -56,13 +57,14 @@ public class HorarioDAOImpl implements HorarioDAO {
 
     @Override
     public boolean actualizar(Horario h) throws SQLException {
-        String sql = "UPDATE horario SET dia_semana=?, hora=?, tipo=? WHERE id_horario=?";
+        String sql = "UPDATE horario SET dia_semana=?, hora_inicio=?, detalle=?, tipo=? WHERE id_horario=?";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, h.getDiaSemana());
-            ps.setString(2, h.getHora());
-            ps.setString(3, h.getTipo());
-            ps.setInt(4, h.getIdHorario());
+            ps.setTime(2, java.sql.Time.valueOf(h.getHoraInicio()));
+            ps.setString(3, h.getDetalle());
+            ps.setString(4, h.getTipo());
+            ps.setInt(5, h.getIdHorario());
             return ps.executeUpdate() > 0;
         }
     }
@@ -82,7 +84,8 @@ public class HorarioDAOImpl implements HorarioDAO {
         h.setIdHorario(rs.getInt("id_horario"));
         h.setIdParroquia(rs.getInt("id_parroquia"));
         h.setDiaSemana(rs.getString("dia_semana"));
-        h.setHora(rs.getString("hora"));
+        h.setHoraInicio(rs.getTime("hora_inicio").toLocalTime());
+        h.setDetalle(rs.getString("detalle"));
         h.setTipo(rs.getString("tipo"));
         return h;
     }

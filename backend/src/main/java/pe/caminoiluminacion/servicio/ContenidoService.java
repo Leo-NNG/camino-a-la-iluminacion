@@ -9,6 +9,7 @@ import pe.caminoiluminacion.modelo.Sacramento;
 
 import java.sql.Date;
 import java.sql.SQLException;
+import java.time.LocalTime;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -16,6 +17,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Contenido que gestiona el administrador de SU parroquia: avisos, horarios y sacramentos que ofrece. */
 public class ContenidoService {
@@ -81,26 +84,52 @@ public class ContenidoService {
         return horarioDAO.listarPorParroquia(idParroquia);
     }
 
-    /** Crea (idTxt vacío) o modifica un horario de la parroquia del administrador. */
-    public Horario guardarHorario(int idAdmin, int idParroquia, String idTxt, String dia, String tipo, String hora, String ip)
-            throws SQLException {
-        String d = recortar(dia), tp = recortar(tipo), h = recortar(hora), id = recortar(idTxt);
+    private static final Pattern HORA_24 = Pattern.compile("^([01]?\\d|2[0-3]):([0-5]\\d)$");
+
+    /**
+     * Crea (idTxt vacío) o modifica una celebración de la parroquia del administrador. La hora llega como "HH:mm" (24 horas,
+     * lo que envía un campo de hora del navegador). El detalle es opcional en las misas y obligatorio en las actividades.
+     */
+    public Horario guardarHorario(int idAdmin, int idParroquia, String idTxt, String dia, String tipo, String horaInicio,
+                                  String detalle, String ip) throws SQLException {
+        String d = recortar(dia), tp = recortar(tipo), id = recortar(idTxt);
+        String det = recortar(detalle).replaceAll("\\s+", " ");
         if (!DIAS.contains(d)) throw new ReglaNegocioException(400, "Elige un día válido.");
         if (!TIPOS_HORARIO.contains(tp)) throw new ReglaNegocioException(400, "Elige si es una misa o una actividad.");
-        if (h.isEmpty() || h.length() > 120) throw new ReglaNegocioException(400, "Indica la hora o el detalle (hasta 120 caracteres).");
+        Matcher hora = HORA_24.matcher(recortar(horaInicio));
+        if (!hora.matches()) throw new ReglaNegocioException(400, "Indica la hora de inicio (por ejemplo 19:30).");
+        LocalTime inicio = LocalTime.of(Integer.parseInt(hora.group(1)), Integer.parseInt(hora.group(2)));
+        if (det.length() > 120) throw new ReglaNegocioException(400, "El detalle no puede superar los 120 caracteres.");
+        if (det.matches(".*\\p{Cntrl}.*")) throw new ReglaNegocioException(400, "El detalle tiene caracteres no válidos.");
+        if (Horario.ACTIVIDAD.equals(tp) && det.length() < 3) {
+            throw new ReglaNegocioException(400, "Escribe el nombre de la actividad (por ejemplo, Catequesis de Primera Comunión).");
+        }
+        String detalleFinal = det.isEmpty() ? null : det;
 
-        if (id.isEmpty()) {
-            Horario nuevo = new Horario(idParroquia, d, h, tp);
+        Optional<Horario> existente = Optional.empty();
+        if (!id.isEmpty()) {
+            existente = horarioDAO.buscarPorId(entero(id));
+            if (existente.isEmpty() || existente.get().getIdParroquia() != idParroquia) throw new ReglaNegocioException(404, "El horario no existe.");
+        }
+        for (Horario otro : horarioDAO.listarPorParroquia(idParroquia)) { // la misma celebración no se registra dos veces
+            boolean esElMismo = existente.isPresent() && otro.getIdHorario().equals(existente.get().getIdHorario());
+            if (!esElMismo && otro.getDiaSemana().equals(d) && otro.getTipo().equals(tp) && otro.getHoraInicio().equals(inicio)
+                    && String.valueOf(otro.getDetalle()).equalsIgnoreCase(String.valueOf(detalleFinal))) {
+                throw new ReglaNegocioException(409, "Ya registraste esa celebración en ese día y hora.");
+            }
+        }
+
+        if (existente.isEmpty()) {
+            Horario nuevo = new Horario(idParroquia, d, inicio, detalleFinal, tp);
             horarioDAO.insertar(nuevo);
             bitacora.registrar(idAdmin, "HORARIO_CREADO", "horario " + nuevo.getIdHorario(), ip);
             return nuevo;
         }
-        Optional<Horario> existente = horarioDAO.buscarPorId(entero(id));
-        if (existente.isEmpty() || existente.get().getIdParroquia() != idParroquia) throw new ReglaNegocioException(404, "El horario no existe.");
         Horario actual = existente.get();
         actual.setDiaSemana(d);
         actual.setTipo(tp);
-        actual.setHora(h);
+        actual.setHoraInicio(inicio);
+        actual.setDetalle(detalleFinal);
         horarioDAO.actualizar(actual);
         bitacora.registrar(idAdmin, "HORARIO_MODIFICADO", "horario " + actual.getIdHorario(), ip);
         return actual;
