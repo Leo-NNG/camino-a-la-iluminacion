@@ -26,6 +26,8 @@ import pe.caminoiluminacion.util.LimiteIntentos;
 public final class Servicios {
 
     private static final BitacoraService BITACORA = new BitacoraService(new BitacoraDAOImpl());
+    private static final NotificacionDAOImpl NOTIFICACIONES = new NotificacionDAOImpl();
+    private static final Avisador AVISADOR = new Avisador(NOTIFICACIONES); // RF13: avisos al feligrés
     private static final UsuarioDAOImpl USUARIOS = new UsuarioDAOImpl();
     private static final ReservaDAOImpl RESERVAS = new ReservaDAOImpl();
     private static final ParroquiaDAOImpl PARROQUIAS = new ParroquiaDAOImpl();
@@ -33,16 +35,16 @@ public final class Servicios {
     private static final FechaDisponibleDAOImpl FECHAS = new FechaDisponibleDAOImpl();
 
     private static final UsuarioService USUARIO_SERVICE = new UsuarioService(USUARIOS, new LimiteIntentos(), BITACORA);
-    private static final ReservaService RESERVA_SERVICE = new ReservaService(RESERVAS, FECHAS, PARROQUIAS, SACRAMENTOS, USUARIOS, BITACORA);
+    private static final ReservaService RESERVA_SERVICE = new ReservaService(RESERVAS, FECHAS, PARROQUIAS, SACRAMENTOS, USUARIOS, BITACORA,
+            java.time.LocalDate::now, AVISADOR);
     private static final FechaDisponibleService FECHA_SERVICE = new FechaDisponibleService(FECHAS, SACRAMENTOS, BITACORA);
     private static final DocumentoService DOCUMENTO_SERVICE = new DocumentoService(
-            new DocumentoDAOImpl(), RESERVAS, PARROQUIAS, USUARIOS, AlmacenArchivos.porDefecto(), BITACORA);
+            new DocumentoDAOImpl(), RESERVAS, PARROQUIAS, USUARIOS, AlmacenArchivos.porDefecto(), BITACORA, AVISADOR);
     private static final ContenidoService CONTENIDO_SERVICE = new ContenidoService(
             new AvisoDAOImpl(), new HorarioDAOImpl(), SACRAMENTOS, BITACORA);
 
     private static final ReporteService REPORTE_SERVICE = new ReporteService(new ReporteDAOImpl(), BITACORA);
 
-    private static final NotificacionDAOImpl NOTIFICACIONES = new NotificacionDAOImpl();
     private static final PagoDAOImpl PAGOS = new PagoDAOImpl();
     private static final CuentaPagoDAOImpl CUENTAS = new CuentaPagoDAOImpl();
     private static final AlmacenArchivos ALMACEN_PAGOS = AlmacenArchivos.porDefecto();

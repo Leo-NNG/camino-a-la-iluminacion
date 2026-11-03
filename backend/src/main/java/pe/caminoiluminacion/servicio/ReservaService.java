@@ -26,6 +26,8 @@ import java.util.function.Supplier;
 /** Reglas de las reservas de sacramentos: crear, ver las propias y confirmar o rechazar las de una parroquia. */
 public class ReservaService {
 
+    private static final java.time.format.DateTimeFormatter FECHA_AVISO = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     /** Una reserva propia con el nombre de la parroquia (para "Mis solicitudes"). */
     public record ReservaPropia(Reserva reserva, String parroquia) { }
 
@@ -44,6 +46,7 @@ public class ReservaService {
     private final SacramentoDAO sacramentoDAO;
     private final UsuarioDAO usuarioDAO;
     private final BitacoraService bitacora;
+    private final Avisador avisador;
     private final Supplier<LocalDate> hoy;
 
     public ReservaService(ReservaDAO reservaDAO, FechaDisponibleDAO fechaDAO, ParroquiaDAO parroquiaDAO,
@@ -54,6 +57,13 @@ public class ReservaService {
     public ReservaService(ReservaDAO reservaDAO, FechaDisponibleDAO fechaDAO, ParroquiaDAO parroquiaDAO,
                           SacramentoDAO sacramentoDAO, UsuarioDAO usuarioDAO, BitacoraService bitacora,
                           Supplier<LocalDate> hoy) {
+        this(reservaDAO, fechaDAO, parroquiaDAO, sacramentoDAO, usuarioDAO, bitacora, hoy, Avisador.ninguno());
+    }
+
+    public ReservaService(ReservaDAO reservaDAO, FechaDisponibleDAO fechaDAO, ParroquiaDAO parroquiaDAO,
+                          SacramentoDAO sacramentoDAO, UsuarioDAO usuarioDAO, BitacoraService bitacora,
+                          Supplier<LocalDate> hoy, Avisador avisador) {
+        this.avisador = avisador;
         this.reservaDAO = reservaDAO;
         this.fechaDAO = fechaDAO;
         this.parroquiaDAO = parroquiaDAO;
@@ -160,6 +170,23 @@ public class ReservaService {
         }
         if (!reservaDAO.resolverPendiente(id, estado, razon)) throw new ReglaNegocioException(409, "Esta solicitud ya fue resuelta.");
         bitacora.registrar(idAdmin, "rechazada".equals(estado) ? "RESERVA_RECHAZADA" : "RESERVA_CONFIRMADA", "reserva " + id, ip);
+        avisarResolucion(reserva.get(), estado, razon);
+    }
+
+    /** Avisa al feligrés (RF13) que la parroquia confirmó o rechazó su solicitud; en el rechazo le muestra el motivo. */
+    private void avisarResolucion(Reserva r, String estado, String motivo) throws SQLException {
+        if (r.getIdUsuario() == null) return;
+        String sacramento = sacramentoDAO.buscarPorCodigo(r.getSacramento()).map(Sacramento::getNombre).orElse(r.getSacramento());
+        String parroquia = parroquiaDAO.buscarPorId(r.getIdParroquia()).map(Parroquia::getNombre).orElse("la parroquia");
+        String fecha = r.getFechaSolicitada() == null ? "" : " para el " + r.getFechaSolicitada().toLocalDate().format(FECHA_AVISO);
+        String base = "Tu solicitud de " + sacramento + " de " + r.getNombreSolicitante() + fecha;
+        if ("rechazada".equals(estado)) {
+            avisador.avisar(r.getIdUsuario(), "Reserva rechazada", base + " fue rechazada por " + parroquia + ": " + motivo
+                    + ". Puedes solicitar otra fecha.");
+        } else {
+            avisador.avisar(r.getIdUsuario(), "Reserva confirmada", base + " fue confirmada por " + parroquia
+                    + ". Sube tus documentos en «Mis documentos» si aún no lo hiciste.");
+        }
     }
 
     // ---------------------------------------------------------------- auxiliares

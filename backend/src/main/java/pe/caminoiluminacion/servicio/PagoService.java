@@ -73,7 +73,7 @@ public class PagoService {
     private final PagoDAO pagoDAO;
     private final ArancelDAO arancelDAO;
     private final CuentaPagoDAO cuentaDAO;
-    private final NotificacionDAO notificacionDAO;
+    private final Avisador avisador;
     private final ReservaDAO reservaDAO;
     private final ParroquiaDAO parroquiaDAO;
     private final SacramentoDAO sacramentoDAO;
@@ -88,7 +88,7 @@ public class PagoService {
         this.pagoDAO = pagoDAO;
         this.arancelDAO = arancelDAO;
         this.cuentaDAO = cuentaDAO;
-        this.notificacionDAO = notificacionDAO;
+        this.avisador = new Avisador(notificacionDAO);
         this.reservaDAO = reservaDAO;
         this.parroquiaDAO = parroquiaDAO;
         this.sacramentoDAO = sacramentoDAO;
@@ -241,7 +241,7 @@ public class PagoService {
 
         bitacora.registrar(idAdmin, aprobar ? "PAGO_APROBADO" : "PAGO_RECHAZADO", "pago " + id, ip);
         Registro.info("Pago " + id + " " + nuevo + " por el usuario " + idAdmin);
-        avisar(pago.idUsuario(), aprobar ? "Pago verificado" : "Pago observado",
+        avisador.avisar(pago.idUsuario(), aprobar ? "Pago verificado" : "Pago observado",
                 aprobar ? "Tu pago de S/ " + pago.monto().toPlainString() + " (" + detalle(pago) + ") fue verificado. ¡Gracias!"
                         : "Tu pago de S/ " + pago.monto().toPlainString() + " (" + detalle(pago) + ") fue rechazado: " + motivo
                           + ". Puedes volver a enviarlo con el comprobante correcto.");
@@ -331,14 +331,6 @@ public class PagoService {
                     ? "Ese comprobante ya fue usado en otro pago." : "Ese número de operación ya fue registrado en otro pago.");
         } finally {
             if (!registrado) comprobantes.borrarArchivo(archivo);
-        }
-    }
-
-    private void avisar(int idUsuario, String asunto, String mensaje) {
-        try {
-            notificacionDAO.crear(idUsuario, asunto, mensaje);
-        } catch (SQLException | RuntimeException e) {
-            Registro.error("No se pudo crear la notificación del pago", e); // el pago ya quedó resuelto: no se cancela
         }
     }
 
