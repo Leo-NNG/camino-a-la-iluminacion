@@ -95,13 +95,16 @@ CREATE TABLE parroquia_sacramento (
 
 -- ----------------------------------------------------------------------------
 -- HORARIO
--- Un registro por franja (día + hora + tipo) de una parroquia.
+-- Una fila por CELEBRACIÓN (día + hora de inicio + tipo) de una parroquia. La hora es un TIME real: se puede ordenar,
+-- validar y calcular la "próxima misa". `detalle` aclara la celebración ("vigilia") o nombra la actividad
+-- ("Catequesis de Primera Comunión"); en las misas es opcional y en las actividades es obligatorio.
 -- ----------------------------------------------------------------------------
 CREATE TABLE horario (
   id_horario     INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_parroquia   INT UNSIGNED NOT NULL,
   dia_semana     ENUM('lunes','martes','miercoles','jueves','viernes','sabado','domingo') NOT NULL,
-  hora           VARCHAR(120) NOT NULL COMMENT 'Ej: "7:00 a.m. y 7:00 p.m."',
+  hora_inicio    TIME NOT NULL,
+  detalle        VARCHAR(120) NULL,
   tipo           ENUM('misa','actividad') NOT NULL DEFAULT 'misa',
 
   CONSTRAINT fk_horario_parroquia FOREIGN KEY (id_parroquia)
@@ -381,35 +384,53 @@ INSERT INTO parroquia_sacramento (id_parroquia, id_sacramento) VALUES
   (3, 2), (3, 3), (3, 4),   -- Nuestra Señora del Carmen: Matrimonio, Primera Comunión, Confirmación
   (4, 1);                   -- Sagrado Corazón: Bautizo
 
-INSERT INTO horario (id_parroquia, dia_semana, hora, tipo) VALUES
-  (1, 'lunes', '7:00 a.m. y 7:00 p.m.', 'misa'),
-  (1, 'martes', '7:00 a.m. y 7:00 p.m.', 'misa'),
-  (1, 'miercoles', '7:00 a.m. y 7:00 p.m.', 'misa'),
-  (1, 'jueves', '7:00 a.m. y 7:00 p.m.', 'misa'),
-  (1, 'viernes', '7:00 a.m. y 7:00 p.m.', 'misa'),
-  (1, 'sabado', '8:00 a.m. y 6:00 p.m.', 'misa'),
-  (1, 'domingo', '7, 9, 11 a.m. y 7 p.m.', 'misa'),
-  (1, 'martes', 'Catequesis de Primera Comunión — 5:00 p.m.', 'actividad'),
-  (1, 'jueves', 'Grupo de oración — 7:30 p.m.', 'actividad'),
-  (2, 'lunes', '6:30 a.m. y 6:30 p.m.', 'misa'),
-  (2, 'martes', '6:30 a.m. y 6:30 p.m.', 'misa'),
-  (2, 'miercoles', '6:30 a.m. y 6:30 p.m.', 'misa'),
-  (2, 'jueves', '6:30 a.m. y 6:30 p.m.', 'misa'),
-  (2, 'viernes', '6:30 a.m. y 6:30 p.m.', 'misa'),
-  (2, 'sabado', '5:00 p.m. (vigilia)', 'misa'),
-  (2, 'domingo', '8, 10 a.m. y 6 p.m.', 'misa'),
-  (2, 'miercoles', 'Catequesis de Confirmación — 6:00 p.m.', 'actividad'),
-  (3, 'lunes', '7:30 a.m.', 'misa'),
-  (3, 'martes', '7:30 a.m.', 'misa'),
-  (3, 'miercoles', '7:30 a.m.', 'misa'),
-  (3, 'jueves', '7:30 a.m.', 'misa'),
-  (3, 'viernes', '7:30 a.m.', 'misa'),
-  (3, 'sabado', '6:00 p.m.', 'misa'),
-  (3, 'domingo', '9 a.m., 12 p.m. y 7 p.m.', 'misa'),
-  (3, 'viernes', 'Rosario y exposición del Santísimo — 5:30 p.m.', 'actividad'),
-  (4, 'sabado', '4:00 p.m.', 'misa'),
-  (4, 'domingo', '10:00 a.m.', 'misa'),
-  (4, 'sabado', 'Charla de preparación para bautizos comunitarios — 3:00 p.m.', 'actividad');
+INSERT INTO horario (id_parroquia, dia_semana, hora_inicio, detalle, tipo) VALUES
+  (1, 'lunes', '07:00:00', NULL, 'misa'),
+  (1, 'lunes', '19:00:00', NULL, 'misa'),
+  (1, 'martes', '07:00:00', NULL, 'misa'),
+  (1, 'martes', '19:00:00', NULL, 'misa'),
+  (1, 'miercoles', '07:00:00', NULL, 'misa'),
+  (1, 'miercoles', '19:00:00', NULL, 'misa'),
+  (1, 'jueves', '07:00:00', NULL, 'misa'),
+  (1, 'jueves', '19:00:00', NULL, 'misa'),
+  (1, 'viernes', '07:00:00', NULL, 'misa'),
+  (1, 'viernes', '19:00:00', NULL, 'misa'),
+  (1, 'sabado', '08:00:00', NULL, 'misa'),
+  (1, 'sabado', '18:00:00', NULL, 'misa'),
+  (1, 'domingo', '07:00:00', NULL, 'misa'),
+  (1, 'domingo', '09:00:00', NULL, 'misa'),
+  (1, 'domingo', '11:00:00', NULL, 'misa'),
+  (1, 'domingo', '19:00:00', NULL, 'misa'),
+  (1, 'martes', '17:00:00', 'Catequesis de Primera Comunión', 'actividad'),
+  (1, 'jueves', '19:30:00', 'Grupo de oración', 'actividad'),
+  (2, 'lunes', '06:30:00', NULL, 'misa'),
+  (2, 'lunes', '18:30:00', NULL, 'misa'),
+  (2, 'martes', '06:30:00', NULL, 'misa'),
+  (2, 'martes', '18:30:00', NULL, 'misa'),
+  (2, 'miercoles', '06:30:00', NULL, 'misa'),
+  (2, 'miercoles', '18:30:00', NULL, 'misa'),
+  (2, 'jueves', '06:30:00', NULL, 'misa'),
+  (2, 'jueves', '18:30:00', NULL, 'misa'),
+  (2, 'viernes', '06:30:00', NULL, 'misa'),
+  (2, 'viernes', '18:30:00', NULL, 'misa'),
+  (2, 'sabado', '17:00:00', 'vigilia', 'misa'),
+  (2, 'domingo', '08:00:00', NULL, 'misa'),
+  (2, 'domingo', '10:00:00', NULL, 'misa'),
+  (2, 'domingo', '18:00:00', NULL, 'misa'),
+  (2, 'miercoles', '18:00:00', 'Catequesis de Confirmación', 'actividad'),
+  (3, 'lunes', '07:30:00', NULL, 'misa'),
+  (3, 'martes', '07:30:00', NULL, 'misa'),
+  (3, 'miercoles', '07:30:00', NULL, 'misa'),
+  (3, 'jueves', '07:30:00', NULL, 'misa'),
+  (3, 'viernes', '07:30:00', NULL, 'misa'),
+  (3, 'sabado', '18:00:00', NULL, 'misa'),
+  (3, 'domingo', '09:00:00', NULL, 'misa'),
+  (3, 'domingo', '12:00:00', NULL, 'misa'),
+  (3, 'domingo', '19:00:00', NULL, 'misa'),
+  (3, 'viernes', '17:30:00', 'Rosario y exposición del Santísimo', 'actividad'),
+  (4, 'sabado', '16:00:00', NULL, 'misa'),
+  (4, 'domingo', '10:00:00', NULL, 'misa'),
+  (4, 'sabado', '15:00:00', 'Charla de preparación para bautizos comunitarios', 'actividad');
 
 -- Usuarios de DEMOSTRACIÓN. Contraseña de todos: Demo1234  (cámbiala antes de cualquier uso real).
 -- DNI de ejemplo ficticios. El administrador gestiona la parroquia 1 (San José).

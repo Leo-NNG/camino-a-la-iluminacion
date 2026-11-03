@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import pe.caminoiluminacion.controlador.Pruebas;
 import pe.caminoiluminacion.controlador.Pruebas.FakeBitacora;
+import pe.caminoiluminacion.controlador.Pruebas.FakeFechas;
 import pe.caminoiluminacion.controlador.Pruebas.FakeParroquias;
 import pe.caminoiluminacion.controlador.Pruebas.FakeReservas;
 import pe.caminoiluminacion.controlador.Pruebas.FakeSacramentos;
@@ -64,7 +65,7 @@ class AvisosDeEstadoTest {
         usuarios.insertar(Pruebas.usuario("70000001", "ana@x.pe", "Clave123", "feligres", null)); // 1
         BitacoraService bitacora = new BitacoraService(new FakeBitacora());
         Avisador avisador = new Avisador(notificaciones);
-        reservaService = new ReservaService(reservas, new FakeParroquias(), new FakeSacramentos(), usuarios, bitacora,
+        reservaService = new ReservaService(reservas, new FakeFechas(reservas), new FakeParroquias(), new FakeSacramentos(), usuarios, bitacora,
                 () -> LocalDate.of(2026, 10, 8), avisador);
         documentoService = new DocumentoService(documentos, reservas, new FakeParroquias(), usuarios, new AlmacenArchivos(carpeta), bitacora, avisador);
         reserva = reservaService.crear(1, "Bautizo", "1", "Bebé Uno", "2026-10-20", "", "ip");
@@ -125,7 +126,7 @@ class AvisosDeEstadoTest {
 
     @Test
     void sinAvisadorElServicioSigueFuncionando() throws Exception {
-        ReservaService sinAvisos = new ReservaService(reservas, new FakeParroquias(), new FakeSacramentos(), new FakeUsuarios(),
+        ReservaService sinAvisos = new ReservaService(reservas, new FakeFechas(reservas), new FakeParroquias(), new FakeSacramentos(), new FakeUsuarios(),
                 new BitacoraService(new FakeBitacora()), () -> LocalDate.of(2026, 10, 8));
         sinAvisos.resolver(5, 1, String.valueOf(reserva.getIdReserva()), "confirmada", "", "ip");
         assertTrue(notificaciones.enviadas.isEmpty());

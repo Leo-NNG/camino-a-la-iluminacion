@@ -63,6 +63,8 @@ public class HorariosServlet extends HttpServlet {
             json.append("{\"id\":").append(h.getIdHorario())
                 .append(",\"dia\":\"").append(Json.esc(h.getDiaSemana())).append("\"")
                 .append(",\"hora\":\"").append(Json.esc(h.getHora())).append("\"")
+                .append(",\"horaInicio\":\"").append(h.getHoraInicio()).append("\"")
+                .append(",\"detalle\":\"").append(Json.esc(h.getDetalle())).append("\"")
                 .append(",\"tipo\":\"").append(Json.esc(h.getTipo())).append("\"}");
         }
         return json.append("]").toString();

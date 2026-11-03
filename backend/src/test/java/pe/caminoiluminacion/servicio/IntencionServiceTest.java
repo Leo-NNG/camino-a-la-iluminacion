@@ -47,16 +47,17 @@ class IntencionServiceTest {
 
     static class FakeHorarios implements HorarioDAO {
         final List<Horario> lista = new ArrayList<>();
-        void agregar(int id, int parroquia, String dia, String hora, String tipo) {
-            Horario h = new Horario(parroquia, dia, hora, tipo);
+        void agregar(int id, int parroquia, String dia, String horaInicio, String detalle, String tipo) {
+            Horario h = new Horario(parroquia, dia, java.time.LocalTime.parse(horaInicio), detalle, tipo);
             h.setIdHorario(id);
             lista.add(h);
         }
-        public Horario insertar(Horario h) { return h; }
+        int sig = 100;
+        public Horario insertar(Horario h) { h.setIdHorario(sig++); lista.add(h); return h; }
         public Optional<Horario> buscarPorId(int id) { return lista.stream().filter(h -> h.getIdHorario() == id).findFirst(); }
         public List<Horario> listarPorParroquia(int p) { return lista.stream().filter(h -> h.getIdParroquia() == p).toList(); }
-        public boolean actualizar(Horario h) { return true; }
-        public boolean eliminar(int id) { return true; }
+        public boolean actualizar(Horario h) { return true; } // el servicio modifica el mismo objeto que está en la lista
+        public boolean eliminar(int id) { return lista.removeIf(h -> h.getIdHorario() == id); }
     }
 
     static class FakeIntenciones implements IntencionDAO {
@@ -119,9 +120,9 @@ class IntencionServiceTest {
         usuarios.insertar(Pruebas.usuario("70000004", "maria@x.pe", "Clave123", "feligres", null));    // 4
         cuentas.guardar(new CuentaPago(1, "911111111", "Parroquia San José", null, null, null));
         cuentas.guardarOfrenda(1, new BigDecimal("10.00"));
-        horarios.agregar(1, 1, "domingo", "7:00 a.m. y 7:00 p.m.", "misa");
-        horarios.agregar(2, 1, "sabado", "4:00 p.m.", "actividad");
-        horarios.agregar(3, 2, "domingo", "9:00 a.m.", "misa");
+        horarios.agregar(1, 1, "domingo", "07:00", null, "misa");
+        horarios.agregar(2, 1, "sabado", "16:00", "Catequesis", "actividad");
+        horarios.agregar(3, 2, "domingo", "09:00", null, "misa");
         BitacoraService bitacora = new BitacoraService(bitacoraDao);
         AlmacenArchivos almacen = new AlmacenArchivos(carpeta);
         ComprobanteService comprobantes = new ComprobanteService(pagos, almacen);
@@ -157,7 +158,7 @@ class IntencionServiceTest {
     void registraLaIntencionConSuPagoPendienteYLaOfrendaDeLaBaseDeDatos() throws Exception {
         Intencion i = pedir(1, "1", DOMINGO, "difunto", "  Juan   Pérez Rojas ");
         assertEquals("Juan Pérez Rojas", i.texto(), "se normalizan los espacios");
-        assertEquals("7:00 a.m. y 7:00 p.m.", i.horaMisa(), "se guarda copia de la hora del horario");
+        assertEquals("7:00 a.m.", i.horaMisa(), "se guarda copia de la hora de esa misa");
         assertEquals(Date.valueOf(DOMINGO), i.fechaMisa());
         Pago p = pagos.buscarPorId(i.idPago()).get();
         assertEquals(Pago.INTENCION, p.concepto());
