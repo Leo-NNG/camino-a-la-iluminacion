@@ -14,7 +14,6 @@ import java.util.regex.Pattern;
 public class UsuarioService {
 
     private static final Pattern NOMBRE = Pattern.compile("^[\\p{L}][\\p{L} .'-]{1,79}$");
-    private static final Pattern CORREO = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
 
     /** Se verifica contra este hash cuando el DNI no existe, para que el tiempo de respuesta no delate si la cuenta existe. */
     private static final String HASH_FALSO = Claves.hashear("contrasena-que-nadie-usa");
@@ -52,30 +51,30 @@ public class UsuarioService {
         throw new ReglaNegocioException(401, "DNI o contraseña incorrectos.");
     }
 
-    /** Crea una cuenta de FELIGRÉS. El personal no se registra por aquí. */
+    /**
+     * Crea una cuenta de FELIGRÉS. El personal no se registra por aquí. Exige haber aceptado la Política de
+     * privacidad (Ley n.° 29733): se guarda la versión aceptada y la fecha.
+     */
     public Usuario registrarFeligres(String dni, String nombre, String apellido, String correo, String telefono,
-                                     String contrasena, String ubicacion, String ip) throws SQLException {
+                                     String contrasena, String ubicacion, boolean aceptaPolitica, String ip) throws SQLException {
         dni = limpio(dni);
         nombre = limpio(nombre);
         apellido = limpio(apellido);
-        correo = limpio(correo).toLowerCase();
-        telefono = limpio(telefono);
         ubicacion = limpio(ubicacion);
 
         if (!dni.matches("[0-9]{8}")) throw new ReglaNegocioException(400, "El DNI debe tener 8 dígitos.");
         if (!NOMBRE.matcher(nombre).matches()) throw new ReglaNegocioException(400, "Ingresa tus nombres (solo letras).");
         if (!NOMBRE.matcher(apellido).matches()) throw new ReglaNegocioException(400, "Ingresa tus apellidos (solo letras).");
-        if (correo.length() > 120 || !CORREO.matcher(correo).matches()) throw new ReglaNegocioException(400, "Ingresa un correo válido.");
-        if (!telefono.isEmpty() && !telefono.matches("[0-9]{7,9}")) throw new ReglaNegocioException(400, "El teléfono debe tener de 7 a 9 dígitos.");
-        if (contrasena == null || contrasena.length() < 6 || contrasena.length() > 100) {
-            throw new ReglaNegocioException(400, "La contraseña debe tener entre 6 y 100 caracteres.");
-        }
+        correo = Validacion.correo(correo);
+        telefono = Validacion.telefonoOpcional(telefono);
+        Validacion.contrasena(contrasena);
+        if (!aceptaPolitica) throw new ReglaNegocioException(400, "Debes aceptar la Política de privacidad para crear tu cuenta.");
         if (ubicacion.length() > 150) ubicacion = ubicacion.substring(0, 150);
 
-        Usuario nuevo = new Usuario(dni, nombre, apellido, correo,
-                telefono.isEmpty() ? null : telefono,
+        Usuario nuevo = new Usuario(dni, nombre, apellido, correo, telefono,
                 Claves.hashear(contrasena), Sesion.ROL_FELIGRES,
                 ubicacion.isEmpty() ? null : ubicacion);
+        nuevo.setPoliticaVersion(PoliticaPrivacidad.VERSION);
         try {
             usuarioDAO.insertar(nuevo);
         } catch (SQLException e) {
@@ -87,11 +86,11 @@ public class UsuarioService {
             }
             throw e;
         }
-        bitacora.registrar(nuevo.getIdUsuario(), "USUARIO_REGISTRADO", null, ip);
+        bitacora.registrar(nuevo.getIdUsuario(), "USUARIO_REGISTRADO", "política " + PoliticaPrivacidad.VERSION, ip);
         return nuevo;
     }
 
     private static String limpio(String t) {
-        return t == null ? "" : t.trim();
+        return Validacion.limpio(t);
     }
 }

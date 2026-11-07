@@ -20,6 +20,12 @@ public class Usuario {
     private String rol; // "feligres" o "administrador"
     private String ubicacion;
     private Timestamp creadoEn;
+    private String politicaVersion; // versión de la política de privacidad que aceptó (null = aún no)
+    private Timestamp politicaAceptadaEn;
+    private Timestamp eliminadoEn; // no null = cuenta eliminada (fila anonimizada)
+
+    /** Lo que se muestra en lugar del nombre cuando la cuenta fue eliminada. */
+    public static final String CUENTA_ELIMINADA = "(cuenta eliminada)";
 
     public Usuario() {
     }
@@ -66,6 +72,22 @@ public class Usuario {
 
     public Timestamp getCreadoEn() { return creadoEn; }
     public void setCreadoEn(Timestamp creadoEn) { this.creadoEn = creadoEn; }
+
+    public String getPoliticaVersion() { return politicaVersion; }
+    public void setPoliticaVersion(String politicaVersion) { this.politicaVersion = politicaVersion; }
+
+    public Timestamp getPoliticaAceptadaEn() { return politicaAceptadaEn; }
+    public void setPoliticaAceptadaEn(Timestamp politicaAceptadaEn) { this.politicaAceptadaEn = politicaAceptadaEn; }
+
+    public Timestamp getEliminadoEn() { return eliminadoEn; }
+    public void setEliminadoEn(Timestamp eliminadoEn) { this.eliminadoEn = eliminadoEn; }
+
+    public boolean estaEliminado() { return eliminadoEn != null; }
+
+    /** "Nombre Apellido", o "(cuenta eliminada)" si la persona eliminó su cuenta (sus datos ya no existen). */
+    public String nombreParaMostrar() {
+        return estaEliminado() ? CUENTA_ELIMINADA : nombre + " " + apellido;
+    }
 
     @Override
     public String toString() {

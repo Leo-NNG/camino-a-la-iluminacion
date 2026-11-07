@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camino a la Iluminación — Mi cuenta</title>
+<link rel="stylesheet" href="../css/estilos.css">
+<link rel="stylesheet" href="../css/ios.css">
+<link rel="stylesheet" href="../css/cuenta.css">
+</head>
+<body data-requiere-rol="cualquiera">
+
+<header class="sitio-header">
+  <nav class="barra-nav">
+    <a href="../index.html" class="marca">
+      <span class="marca-arco"></span>
+      <span class="marca-texto">Camino a la Iluminación<small>Software para parroquias</small></span>
+    </a>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="../index.html">Inicio</a></li>
+      <li><a href="horarios.html">Horarios</a></li>
+      <li><a href="notificaciones.html">Avisos</a></li>
+      <li><a href="mapa.html">Iglesias cercanas</a></li>
+      <li><a href="reservas.html">Reservar sacramento</a></li>
+      <li><a href="documentos.html">Mis documentos</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <section class="seccion" style="padding-top:56px">
+    <div class="envolvente">
+      <div class="encabezado-seccion">
+        <p class="eyebrow">Privacidad</p>
+        <h1>Mi cuenta</h1>
+        <p style="color:var(--color-ink-soft)">Revisa y corrige tus datos, cambia tu contraseña, descarga una copia de tu información o elimina tu cuenta.</p>
+      </div>
+
+      <div class="ios-panel aviso-politica" id="panel-politica" hidden>
+        <h2>Política de privacidad</h2>
+        <p id="texto-politica"></p>
+        <p class="ayuda">Léela en <a href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a>.</p>
+        <button type="button" class="boton boton-primario" id="btn-politica">Acepto la Política de privacidad</button>
+        <div class="alerta-auth" id="alerta-politica"></div>
+      </div>
+
+      <div class="ios-panel" id="panel-datos">
+        <h2>Mis datos</h2>
+        <dl class="datos-cuenta">
+          <dt>Nombres y apellidos</dt><dd id="d-nombre"></dd>
+          <dt>DNI</dt><dd id="d-dni"></dd>
+          <dt>Miembro desde</dt><dd id="d-desde"></dd>
+        </dl>
+        <form id="form-contacto" novalidate>
+          <div class="campo">
+            <label for="c-correo">Correo electrónico</label>
+            <input type="email" id="c-correo" maxlength="120" autocomplete="email">
+          </div>
+          <div class="campo">
+            <label for="c-telefono">Teléfono</label>
+            <input type="tel" id="c-telefono" inputmode="numeric" maxlength="9" placeholder="7 a 9 dígitos (opcional)" autocomplete="tel">
+          </div>
+          <button type="submit" class="boton boton-primario">Guardar cambios</button>
+          <div class="alerta-auth" id="alerta-contacto"></div>
+        </form>
+      </div>
+
+      <div class="ios-panel">
+        <h2>Cambiar contraseña</h2>
+        <form id="form-clave" novalidate>
+          <div class="campo">
+            <label for="k-actual">Contraseña actual</label>
+            <input type="password" id="k-actual" autocomplete="current-password">
+          </div>
+          <div class="campo">
+            <label for="k-nueva">Nueva contraseña</label>
+            <input type="password" id="k-nueva" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+          </div>
+          <div class="campo">
+            <label for="k-nueva2">Repite la nueva contraseña</label>
+            <input type="password" id="k-nueva2" autocomplete="new-password">
+          </div>
+          <button type="submit" class="boton boton-primario">Cambiar contraseña</button>
+          <div class="alerta-auth" id="alerta-clave"></div>
+        </form>
+      </div>
+
+      <div class="ios-panel">
+        <h2>Descargar mis datos</h2>
+        <p class="ayuda">Un archivo JSON con tu cuenta, solicitudes, documentos (nombres y estados, no los archivos), pagos, intenciones de misa y avisos. El DNI y el celular salen enmascarados.</p>
+        <a class="boton boton-secundario" id="enlace-datos" href="/api/cuenta/datos" download="mis-datos-camino-a-la-iluminacion.json">Descargar mis datos</a>
+      </div>
+
+      <div class="ios-panel zona-peligro" id="panel-eliminar">
+        <h2>Eliminar mi cuenta</h2>
+        <p>Se borrarán tus documentos, comprobantes y avisos, y se anonimizarán tu nombre, correo, teléfono, DNI, celular de pago y las notas de tus solicitudes. Los registros de pagos y solicitudes se conservan sin datos que te identifiquen. <strong>Esta acción no se puede deshacer.</strong></p>
+        <p class="ayuda">No puedes eliminarla mientras tengas pagos pendientes de verificación, solicitudes de sacramento pendientes o confirmadas con fecha próxima, o intenciones de misa vigentes.</p>
+        <form id="form-eliminar" novalidate>
+          <div class="campo">
+            <label for="e-clave">Tu contraseña para confirmar</label>
+            <input type="password" id="e-clave" autocomplete="current-password">
+          </div>
+          <button type="submit" class="boton boton-peligro">Eliminar mi cuenta</button>
+          <div class="alerta-auth" id="alerta-eliminar"></div>
+        </form>
+      </div>
+      <p class="ayuda" id="nota-personal" hidden>Las cuentas del personal parroquial no se eliminan desde aquí; pídelo a quien administra el sistema.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="sitio-footer">
+  <div class="envolvente">
+    Camino a la Iluminación — Proyecto final. Curso Integrador I. · <a href="privacidad.html">Política de privacidad</a>
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+<script src="../js/cuenta.js"></script>
+</body>
+</html>

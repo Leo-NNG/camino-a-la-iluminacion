@@ -12,6 +12,7 @@ import pe.caminoiluminacion.dao.UsuarioDAO;
 import pe.caminoiluminacion.modelo.CuentaPago;
 import pe.caminoiluminacion.modelo.Horario;
 import pe.caminoiluminacion.modelo.Intencion;
+import pe.caminoiluminacion.modelo.Usuario;
 import pe.caminoiluminacion.modelo.Pago;
 import pe.caminoiluminacion.modelo.Parroquia;
 import pe.caminoiluminacion.servicio.ComprobanteService.Comprobante;
@@ -175,7 +176,7 @@ public class IntencionService {
         }
         List<IntencionVista> lista = new ArrayList<>();
         for (Fila f : intencionDAO.agenda(idParroquia, java.sql.Date.valueOf(desde), java.sql.Date.valueOf(hasta), true)) {
-            String solicitante = usuarioDAO.buscarPorId(f.intencion().idUsuario()).map(u -> u.getNombre() + " " + u.getApellido()).orElse("");
+            String solicitante = usuarioDAO.buscarPorId(f.intencion().idUsuario()).map(Usuario::nombreParaMostrar).orElse("");
             lista.add(vista(f, "", solicitante));
         }
         return lista;

@@ -2,7 +2,11 @@ package pe.caminoiluminacion.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import pe.caminoiluminacion.modelo.Usuario;
+
+import java.util.concurrent.TimeUnit;
 
 /** Acceso centralizado a los datos de la sesión del servidor (única fuente de verdad del rol). */
 public final class Sesion {
@@ -16,7 +20,17 @@ public final class Sesion {
     private static final String PARROQUIA = "idParroquia";
     private static final int MINUTOS_INACTIVIDAD = 30;
 
+    /**
+     * Cuentas eliminadas: sus otras sesiones abiertas (otro navegador o pestaña) dejan de valer. Basta recordarlas más
+     * tiempo que la inactividad máxima de una sesión, porque cada sesión revocada se invalida al detectarla.
+     */
+    private static final Cache<Integer, Boolean> REVOCADOS = CacheBuilder.newBuilder()
+            .expireAfterWrite(MINUTOS_INACTIVIDAD + 1, TimeUnit.MINUTES).maximumSize(10_000).build();
+
     private Sesion() { }
+
+    /** Deja sin efecto toda sesión de esta cuenta (se usa al eliminarla). */
+    public static void revocar(int idUsuario) { REVOCADOS.put(idUsuario, Boolean.TRUE); }
 
     /** Crea una sesión nueva tras autenticar (invalida la anterior para evitar fijación de sesión). */
     public static void iniciar(HttpServletRequest request, Usuario u) {
@@ -38,7 +52,14 @@ public final class Sesion {
     public static boolean hayUsuario(HttpServletRequest request) { return idUsuario(request) != null; }
     public static String rol(HttpServletRequest request) { return (String) atributo(request, ROL); }
     public static String nombre(HttpServletRequest request) { return (String) atributo(request, NOMBRE); }
-    public static Integer idUsuario(HttpServletRequest request) { return (Integer) atributo(request, ID); }
+    public static Integer idUsuario(HttpServletRequest request) {
+        Integer id = (Integer) atributo(request, ID);
+        if (id != null && REVOCADOS.getIfPresent(id) != null) {
+            cerrar(request); // cuenta eliminada: esta sesión ya no vale
+            return null;
+        }
+        return id;
+    }
     public static Integer idParroquia(HttpServletRequest request) { return (Integer) atributo(request, PARROQUIA); }
 
     public static boolean esAdministrador(HttpServletRequest request) {

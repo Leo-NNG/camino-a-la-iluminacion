@@ -1,0 +1,14 @@
+/* Mi cuenta y política de privacidad */
+.datos-cuenta { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 0 0 20px; }
+.datos-cuenta dt { color: var(--color-ink-soft); font-size: .85rem; }
+.datos-cuenta dd { margin: 0; font-weight: 600; }
+.ios-panel + .ios-panel { margin-top: 20px; }
+.ios-panel h2 { font-size: 1.15rem; margin: 0 0 12px; }
+.aviso-politica { border-left: 4px solid var(--color-gold); }
+.zona-peligro { border-left: 4px solid var(--color-wine); }
+.boton-peligro { background: transparent; color: var(--color-wine); border: 2px solid var(--color-wine); }
+.boton-peligro:hover { background: var(--color-wine); color: #fff; }
+.texto-legal { max-width: 760px; }
+.texto-legal h2 { font-size: 1.15rem; margin: 28px 0 8px; }
+.texto-legal ul { padding-left: 20px; }
+.texto-legal li { margin-bottom: 6px; }

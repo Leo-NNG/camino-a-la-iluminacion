@@ -214,7 +214,8 @@ public class ReservaService {
         Optional<Usuario> u = idUsuario == null ? Optional.empty() : usuarioDAO.buscarPorId(idUsuario);
         if (u.isEmpty()) return "";
         Usuario x = u.get();
-        StringBuilder sb = new StringBuilder(x.getNombre()).append(' ').append(x.getApellido());
+        if (x.estaEliminado()) return Usuario.CUENTA_ELIMINADA;
+        StringBuilder sb = new StringBuilder(x.nombreParaMostrar());
         if (x.getTelefono() != null && !x.getTelefono().isBlank()) sb.append(" · ").append(x.getTelefono());
         if (x.getCorreo() != null) sb.append(" · ").append(x.getCorreo());
         return sb.toString();
