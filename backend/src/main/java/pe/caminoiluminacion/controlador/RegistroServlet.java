@@ -38,7 +38,8 @@ public class RegistroServlet extends HttpServlet {
         try {
             usuarios.registrarFeligres(request.getParameter("dni"), request.getParameter("nombre"),
                     request.getParameter("apellido"), request.getParameter("correo"), request.getParameter("telefono"),
-                    request.getParameter("contrasena"), request.getParameter("ubicacion"), request.getRemoteAddr());
+                    request.getParameter("contrasena"), request.getParameter("ubicacion"),
+                    "true".equals(request.getParameter("acepta_politica")), request.getRemoteAddr());
             response.setStatus(HttpServletResponse.SC_OK);
             out.print("{\"exito\":true,\"mensaje\":\"Usuario registrado correctamente\"}");
         } catch (ReglaNegocioException e) {

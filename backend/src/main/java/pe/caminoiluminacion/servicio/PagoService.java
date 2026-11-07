@@ -181,7 +181,7 @@ public class PagoService {
         List<PagoVista> lista = new ArrayList<>();
         for (Pago p : pagoDAO.listarPorParroquiaYEstado(idParroquia, e)) {
             Optional<Usuario> u = usuarioDAO.buscarPorId(p.idUsuario());
-            lista.add(new PagoVista(p, "", u.map(x -> x.getNombre() + " " + x.getApellido()).orElse(""),
+            lista.add(new PagoVista(p, "", u.map(Usuario::nombreParaMostrar).orElse(""),
                     Cripto.descifrar(p.celularOrigen()), detalle(p)));
         }
         return lista;
@@ -208,7 +208,7 @@ public class PagoService {
             throw new ReglaNegocioException(409, "El recibo estará disponible cuando la parroquia verifique el pago.");
         }
         Parroquia parroquia = parroquiaDAO.buscarPorId(pago.idParroquia()).orElse(null);
-        String feligres = usuarioDAO.buscarPorId(pago.idUsuario()).map(u -> u.getNombre() + " " + u.getApellido()).orElse("");
+        String feligres = usuarioDAO.buscarPorId(pago.idUsuario()).map(Usuario::nombreParaMostrar).orElse("");
         return new Recibo(pago, String.format("R-%06d", pago.idPago()),
                 parroquia == null ? "" : parroquia.getNombre(), parroquia == null ? "" : Strings.nullToEmpty(parroquia.getDireccion()),
                 feligres, detalle(pago));

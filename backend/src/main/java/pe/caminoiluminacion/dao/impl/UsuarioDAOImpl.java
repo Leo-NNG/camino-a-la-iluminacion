@@ -14,8 +14,8 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
     @Override
     public Usuario insertar(Usuario u) throws SQLException {
-        String sql = "INSERT INTO usuario (dni, dni_indice, nombre, apellido, correo, telefono, contrasena_hash, rol, ubicacion, id_parroquia) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO usuario (dni, dni_indice, nombre, apellido, correo, telefono, contrasena_hash, rol, ubicacion, id_parroquia, "
+                   + "politica_version, politica_aceptada_en) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, IF(? IS NULL, NULL, NOW()))";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, Cripto.cifrar(u.getDni()));   // el DNI se guarda cifrado (AES-256-GCM)
@@ -28,6 +28,8 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             ps.setString(8, u.getRol());
             ps.setString(9, u.getUbicacion());
             ps.setObject(10, u.getIdParroquia(), Types.INTEGER);
+            ps.setString(11, u.getPoliticaVersion()); // la fecha de aceptación la pone la base (NOW) si hay versión
+            ps.setString(12, u.getPoliticaVersion());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) u.setIdUsuario(keys.getInt(1));
@@ -130,6 +132,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         u.setRol(rs.getString("rol"));
         u.setUbicacion(rs.getString("ubicacion"));
         u.setCreadoEn(rs.getTimestamp("creado_en"));
+        u.setPoliticaVersion(rs.getString("politica_version"));
+        u.setPoliticaAceptadaEn(rs.getTimestamp("politica_aceptada_en"));
+        u.setEliminadoEn(rs.getTimestamp("eliminado_en"));
         return u;
     }
 }

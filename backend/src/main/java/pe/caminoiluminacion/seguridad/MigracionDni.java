@@ -14,7 +14,8 @@ import java.util.Map;
  * Cifra los DNI que todavía están en claro (cuentas creadas antes de esta mejora o insertadas por el script SQL
  * de demostración) y calcula su huella de búsqueda. Es idempotente: solo toca las filas con dni_indice NULL,
  * así que se puede ejecutar en cada arranque sin riesgo.
- * Requiere haber aplicado database/migracion_06_dni_cifrado.sql (columna dni_indice).
+ * Las cuentas eliminadas (anonimizadas, sin DNI) se omiten.
+ * Requiere haber aplicado database/migracion_06_dni_cifrado.sql (columna dni_indice) y la 11 (eliminado_en).
  */
 public final class MigracionDni {
 
@@ -32,7 +33,7 @@ public final class MigracionDni {
 
     static int ejecutar(Connection con) throws SQLException {
         Map<Integer, String> pendientes = new LinkedHashMap<>();
-        try (PreparedStatement ps = con.prepareStatement("SELECT id_usuario, dni FROM usuario WHERE dni_indice IS NULL");
+        try (PreparedStatement ps = con.prepareStatement("SELECT id_usuario, dni FROM usuario WHERE dni_indice IS NULL AND eliminado_en IS NULL");
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) pendientes.put(rs.getInt(1), rs.getString(2));
         }

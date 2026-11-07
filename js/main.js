@@ -114,6 +114,11 @@ function pintarNavCuenta() {
     const saludo = document.createElement('span');
     saludo.className = 'nav-saludo';
     saludo.append('Hola, ' + String(sesion.nombre || '').split(' ')[0] + ' · ');
+    const cuenta = document.createElement('a');
+    cuenta.href = rutaPaginas() + 'cuenta.html';
+    cuenta.textContent = 'Mi cuenta';
+    saludo.appendChild(cuenta);
+    saludo.append(' · ');
     const salir = document.createElement('span');
     salir.className = 'nav-salir';
     salir.id = 'btn-salir';
@@ -142,7 +147,7 @@ function aplicarGuarda() {
     window.location.replace(`${rutaPaginas()}login.html?next=${next}`);
     return false;
   }
-  if (sesion.rol !== requerido) {
+  if (requerido !== 'cualquiera' && sesion.rol !== requerido) {
     window.location.replace(inicioPorRol(sesion.rol));
     return false;
   }
@@ -437,10 +442,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!/^[0-9]{7,9}$/.test(campos.telefono.value.trim())) { marcarError(campos.telefono); valido = false; }
         if (campos.clave.value.length < 6) { marcarError(campos.clave); valido = false; }
         if (campos.clave2.value !== campos.clave.value || !campos.clave2.value) { marcarError(campos.clave2); valido = false; }
-        if (!terminos.checked) valido = false;
+        const sinPolitica = !terminos.checked;
+        if (sinPolitica) valido = false;
 
         if (!valido) {
-          alerta.textContent = 'Revisa los campos marcados: todos son obligatorios y deben ser válidos.';
+          alerta.textContent = 'Revisa los campos marcados: todos son obligatorios y deben ser válidos' + (sinPolitica ? ' y acepta la Política de privacidad.' : '.');
           alerta.classList.add('visible', 'error');
           return;
         }
@@ -457,6 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
         datos.append('telefono', campos.telefono.value.trim());
         datos.append('contrasena', campos.clave.value);
         datos.append('ubicacion', 'Chiclayo'); // Ubicación por defecto para la demo
+        datos.append('acepta_politica', 'true'); // el servidor vuelve a exigirlo
 
         fetch('/api/registro', { method: 'POST', body: datos })
           .then((response) => response.json().catch(() => ({})).then((data) => ({ ok: response.ok, data })))

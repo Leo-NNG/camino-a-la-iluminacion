@@ -275,7 +275,7 @@ public class Pruebas {
         // ===== REGISTRO
         FakeUsuarios us4 = new FakeUsuarios();
         RegistroServlet reg = new RegistroServlet(servicioUsuarios(us4, new LimiteIntentos()));
-        Map<String,String> ok1 = m("dni", "12345678", "nombre", "María José", "apellido", "Fernández Núñez", "correo", "Maria@Ej.com", "telefono", "987654321", "contrasena", "secreto1", "ubicacion", "Chiclayo");
+        Map<String,String> ok1 = m("dni", "12345678", "nombre", "María José", "apellido", "Fernández Núñez", "correo", "Maria@Ej.com", "telefono", "987654321", "contrasena", "secreto1", "ubicacion", "Chiclayo", "acepta_politica", "true");
         r = new Resp(); reg.doPost(req(new Contenedor(), ok1, "/"), resp(r));
         check(r.status == 200 && us4.lista.size() == 1, "registro válido");
         Usuario g = us4.lista.get(0);
@@ -295,6 +295,9 @@ public class Pruebas {
             r = new Resp(); reg.doPost(req(new Contenedor(), p, "/"), resp(r));
             check(r.status == 400, "registro rechaza " + kv[0] + "='" + kv[1] + "'");
         }
+        Map<String,String> sinPolitica = new HashMap<>(ok1); sinPolitica.put("dni", "44444444"); sinPolitica.put("correo", "sp@z.com"); sinPolitica.remove("acepta_politica");
+        r = new Resp(); reg.doPost(req(new Contenedor(), sinPolitica, "/"), resp(r));
+        check(r.status == 400 && cuerpo(r).contains("Política de privacidad"), "registro sin aceptar la política -> 400");
         check(us4.lista.size() == 2, "ningún registro inválido llegó a la BD");
 
         // ===== RESERVAS (feligrés)

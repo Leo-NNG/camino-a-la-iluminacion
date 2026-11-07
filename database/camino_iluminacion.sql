@@ -39,6 +39,9 @@ CREATE TABLE usuario (
   ubicacion         VARCHAR(150) NULL COMMENT 'Distrito o referencia de ubicación del feligrés',
   id_parroquia      INT UNSIGNED NULL COMMENT 'Solo para personal (administrador): parroquia que gestiona',
   creado_en         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  politica_version      VARCHAR(20) NULL COMMENT 'Versión de la política de privacidad que aceptó (NULL = aún no la acepta)',
+  politica_aceptada_en  TIMESTAMP   NULL COMMENT 'Cuándo aceptó la política',
+  eliminado_en          TIMESTAMP   NULL COMMENT 'Cuándo eliminó su cuenta: la fila se conserva anonimizada (sin datos personales)',
 
   CONSTRAINT uq_usuario_dni    UNIQUE (dni_indice),
   CONSTRAINT uq_usuario_correo UNIQUE (correo)

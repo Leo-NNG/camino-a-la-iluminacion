@@ -3,6 +3,7 @@ package pe.caminoiluminacion.servicio;
 import pe.caminoiluminacion.dao.impl.ArancelDAOImpl;
 import pe.caminoiluminacion.dao.impl.AvisoDAOImpl;
 import pe.caminoiluminacion.dao.impl.BitacoraDAOImpl;
+import pe.caminoiluminacion.dao.impl.CuentaDAOImpl;
 import pe.caminoiluminacion.dao.impl.CuentaPagoDAOImpl;
 import pe.caminoiluminacion.dao.impl.DocumentoDAOImpl;
 import pe.caminoiluminacion.dao.impl.FechaDisponibleDAOImpl;
@@ -54,6 +55,9 @@ public final class Servicios {
     private static final IntencionService INTENCION_SERVICE = new IntencionService(new IntencionDAOImpl(), new HorarioDAOImpl(),
             CUENTAS, PARROQUIAS, USUARIOS, new ComprobanteService(PAGOS, ALMACEN_PAGOS), BITACORA, IntencionService.relojDePeru());
 
+    private static final CuentaService CUENTA_SERVICE = new CuentaService(USUARIOS, new CuentaDAOImpl(), RESERVAS, new DocumentoDAOImpl(), PAGOS,
+            new IntencionDAOImpl(), NOTIFICACIONES, PARROQUIAS, ALMACEN_PAGOS, new LimiteIntentos(), BITACORA, IntencionService.relojDePeru());
+
     private Servicios() { }
 
     public static BitacoraService bitacora() { return BITACORA; }
@@ -66,4 +70,5 @@ public final class Servicios {
     public static PagoService pagos() { return PAGO_SERVICE; }
     public static NotificacionService notificaciones() { return NOTIFICACION_SERVICE; }
     public static IntencionService intenciones() { return INTENCION_SERVICE; }
+    public static CuentaService cuenta() { return CUENTA_SERVICE; }
 }

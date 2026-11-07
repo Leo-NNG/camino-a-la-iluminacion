@@ -843,3 +843,6 @@ body[data-requiere-rol]:not(.sesion-ok) { visibility: hidden; }
 
 /* Fila de totales de los reportes */
 .tabla-tramites .fila-total td { border-top: 2px solid var(--color-wine); background: rgba(0, 0, 0, .03); }
+
+/* Enlaces del saludo de la barra (Mi cuenta) y del pie (Política de privacidad) */
+.nav-saludo a, .sitio-footer a { color: inherit; text-decoration: underline; }

@@ -66,12 +66,27 @@ class UsuarioServiceTest {
 
     @Test
     void registraSoloFeligresesYGuardaLaClaveConHash() throws SQLException {
-        Usuario u = servicio.registrarFeligres("12345678", "María José", "Fernández", "Maria@Ej.com", "987654321", "secreto1", "Chiclayo", "ip");
+        Usuario u = servicio.registrarFeligres("12345678", "María José", "Fernández", "Maria@Ej.com", "987654321", "secreto1", "Chiclayo", true, "ip");
         assertEquals("feligres", u.getRol());
         assertNull(u.getIdParroquia());
         assertEquals("maria@ej.com", u.getCorreo());
         assertTrue(u.getContrasenaHash().startsWith("pbkdf2$"));
         assertTrue(bitacoraDao.hay("USUARIO_REGISTRADO"));
+        assertEquals(PoliticaPrivacidad.VERSION, u.getPoliticaVersion(), "queda registrada la versión de la política aceptada");
+    }
+
+    @Test
+    void sinAceptarLaPoliticaNoSeCreaLaCuenta() throws SQLException {
+        assertEquals(400, estado(() -> servicio.registrarFeligres("12345678", "Ana", "Pérez", "a@b.co", "999888777", "secreto1", null, false, "ip")));
+        assertEquals(1, usuarios.lista.size(), "no se guardó nada");
+        assertFalse(bitacoraDao.hay("USUARIO_REGISTRADO"));
+    }
+
+    @Test
+    void elCorreoYElTelefonoDelRegistroSeNormalizan() throws SQLException {
+        Usuario u = servicio.registrarFeligres("12345678", "Ana", "Pérez", "  A@B.Co ", "  ", "secreto1", null, true, "ip");
+        assertEquals("a@b.co", u.getCorreo());
+        assertNull(u.getTelefono(), "teléfono vacío se guarda como NULL");
     }
 
     @Test
@@ -80,16 +95,16 @@ class UsuarioServiceTest {
                 {"12345678", "Ana", "", "a@b.co", "999", "secreto1"}, {"12345678", "Ana", "Pérez", "no-es-correo", "999", "secreto1"},
                 {"12345678", "Ana", "Pérez", "a@b.co", "12ab", "secreto1"}, {"12345678", "Ana", "Pérez", "a@b.co", "999", "123"}};
         for (String[] m : malos) {
-            assertEquals(400, estado(() -> servicio.registrarFeligres(m[0], m[1], m[2], m[3], m[4], m[5], null, "ip")), String.join("|", m));
+            assertEquals(400, estado(() -> servicio.registrarFeligres(m[0], m[1], m[2], m[3], m[4], m[5], null, true, "ip")), String.join("|", m));
         }
         assertEquals(1, usuarios.lista.size(), "ninguno se guardó");
     }
 
     @Test
     void dniOCorreoRepetidosDanConflictoConMensajeDistinto() throws SQLException {
-        servicio.registrarFeligres("12345678", "Ana", "Pérez", "a@b.co", null, "secreto1", null, "ip");
-        ReglaNegocioException dni = assertThrows(ReglaNegocioException.class, () -> servicio.registrarFeligres("12345678", "Ana", "Pérez", "otro@b.co", null, "secreto1", null, "ip"));
-        ReglaNegocioException correo = assertThrows(ReglaNegocioException.class, () -> servicio.registrarFeligres("22222222", "Ana", "Pérez", "a@b.co", null, "secreto1", null, "ip"));
+        servicio.registrarFeligres("12345678", "Ana", "Pérez", "a@b.co", null, "secreto1", null, true, "ip");
+        ReglaNegocioException dni = assertThrows(ReglaNegocioException.class, () -> servicio.registrarFeligres("12345678", "Ana", "Pérez", "otro@b.co", null, "secreto1", null, true, "ip"));
+        ReglaNegocioException correo = assertThrows(ReglaNegocioException.class, () -> servicio.registrarFeligres("22222222", "Ana", "Pérez", "a@b.co", null, "secreto1", null, true, "ip"));
         assertEquals(409, dni.getEstado());
         assertEquals(409, correo.getEstado());
         assertTrue(dni.getMessage().contains("DNI"));

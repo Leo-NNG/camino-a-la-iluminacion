@@ -26,6 +26,7 @@ class ReservaServiceTest {
     private FakeBitacora bitacoraDao;
     private FakeSacramentos sacramentos;
     private FakeFechas fechas;
+    private FakeUsuarios usuarios;
     private ReservaService servicio;
 
     @BeforeEach
@@ -33,7 +34,7 @@ class ReservaServiceTest {
         reservas = new FakeReservas();
         bitacoraDao = new FakeBitacora();
         sacramentos = new FakeSacramentos();
-        FakeUsuarios usuarios = new FakeUsuarios();
+        usuarios = new FakeUsuarios();
         usuarios.insertar(Pruebas.usuario("70000001", "ana@x.pe", "Clave123", "feligres", null));
         fechas = new FakeFechas(reservas);
         servicio = new ReservaService(reservas, fechas, new FakeParroquias(), sacramentos, usuarios, new BitacoraService(bitacoraDao), () -> HOY);
@@ -148,6 +149,14 @@ class ReservaServiceTest {
         List<ReservaService.ReservaPendiente> lista = servicio.pendientesDeParroquia(1);
         assertEquals(1, lista.size());
         assertTrue(lista.get(0).contacto().contains("ana@x.pe"));
+    }
+
+    @Test
+    void elContactoDeUnaCuentaEliminadaNoMuestraDatosPersonales() throws SQLException {
+        crear("Bautizo", "1", "2026-10-20");
+        usuarios.buscarPorId(1).get().setEliminadoEn(new java.sql.Timestamp(1));
+        List<ReservaService.ReservaPendiente> lista = servicio.pendientesDeParroquia(1);
+        assertEquals("(cuenta eliminada)", lista.get(0).contacto());
     }
 
     @Test
