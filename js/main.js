@@ -766,6 +766,9 @@ document.addEventListener('DOMContentLoaded', () => {
       .catch(() => { tablaDocFeligres.innerHTML = '<tr><td colspan="4">No se pudo conectar con el servidor.</td></tr>'; });
   };
 
+  // requisitos.js avisa cuando sube un documento por el checklist para que el historial se actualice
+  document.addEventListener('documentos:actualizar', cargarMisDocumentos);
+
   /* Sube UN archivo. La validación del navegador es solo comodidad: el servidor revisa de nuevo el contenido real. */
   const subirArchivo = (archivo, idReserva) => {
     if (archivo.size === 0) return Promise.resolve({ ok: false, mensaje: 'El archivo está vacío.' });
@@ -1106,7 +1109,9 @@ document.addEventListener('DOMContentLoaded', () => {
     etiquetaAprobar: 'Confirmar', estadoAprobado: 'confirmada', estadoRechazado: 'rechazada',
     celdas: (r) => {
       const [clase, texto] = ESTADOS_RESERVA[r.estado] || ['pendiente', escaparHtml(r.estado)];
-      const extra = [r.contacto ? `Contacto: ${escaparHtml(r.contacto)}` : '', r.notas ? `Notas: ${escaparHtml(r.notas)}` : '']
+      const docs = r.obligatorios === undefined ? ''
+        : `Documentos: ${Number(r.validados)} de ${Number(r.obligatorios)} requisitos obligatorios validados${Number(r.validados) >= Number(r.obligatorios) ? ' (completo)' : ''}`;
+      const extra = [r.contacto ? `Contacto: ${escaparHtml(r.contacto)}` : '', r.notas ? `Notas: ${escaparHtml(r.notas)}` : '', docs]
         .filter(Boolean).map((t) => `<br><small>${t}</small>`).join('');
       return `<td>${escaparHtml(r.nombreSolicitante)}${extra}</td>
           <td>${escaparHtml(NOMBRES_SACRAMENTO[r.sacramento] || r.sacramento)}</td>
@@ -1122,8 +1127,9 @@ document.addEventListener('DOMContentLoaded', () => {
     celdas: (d) => {
       const tramite = [NOMBRES_SACRAMENTO[d.sacramento] || d.sacramento, d.solicitante, d.fechaReserva ? formatearFecha(d.fechaReserva) : '']
         .filter(Boolean).map(escaparHtml).join(' · ');
+      const requisito = d.requisito ? `<br><small>Requisito: ${escaparHtml(d.requisito)}</small>` : '';
       return `<td>${escaparHtml(d.feligres)}</td>
-          <td><a href="/api/documentos/archivo?id=${Number(d.id)}" target="_blank" rel="noopener">${escaparHtml(d.nombre)}</a></td>
+          <td><a href="/api/documentos/archivo?id=${Number(d.id)}" target="_blank" rel="noopener">${escaparHtml(d.nombre)}</a>${requisito}</td>
           <td>${tramite}</td>
           <td>${formatearFecha(d.fechaEnvio)}</td>
           <td><span class="insignia pendiente">Pendiente</span></td>`;

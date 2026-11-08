@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camino a la Iluminación — Requisitos por sacramento</title>
+<link rel="stylesheet" href="../../css/estilos.css">
+<link rel="stylesheet" href="../../css/ios.css">
+<link rel="stylesheet" href="../../css/requisitos.css">
+</head>
+<body data-requiere-rol="administrador">
+
+<div class="franja-admin">Panel de personal parroquial — <span id="franja-parroquia">tu parroquia</span> · <a href="../../index.html">Ver el sitio público</a></div>
+
+<header class="sitio-header">
+  <nav class="barra-nav">
+    <a href="documentos.html" class="marca">
+      <span class="marca-arco"></span>
+      <span class="marca-texto">Camino a la Iluminación<small>Panel administrador</small></span>
+    </a>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="documentos.html">Validar documentos</a></li>
+      <li><a href="avisos.html">Publicar aviso</a></li>
+      <li><a href="horarios.html">Gestionar horarios</a></li>
+      <li><a href="fechas.html">Fechas disponibles</a></li>
+      <li><a href="requisitos.html" class="activo">Requisitos</a></li>
+      <li><a href="reportes.html">Reportes</a></li>
+      <li><a href="pagos.html">Pagos</a></li>
+      <li><a href="intenciones.html">Intenciones</a></li>
+      <li><a href="cobros.html">Cobros</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <section class="seccion" style="padding-top:56px">
+    <div class="envolvente">
+      <div class="encabezado-seccion">
+        <p class="eyebrow">Trámites sacramentales</p>
+        <h1>Requisitos por sacramento</h1>
+        <p style="color:var(--color-ink-soft)">Define qué documentos pide tu parroquia para cada sacramento. El feligrés los ve antes de reservar y, ya con su solicitud, como una lista que se va marcando a medida que sube y tú validas cada documento. Los requisitos <strong>obligatorios</strong> cuentan para saber si el expediente está completo; los <strong>recomendados</strong> son una guía.</p>
+      </div>
+
+      <form class="formulario" id="form-requisito" style="max-width:760px;">
+        <input type="hidden" id="r-id">
+        <div class="campo">
+          <label for="r-sacramento">Sacramento</label>
+          <select id="r-sacramento" required></select>
+        </div>
+        <div class="campo">
+          <label for="r-nombre">Documento que se pide</label>
+          <input type="text" id="r-nombre" maxlength="80" placeholder="Ej. Partida de bautismo" required>
+        </div>
+        <div class="campo">
+          <label for="r-descripcion">Indicación para el feligrés (opcional)</label>
+          <input type="text" id="r-descripcion" maxlength="255" placeholder="Ej. Copia actualizada, emitida en los últimos 6 meses">
+        </div>
+        <div class="campo">
+          <label for="r-obligatorio">¿Es obligatorio?</label>
+          <select id="r-obligatorio">
+            <option value="true">Obligatorio: hace falta para completar el trámite</option>
+            <option value="false">Recomendado: es una guía</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="r-orden">Orden en la lista (opcional)</label>
+          <input type="number" id="r-orden" min="1" max="99" placeholder="Si lo dejas vacío va al final">
+        </div>
+        <button type="submit" class="boton boton-primario" id="r-guardar">Agregar requisito</button>
+        <button type="button" class="boton boton-secundario" id="r-cancelar" style="display:none;">Cancelar edición</button>
+        <div class="mensaje-confirmacion" id="mensaje-requisitos"></div>
+      </form>
+
+      <h2 style="margin-top:48px;">Requisitos de tu parroquia</h2>
+      <div class="tabla-scroll">
+        <table class="tabla-tramites">
+          <thead>
+            <tr><th>Sacramento</th><th>Orden</th><th>Documento</th><th>Tipo</th><th>Acción</th></tr>
+          </thead>
+          <tbody id="tabla-requisitos-admin"></tbody>
+        </table>
+      </div>
+      <p id="nota-requisitos-admin" style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;"></p>
+    </div>
+  </section>
+</main>
+
+<footer class="sitio-footer">
+  <div class="envolvente">
+    Camino a la Iluminación — Prototipo estático de uso académico. Curso Integrador I. · <a href="../privacidad.html">Política de privacidad</a>
+  </div>
+</footer>
+
+<script src="../../js/main.js"></script>
+<script src="../../js/requisitos.js"></script>
+</body>
+</html>

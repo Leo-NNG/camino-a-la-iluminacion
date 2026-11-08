@@ -11,6 +11,7 @@ import pe.caminoiluminacion.dao.impl.HorarioDAOImpl;
 import pe.caminoiluminacion.dao.impl.IntencionDAOImpl;
 import pe.caminoiluminacion.dao.impl.NotificacionDAOImpl;
 import pe.caminoiluminacion.dao.impl.PagoDAOImpl;
+import pe.caminoiluminacion.dao.impl.RequisitoDAOImpl;
 import pe.caminoiluminacion.dao.impl.ParroquiaDAOImpl;
 import pe.caminoiluminacion.dao.impl.ReporteDAOImpl;
 import pe.caminoiluminacion.dao.impl.ReservaDAOImpl;
@@ -39,8 +40,9 @@ public final class Servicios {
     private static final ReservaService RESERVA_SERVICE = new ReservaService(RESERVAS, FECHAS, PARROQUIAS, SACRAMENTOS, USUARIOS, BITACORA,
             java.time.LocalDate::now, AVISADOR);
     private static final FechaDisponibleService FECHA_SERVICE = new FechaDisponibleService(FECHAS, SACRAMENTOS, BITACORA);
+    private static final RequisitoService REQUISITO_SERVICE = new RequisitoService(new RequisitoDAOImpl(), SACRAMENTOS, RESERVAS, BITACORA);
     private static final DocumentoService DOCUMENTO_SERVICE = new DocumentoService(
-            new DocumentoDAOImpl(), RESERVAS, PARROQUIAS, USUARIOS, AlmacenArchivos.porDefecto(), BITACORA, AVISADOR);
+            new DocumentoDAOImpl(), RESERVAS, PARROQUIAS, USUARIOS, AlmacenArchivos.porDefecto(), BITACORA, AVISADOR, REQUISITO_SERVICE);
     private static final ContenidoService CONTENIDO_SERVICE = new ContenidoService(
             new AvisoDAOImpl(), new HorarioDAOImpl(), SACRAMENTOS, BITACORA);
 
@@ -71,4 +73,5 @@ public final class Servicios {
     public static NotificacionService notificaciones() { return NOTIFICACION_SERVICE; }
     public static IntencionService intenciones() { return INTENCION_SERVICE; }
     public static CuentaService cuenta() { return CUENTA_SERVICE; }
+    public static RequisitoService requisitos() { return REQUISITO_SERVICE; }
 }

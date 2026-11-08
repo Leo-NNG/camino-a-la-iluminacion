@@ -13,8 +13,8 @@ public class DocumentoDAOImpl implements DocumentoDAO {
 
     @Override
     public Documento insertar(Documento d) throws SQLException {
-        String sql = "INSERT INTO documento (id_reserva, id_usuario, nombre_archivo, ruta_archivo, estado_validacion, tipo_mime, tamano_bytes) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO documento (id_reserva, id_usuario, nombre_archivo, ruta_archivo, estado_validacion, tipo_mime, tamano_bytes, id_requisito) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             if (d.getIdReserva() != null) ps.setInt(1, d.getIdReserva()); else ps.setNull(1, Types.INTEGER);
@@ -24,6 +24,7 @@ public class DocumentoDAOImpl implements DocumentoDAO {
             ps.setString(5, d.getEstadoValidacion() != null ? d.getEstadoValidacion() : "pendiente");
             ps.setString(6, d.getTipoMime() != null ? d.getTipoMime() : "application/pdf");
             ps.setObject(7, d.getTamanoBytes(), Types.BIGINT);
+            ps.setObject(8, d.getIdRequisito(), Types.INTEGER);
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) d.setIdDocumento(keys.getInt(1));
@@ -139,6 +140,8 @@ public class DocumentoDAOImpl implements DocumentoDAO {
         d.setTamanoBytes(rs.wasNull() ? null : tam);
         d.setFechaEnvio(rs.getTimestamp("fecha_envio"));
         d.setFechaValidacion(rs.getTimestamp("fecha_validacion"));
+        int requisito = rs.getInt("id_requisito");
+        d.setIdRequisito(rs.wasNull() ? null : requisito);
         return d;
     }
 }
