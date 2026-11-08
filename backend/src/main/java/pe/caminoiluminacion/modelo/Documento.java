@@ -16,6 +16,7 @@ public class Documento {
     private Integer idValidador; // quién lo validó o rechazó
     private Timestamp fechaEnvio;
     private Timestamp fechaValidacion;
+    private Integer idRequisito; // requisito de la parroquia que cumple (opcional)
 
     public Documento() {
     }
@@ -63,6 +64,9 @@ public class Documento {
 
     public Timestamp getFechaValidacion() { return fechaValidacion; }
     public void setFechaValidacion(Timestamp fechaValidacion) { this.fechaValidacion = fechaValidacion; }
+
+    public Integer getIdRequisito() { return idRequisito; }
+    public void setIdRequisito(Integer idRequisito) { this.idRequisito = idRequisito; }
 
     @Override
     public String toString() {

@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import pe.caminoiluminacion.modelo.Reserva;
 import pe.caminoiluminacion.servicio.ReglaNegocioException;
+import pe.caminoiluminacion.dao.RequisitoDAO.Avance;
+import pe.caminoiluminacion.servicio.RequisitoService;
 import pe.caminoiluminacion.servicio.ReservaService;
 import pe.caminoiluminacion.servicio.ReservaService.ReservaPendiente;
 import pe.caminoiluminacion.servicio.Servicios;
@@ -20,6 +22,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Panel del administrador: lista las reservas pendientes de SU parroquia y permite confirmarlas o rechazarlas.
@@ -29,13 +32,19 @@ import java.util.List;
 public class ListarReservasAdminServlet extends HttpServlet {
 
     private final ReservaService reservas;
+    private final RequisitoService requisitos; // null = sin checklist: no se agrega el avance de documentos
 
     public ListarReservasAdminServlet() {
-        this(Servicios.reservas());
+        this(Servicios.reservas(), Servicios.requisitos());
     }
 
     ListarReservasAdminServlet(ReservaService reservas) {
+        this(reservas, null);
+    }
+
+    ListarReservasAdminServlet(ReservaService reservas, RequisitoService requisitos) {
         this.reservas = reservas;
+        this.requisitos = requisitos;
     }
 
     @Override
@@ -47,6 +56,7 @@ public class ListarReservasAdminServlet extends HttpServlet {
         if (idParroquia == null) return;
         try {
             List<ReservaPendiente> lista = reservas.pendientesDeParroquia(idParroquia);
+            Map<Integer, Avance> avance = requisitos == null ? Map.of() : requisitos.avance(idParroquia);
             StringBuilder json = new StringBuilder("[");
             for (int i = 0; i < lista.size(); i++) {
                 Reserva r = lista.get(i).reserva();
@@ -58,8 +68,10 @@ public class ListarReservasAdminServlet extends HttpServlet {
                     .append("\"fecha\":\"").append(Json.esc(r.getFechaSolicitada())).append("\",")
                     .append("\"estado\":\"").append(Json.esc(r.getEstado())).append("\",")
                     .append("\"notas\":\"").append(Json.esc(r.getNotas())).append("\",")
-                    .append("\"contacto\":\"").append(Json.esc(lista.get(i).contacto())).append("\"")
-                    .append("}");
+                    .append("\"contacto\":\"").append(Json.esc(lista.get(i).contacto())).append("\"");
+                Avance a = avance.get(r.getIdReserva());
+                if (a != null) json.append(",\"obligatorios\":").append(a.obligatorios()).append(",\"validados\":").append(a.validados());
+                json.append("}");
             }
             response.setStatus(HttpServletResponse.SC_OK);
             out.print(json.append("]"));

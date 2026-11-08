@@ -6,6 +6,7 @@
 <title>Camino a la Iluminación — Mis documentos</title>
 <link rel="stylesheet" href="../css/estilos.css">
 <link rel="stylesheet" href="../css/ios.css">
+<link rel="stylesheet" href="../css/requisitos.css">
 </head>
 <body data-requiere-rol="feligres">
 
@@ -46,6 +47,15 @@
         Aún no tienes solicitudes activas. <a href="reservas.html">Reserva un sacramento</a> y luego vuelve aquí para enviar tus documentos.
       </p>
 
+      <div class="ios-panel checklist-panel" id="checklist-panel" hidden>
+        <h2>Documentos que te pide la parroquia</h2>
+        <p id="checklist-resumen"></p>
+        <ul class="lista-requisitos" id="checklist-lista"></ul>
+        <input type="file" id="checklist-archivo" hidden accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">
+        <div class="mensaje-confirmacion" id="checklist-mensaje"></div>
+      </div>
+
+      <p style="font-weight:600;margin:0 0 8px;">Otros documentos</p>
       <div class="zona-carga" id="zona-carga" role="button" tabindex="0">
         <strong>Arrastra tus archivos aquí o haz clic para elegirlos</strong>
         <p style="margin:6px 0 0 0;font-size:.85rem;">PDF, JPG o PNG, máximo 5 MB por archivo — partida de nacimiento, DNI, certificado de bautismo</p>
@@ -88,5 +98,6 @@
 </footer>
 
 <script src="../js/main.js"></script>
+<script src="../js/requisitos.js"></script>
 </body>
 </html>

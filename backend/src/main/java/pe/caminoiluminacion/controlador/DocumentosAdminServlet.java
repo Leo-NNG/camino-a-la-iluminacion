@@ -8,7 +8,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import pe.caminoiluminacion.modelo.Documento;
 import pe.caminoiluminacion.modelo.Reserva;
 import pe.caminoiluminacion.servicio.DocumentoService;
+import pe.caminoiluminacion.modelo.Requisito;
 import pe.caminoiluminacion.servicio.DocumentoService.DocumentoPendiente;
+import pe.caminoiluminacion.servicio.RequisitoService;
 import pe.caminoiluminacion.servicio.ReglaNegocioException;
 import pe.caminoiluminacion.servicio.Servicios;
 import pe.caminoiluminacion.util.AccesoAdmin;
@@ -20,20 +22,28 @@ import pe.caminoiluminacion.util.Sesion;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /** Panel del administrador: documentos pendientes de SU parroquia, para validarlos o rechazarlos (con motivo). */
 @WebServlet("/api/admin/documentos")
 public class DocumentosAdminServlet extends HttpServlet {
 
     private final DocumentoService documentos;
+    private final RequisitoService requisitos; // null = sin checklist: no se indica el requisito de cada documento
 
     public DocumentosAdminServlet() {
-        this(Servicios.documentos());
+        this(Servicios.documentos(), Servicios.requisitos());
     }
 
     DocumentosAdminServlet(DocumentoService documentos) {
+        this(documentos, null);
+    }
+
+    DocumentosAdminServlet(DocumentoService documentos, RequisitoService requisitos) {
         this.documentos = documentos;
+        this.requisitos = requisitos;
     }
 
     @Override
@@ -46,6 +56,8 @@ public class DocumentosAdminServlet extends HttpServlet {
         if (idParroquia == null) return;
         try {
             List<DocumentoPendiente> lista = documentos.pendientesDeParroquia(idParroquia);
+            Map<Integer, String> nombres = new HashMap<>(); // id de requisito -> nombre, para decir qué requisito cubre cada documento
+            if (requisitos != null) for (Requisito q : requisitos.deParroquia(idParroquia)) nombres.put(q.getIdRequisito(), q.getNombre());
             StringBuilder json = new StringBuilder("[");
             for (int i = 0; i < lista.size(); i++) {
                 Documento d = lista.get(i).documento();
@@ -59,7 +71,8 @@ public class DocumentosAdminServlet extends HttpServlet {
                     .append("\"solicitante\":\"").append(Json.esc(r == null ? "" : r.getNombreSolicitante())).append("\",")
                     .append("\"fechaReserva\":\"").append(Json.fecha(r == null ? null : r.getFechaSolicitada())).append("\",")
                     .append("\"fechaEnvio\":\"").append(Json.fecha(d.getFechaEnvio())).append("\",")
-                    .append("\"estado\":\"").append(Json.esc(d.getEstadoValidacion())).append("\"")
+                    .append("\"estado\":\"").append(Json.esc(d.getEstadoValidacion())).append("\",")
+                    .append("\"requisito\":\"").append(Json.esc(d.getIdRequisito() == null ? "" : nombres.get(d.getIdRequisito()))).append("\"")
                     .append("}");
             }
             response.setStatus(HttpServletResponse.SC_OK);

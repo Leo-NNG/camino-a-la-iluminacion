@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Documentos del feligrés.
  * GET  /api/documentos : sus documentos con el estado de validación.
- * POST /api/documentos : sube UN archivo (campos: id_reserva, archivo) a una solicitud suya.
+ * POST /api/documentos : sube UN archivo (campos: id_reserva, archivo y, opcional, id_requisito) a una solicitud suya.
  * Las reglas (tipo por contenido, tamaño, permisos) están en DocumentoService.
  */
 @WebServlet("/api/documentos")
@@ -68,7 +68,8 @@ public class DocumentoServlet extends HttpServlet {
                     .append("\"fechaReserva\":\"").append(Json.fecha(r == null ? null : r.getFechaSolicitada())).append("\",")
                     .append("\"fechaEnvio\":\"").append(Json.fecha(d.getFechaEnvio())).append("\",")
                     .append("\"estado\":\"").append(Json.esc(d.getEstadoValidacion())).append("\",")
-                    .append("\"motivo\":\"").append(Json.esc(d.getMotivoRechazo())).append("\"")
+                    .append("\"motivo\":\"").append(Json.esc(d.getMotivoRechazo())).append("\",")
+                    .append("\"idRequisito\":").append(d.getIdRequisito())
                     .append("}");
             }
             response.setStatus(HttpServletResponse.SC_OK);
@@ -97,7 +98,7 @@ public class DocumentoServlet extends HttpServlet {
         if (parte == null) { Respuesta.error(response, out, 400, "Elige un archivo para subir."); return; }
 
         try (InputStream contenido = parte.getInputStream()) {
-            Documento doc = documentos.subir(Sesion.idUsuario(request), request.getParameter("id_reserva"),
+            Documento doc = documentos.subir(Sesion.idUsuario(request), request.getParameter("id_reserva"), request.getParameter("id_requisito"),
                     contenido, parte.getSubmittedFileName(), request.getRemoteAddr());
             response.setStatus(HttpServletResponse.SC_OK);
             out.print("{\"exito\":true,\"id\":" + doc.getIdDocumento() + "}");

@@ -6,6 +6,7 @@
 <title>Camino a la Iluminación — Reservar sacramento</title>
 <link rel="stylesheet" href="../css/estilos.css">
 <link rel="stylesheet" href="../css/ios.css">
+<link rel="stylesheet" href="../css/requisitos.css">
 </head>
 <body data-requiere-rol="feligres">
 
@@ -70,6 +71,11 @@
             </select>
             <p id="nota-fecha" style="font-size:.85rem;color:var(--color-ink-soft);margin-top:6px;"></p>
           </div>
+          <div class="campo aviso-requisitos" id="requisitos-info" hidden>
+            <strong>Documentos que te pedirá esta parroquia</strong>
+            <ul id="requisitos-lista"></ul>
+            <small>Podrás subirlos después de enviar la solicitud, en "Mis documentos".</small>
+          </div>
           <div class="campo">
             <label for="notas">Notas adicionales (opcional)</label>
             <textarea id="notas" rows="3" placeholder="Cualquier detalle que la parroquia deba saber"></textarea>
@@ -127,5 +133,6 @@
 </footer>
 
 <script src="../js/main.js"></script>
+<script src="../js/requisitos.js"></script>
 </body>
 </html>

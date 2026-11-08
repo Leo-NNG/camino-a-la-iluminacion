@@ -188,6 +188,30 @@ CREATE TABLE fecha_disponible (
 ) ENGINE=InnoDB;
 
 -- ----------------------------------------------------------------------------
+-- REQUISITO_SACRAMENTO -- lista de documentos que cada parroquia pide para cada sacramento. El feligrés ve esa lista
+-- como checklist y cada documento que sube puede indicar qué requisito cumple (documento.id_requisito).
+-- ----------------------------------------------------------------------------
+CREATE TABLE requisito_sacramento (
+  id_requisito  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id_parroquia  INT UNSIGNED NOT NULL,
+  id_sacramento TINYINT UNSIGNED NOT NULL,
+  nombre        VARCHAR(80)  NOT NULL,
+  descripcion   VARCHAR(255) NULL,
+  obligatorio   TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '1 = hace falta para completar el trámite; 0 = recomendado',
+  orden         TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  creado_en     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT uq_requisito UNIQUE (id_parroquia, id_sacramento, nombre),
+  INDEX ix_requisito_busqueda (id_parroquia, id_sacramento, orden),
+  CONSTRAINT fk_requisito_parroquia FOREIGN KEY (id_parroquia)
+    REFERENCES parroquia (id_parroquia)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_requisito_sacramento FOREIGN KEY (id_sacramento)
+    REFERENCES sacramento (id_sacramento)
+    ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- ----------------------------------------------------------------------------
 -- DOCUMENTO
 -- id_reserva es NULL-able: un documento puede subirse antes de que el
 -- trámite quede formalmente asociado a una reserva (tal como ocurre hoy
@@ -206,6 +230,7 @@ CREATE TABLE documento (
   fecha_envio          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   fecha_validacion     TIMESTAMP NULL,
   id_validador         INT UNSIGNED NULL COMMENT 'Quién lo validó o rechazó (queda NULL si esa cuenta se elimina)',
+  id_requisito         INT UNSIGNED NULL COMMENT 'Requisito de la parroquia que este documento cumple (opcional)',
 
   CONSTRAINT fk_documento_reserva FOREIGN KEY (id_reserva)
     REFERENCES reserva (id_reserva)
@@ -362,6 +387,13 @@ CREATE INDEX idx_documento_estado     ON documento (estado_validacion);
 CREATE INDEX idx_aviso_parroquia      ON aviso (id_parroquia, publicado_en);
 CREATE INDEX idx_horario_parroquia    ON horario (id_parroquia, dia_semana);
 
+-- La clave foránea documento -> requisito va aquí (después de los índices anteriores) para que el esquema sea idéntico
+-- al de una base migrada con migracion_12_requisitos.sql.
+ALTER TABLE documento
+  ADD CONSTRAINT fk_documento_requisito FOREIGN KEY (id_requisito)
+    REFERENCES requisito_sacramento (id_requisito)
+    ON DELETE SET NULL ON UPDATE CASCADE;
+
 -- ============================================================================
 -- DATOS DE EJEMPLO
 -- Mismos datos que ya usa el prototipo (js/main.js), para poder mostrar
@@ -386,6 +418,29 @@ INSERT INTO parroquia_sacramento (id_parroquia, id_sacramento) VALUES
   (2, 1), (2, 4),           -- Santa Fe: Bautizo, Confirmación
   (3, 2), (3, 3), (3, 4),   -- Nuestra Señora del Carmen: Matrimonio, Primera Comunión, Confirmación
   (4, 1);                   -- Sagrado Corazón: Bautizo
+
+-- Requisitos base (texto orientativo): cada parroquia los ajusta en el panel "Requisitos" según sus propias normas.
+INSERT INTO requisito_sacramento (id_parroquia, id_sacramento, nombre, descripcion, obligatorio, orden)
+SELECT ps.id_parroquia, s.id_sacramento, d.nombre, d.descripcion, d.obligatorio, d.orden
+FROM parroquia_sacramento ps
+JOIN sacramento s ON s.id_sacramento = ps.id_sacramento
+JOIN (
+  SELECT 'bautizo' AS codigo, 'Partida de nacimiento del niño' AS nombre, 'Copia de la partida o acta de nacimiento.' AS descripcion, 1 AS obligatorio, 1 AS orden
+  UNION ALL SELECT 'bautizo', 'DNI de los padres', 'Copia por ambos lados.', 1, 2
+  UNION ALL SELECT 'bautizo', 'Constancia de la charla prebautismal', 'De los padres y de los padrinos.', 1, 3
+  UNION ALL SELECT 'bautizo', 'Constancia de confirmación del padrino', 'Si el padrino o la madrina ya recibió la confirmación.', 0, 4
+  UNION ALL SELECT 'matrimonio', 'Partida de bautismo de ambos novios', 'Copia actualizada (emitida en los últimos 6 meses).', 1, 1
+  UNION ALL SELECT 'matrimonio', 'DNI de ambos novios', 'Copia por ambos lados.', 1, 2
+  UNION ALL SELECT 'matrimonio', 'Constancia de la charla prematrimonial', 'De ambos novios.', 1, 3
+  UNION ALL SELECT 'matrimonio', 'Constancia de confirmación de ambos novios', 'Si ya recibieron la confirmación.', 0, 4
+  UNION ALL SELECT 'primera_comunion', 'Partida de bautismo', 'Copia actualizada.', 1, 1
+  UNION ALL SELECT 'primera_comunion', 'DNI o partida de nacimiento del niño', 'Copia legible.', 1, 2
+  UNION ALL SELECT 'primera_comunion', 'Constancia de catequesis', 'Del año de preparación para la Primera Comunión.', 1, 3
+  UNION ALL SELECT 'confirmacion', 'Partida de bautismo', 'Copia actualizada.', 1, 1
+  UNION ALL SELECT 'confirmacion', 'Constancia de Primera Comunión', 'Copia de la constancia o del registro.', 1, 2
+  UNION ALL SELECT 'confirmacion', 'Constancia de catequesis de confirmación', 'Del año de preparación para la confirmación.', 1, 3
+  UNION ALL SELECT 'confirmacion', 'DNI del padrino o de la madrina', 'Copia por ambos lados.', 0, 4
+) d ON d.codigo = s.codigo;
 
 INSERT INTO horario (id_parroquia, dia_semana, hora_inicio, detalle, tipo) VALUES
   (1, 'lunes', '07:00:00', NULL, 'misa'),

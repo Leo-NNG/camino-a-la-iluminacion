@@ -40,6 +40,7 @@ public class DocumentoService {
     private final AlmacenArchivos almacen;
     private final BitacoraService bitacora;
     private final Avisador avisador;
+    private final RequisitoService requisitos; // null = sin checklist (los documentos no pueden indicar requisito)
 
     public DocumentoService(DocumentoDAO documentoDAO, ReservaDAO reservaDAO, ParroquiaDAO parroquiaDAO,
                             UsuarioDAO usuarioDAO, AlmacenArchivos almacen, BitacoraService bitacora) {
@@ -48,6 +49,13 @@ public class DocumentoService {
 
     public DocumentoService(DocumentoDAO documentoDAO, ReservaDAO reservaDAO, ParroquiaDAO parroquiaDAO,
                             UsuarioDAO usuarioDAO, AlmacenArchivos almacen, BitacoraService bitacora, Avisador avisador) {
+        this(documentoDAO, reservaDAO, parroquiaDAO, usuarioDAO, almacen, bitacora, avisador, null);
+    }
+
+    public DocumentoService(DocumentoDAO documentoDAO, ReservaDAO reservaDAO, ParroquiaDAO parroquiaDAO,
+                            UsuarioDAO usuarioDAO, AlmacenArchivos almacen, BitacoraService bitacora, Avisador avisador,
+                            RequisitoService requisitos) {
+        this.requisitos = requisitos;
         this.avisador = avisador;
         this.documentoDAO = documentoDAO;
         this.reservaDAO = reservaDAO;
@@ -57,8 +65,17 @@ public class DocumentoService {
         this.bitacora = bitacora;
     }
 
-    /** Sube UN archivo a una solicitud del propio usuario. El tipo se decide por el contenido, no por la extensión. */
+    /** Sube UN archivo a una solicitud del propio usuario, sin indicar qué requisito cumple. */
     public Documento subir(int idUsuario, String idReservaTxt, InputStream contenido, String nombreEnviado, String ip)
+            throws SQLException, IOException {
+        return subir(idUsuario, idReservaTxt, null, contenido, nombreEnviado, ip);
+    }
+
+    /**
+     * Sube UN archivo a una solicitud del propio usuario. El tipo se decide por el contenido, no por la extensión.
+     * {@code idRequisitoTxt} (opcional) indica qué requisito del checklist cumple el documento.
+     */
+    public Documento subir(int idUsuario, String idReservaTxt, String idRequisitoTxt, InputStream contenido, String nombreEnviado, String ip)
             throws SQLException, IOException {
         int idReserva;
         try {
@@ -71,6 +88,12 @@ public class DocumentoService {
         if (reserva.isEmpty() || !reserva.get().getIdUsuario().equals(idUsuario)) throw new ReglaNegocioException(404, "La solicitud no existe.");
         if ("rechazada".equals(reserva.get().getEstado())) {
             throw new ReglaNegocioException(409, "Esa solicitud fue rechazada. Haz una nueva solicitud para enviar documentos.");
+        }
+
+        Integer idRequisito = null;
+        if (idRequisitoTxt != null && !idRequisitoTxt.isBlank()) {
+            if (requisitos == null) throw new ReglaNegocioException(400, "Los requisitos no están disponibles.");
+            idRequisito = requisitos.validarParaSubida(reserva.get(), idRequisitoTxt);
         }
 
         // Se lee con tope: no se confía en el tamaño que declare el cliente.
@@ -91,6 +114,7 @@ public class DocumentoService {
             Documento doc = new Documento(idReserva, idUsuario, nombreVisible(nombreEnviado, tipo), guardado);
             doc.setTipoMime(tipo.mime);
             doc.setTamanoBytes((long) datos.length);
+            doc.setIdRequisito(idRequisito);
             documentoDAO.insertar(doc);
             guardado = null; // ya quedó registrado
             bitacora.registrar(idUsuario, "DOCUMENTO_SUBIDO", "documento " + doc.getIdDocumento(), ip);
