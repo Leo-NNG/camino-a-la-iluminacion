@@ -89,9 +89,25 @@ public class Pruebas {
         public boolean actualizarEstado(int id, String e) { buscarPorId(id).get().setEstado(e); return true; }
         public boolean insertarSiDisponible(Reserva n, int cupo) {
             long activas = lista.stream().filter(x -> x.getIdParroquia().equals(n.getIdParroquia()) && x.getSacramento().equals(n.getSacramento())
-                    && x.getFechaSolicitada().equals(n.getFechaSolicitada()) && !x.getEstado().equals("rechazada")).count();
+                    && x.getFechaSolicitada().equals(n.getFechaSolicitada()) && !x.getEstado().equals("rechazada") && !x.getEstado().equals("cancelada")).count();
             if (activas >= cupo) return false;
             insertar(n); return true;
+        }
+        public boolean cancelar(int id, String motivo) {
+            Reserva x = buscarPorId(id).orElse(null);
+            if (x == null || !(x.getEstado().equals("pendiente") || x.getEstado().equals("confirmada"))) return false;
+            x.setEstado("cancelada"); x.setMotivoCancelacion(motivo); x.setCanceladaEn(new java.sql.Timestamp(0)); return true;
+        }
+        public ResultadoReprogramacion reprogramar(int id, java.sql.Date nueva, int cupo, int maximo) {
+            Reserva x = buscarPorId(id).orElse(null);
+            if (x == null || !(x.getEstado().equals("pendiente") || x.getEstado().equals("confirmada"))) return ResultadoReprogramacion.NO_VIGENTE;
+            if (x.getReprogramaciones() >= maximo) return ResultadoReprogramacion.LIMITE;
+            long activas = lista.stream().filter(o -> o != x && o.getIdParroquia().equals(x.getIdParroquia()) && o.getSacramento().equals(x.getSacramento())
+                    && o.getFechaSolicitada().equals(nueva) && !o.getEstado().equals("rechazada") && !o.getEstado().equals("cancelada")).count();
+            if (activas >= cupo) return ResultadoReprogramacion.SIN_CUPO;
+            if (x.getFechaOriginal() == null) x.setFechaOriginal(x.getFechaSolicitada());
+            x.setFechaSolicitada(nueva); x.setEstado("pendiente"); x.setMotivoRechazo(null); x.setReprogramaciones(x.getReprogramaciones() + 1);
+            return ResultadoReprogramacion.HECHA;
         }
         public boolean resolverPendiente(int id, String e, String motivo) {
             Reserva x = buscarPorId(id).orElse(null);
@@ -110,7 +126,7 @@ public class Pruebas {
             f.setCodigoSacramento(s.getCodigo()); f.setNombreSacramento(s.getNombre());
             f.setOcupados(reservas == null ? 0 : (int) reservas.lista.stream().filter(r -> r.getIdParroquia().equals(f.getIdParroquia())
                     && r.getSacramento().equals(s.getCodigo()) && r.getFechaSolicitada().toLocalDate().equals(f.getFecha())
-                    && !r.getEstado().equals("rechazada")).count());
+                    && !r.getEstado().equals("rechazada") && !r.getEstado().equals("cancelada")).count());
             return f;
         }
         public FechaDisponible insertar(FechaDisponible f) throws SQLException {

@@ -79,6 +79,14 @@ class DocumentoRequisitoTest {
     }
 
     @Test
+    void aUnaSolicitudCanceladaNoSeLeSubenDocumentos() throws Exception {
+        e.reserva.setEstado("cancelada");
+        assertEquals(409, estado(() -> subir(String.valueOf(e.partida.getIdRequisito()))));
+        assertEquals(409, estado(() -> subir(null)));
+        assertEquals(0, archivosGuardados());
+    }
+
+    @Test
     void elRequisitoDeOtraSolicitudNoSirve() {
         int deMatrimonio = e.requisitos.lista.stream().filter(q -> q.getIdSacramento() == 2).findFirst().get().getIdRequisito();
         assertEquals(400, estado(() -> subir(String.valueOf(deMatrimonio))));

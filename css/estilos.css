@@ -407,7 +407,9 @@ h1, h2, h3 {
 }
 .tabla-scroll .tabla-tramites { min-width: 640px; }
 
-.fila-accion { display: flex; gap: 8px; flex-wrap: wrap; }
+/* Es un <td>: con display:flex dejaba de ser celda y las líneas de la fila quedaban desalineadas. Los botones fluyen dentro de la celda. */
+.fila-accion { vertical-align: middle; }
+.fila-accion .boton-mini { margin: 2px 8px 2px 0; }
 .boton-mini {
   font-family: var(--font-body);
   font-size: .78rem;

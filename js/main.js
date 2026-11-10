@@ -184,7 +184,7 @@ function pedirUbicacion(alExito, alFallo) {
 
 /* ==================== UTILIDADES DE RESERVAS ==================== */
 const NOMBRES_SACRAMENTO = { bautizo: 'Bautizo', matrimonio: 'Matrimonio', primera_comunion: 'Primera Comunión', confirmacion: 'Confirmación' };
-const ESTADOS_RESERVA = { pendiente: ['pendiente', 'Pendiente'], confirmada: ['validado', 'Confirmada'], rechazada: ['rechazado', 'Rechazada'] };
+const ESTADOS_RESERVA = { pendiente: ['pendiente', 'Pendiente'], confirmada: ['validado', 'Confirmada'], rechazada: ['rechazado', 'Rechazada'], cancelada: ['cancelada', 'Cancelada'] };
 
 /* Los textos de la base de datos se insertan siempre escapados (nunca como HTML crudo). */
 function escaparHtml(texto) {
@@ -212,17 +212,24 @@ function cargarMisReservas() {
       nota.textContent = data.length ? '' : 'Todavía no has enviado ninguna solicitud.';
       tbody.innerHTML = data.map((r) => {
         const [clase, texto] = ESTADOS_RESERVA[r.estado] || ['pendiente', escaparHtml(r.estado)];
-        const detalle = r.estado === 'rechazada' && r.motivo ? `Motivo: ${escaparHtml(r.motivo)}`
+        let detalle = r.estado === 'rechazada' && r.motivo ? `Motivo: ${escaparHtml(r.motivo)}`
           : (r.estado === 'confirmada' ? 'La parroquia confirmó tu fecha.' : 'En revisión por la parroquia.');
+        if (r.estado === 'cancelada') detalle = 'Cancelaste esta solicitud.' + (r.motivoCancelacion ? ` Motivo: ${escaparHtml(r.motivoCancelacion)}` : '');
+        if (Number(r.reprogramaciones) > 0 && r.fechaOriginal) detalle += `<br><small>Reprogramada (fecha original: ${formatearFecha(r.fechaOriginal)}).</small>`;
         // Solo las solicitudes vigentes se pagan; la pantalla de pagos muestra el arancel y el estado del pago.
-        const pagar = r.estado === 'rechazada' ? '' : `<br><a href="pagos.html?reserva=${Number(r.id)}">Pagar arancel</a>`;
+        const pagar = (r.estado === 'rechazada' || r.estado === 'cancelada') ? '' : `<br><a href="pagos.html?reserva=${Number(r.id)}">Pagar arancel</a>`;
+        // Los botones salen solo si el servidor dijo que se puede (él vuelve a comprobarlo al hacer clic).
+        const datos = `data-id="${Number(r.id)}" data-parroquia="${Number(r.idParroquia)}" data-sacramento="${escaparHtml(r.sacramento)}" data-fecha="${escaparHtml(r.fecha)}"`;
+        const acciones = (r.puedeReprogramar ? `<button type="button" class="boton-mini" data-accion="reprogramar-reserva" ${datos}>Reprogramar</button>` : '')
+          + (r.puedeCancelar ? `<button type="button" class="boton-mini rechazar" data-accion="cancelar-reserva" ${datos}>Cancelar</button>` : '');
+        const botones = acciones ? `<br><span class="acciones-reserva">${acciones}</span>` : '';
         return `<tr>
           <td>${escaparHtml(NOMBRES_SACRAMENTO[r.sacramento] || r.sacramento)}</td>
           <td>${escaparHtml(r.parroquia)}</td>
           <td>${escaparHtml(r.solicitante)}</td>
           <td>${formatearFecha(r.fecha)}</td>
           <td><span class="insignia ${clase}">${texto}</span></td>
-          <td>${detalle}${pagar}</td>
+          <td>${detalle}${pagar}${botones}</td>
         </tr>`;
       }).join('');
     })
@@ -729,7 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return fetch('/api/mis-reservas', { cache: 'no-store', credentials: 'same-origin' })
       .then((r) => r.json().catch(() => []))
       .then((data) => {
-        const activas = Array.isArray(data) ? data.filter((r) => r.estado !== 'rechazada') : [];
+        const activas = Array.isArray(data) ? data.filter((r) => r.estado !== 'rechazada' && r.estado !== 'cancelada') : [];
         selectReserva.length = 1; // deja solo la opción "Selecciona una solicitud"
         activas.forEach((r) => {
           const op = document.createElement('option');
@@ -1109,9 +1116,10 @@ document.addEventListener('DOMContentLoaded', () => {
     etiquetaAprobar: 'Confirmar', estadoAprobado: 'confirmada', estadoRechazado: 'rechazada',
     celdas: (r) => {
       const [clase, texto] = ESTADOS_RESERVA[r.estado] || ['pendiente', escaparHtml(r.estado)];
+      const reprog = Number(r.reprogramaciones) > 0 ? `Reprogramada ${Number(r.reprogramaciones)} ${Number(r.reprogramaciones) === 1 ? 'vez' : 'veces'} (fecha original: ${formatearFecha(r.fechaOriginal)})` : '';
       const docs = r.obligatorios === undefined ? ''
         : `Documentos: ${Number(r.validados)} de ${Number(r.obligatorios)} requisitos obligatorios validados${Number(r.validados) >= Number(r.obligatorios) ? ' (completo)' : ''}`;
-      const extra = [r.contacto ? `Contacto: ${escaparHtml(r.contacto)}` : '', r.notas ? `Notas: ${escaparHtml(r.notas)}` : '', docs]
+      const extra = [r.contacto ? `Contacto: ${escaparHtml(r.contacto)}` : '', r.notas ? `Notas: ${escaparHtml(r.notas)}` : '', reprog, docs]
         .filter(Boolean).map((t) => `<br><small>${t}</small>`).join('');
       return `<td>${escaparHtml(r.nombreSolicitante)}${extra}</td>
           <td>${escaparHtml(NOMBRES_SACRAMENTO[r.sacramento] || r.sacramento)}</td>

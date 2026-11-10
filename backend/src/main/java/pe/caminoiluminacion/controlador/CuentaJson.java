@@ -53,7 +53,9 @@ final class CuentaJson {
         return "{\"sacramento\":\"" + Json.esc(r.getSacramento()) + "\",\"parroquia\":\"" + Json.esc(d.parroquias().get(r.getIdParroquia())) + "\""
                 + ",\"solicitante\":\"" + Json.esc(r.getNombreSolicitante()) + "\",\"fecha\":\"" + Json.fecha(r.getFechaSolicitada()) + "\""
                 + ",\"notas\":\"" + Json.esc(r.getNotas()) + "\",\"estado\":\"" + Json.esc(r.getEstado()) + "\""
-                + ",\"motivoRechazo\":\"" + Json.esc(r.getMotivoRechazo()) + "\",\"creadoEn\":\"" + Json.fecha(r.getCreadoEn()) + "\"}";
+                + ",\"motivoRechazo\":\"" + Json.esc(r.getMotivoRechazo()) + "\",\"creadoEn\":\"" + Json.fecha(r.getCreadoEn()) + "\""
+                + ",\"fechaOriginal\":\"" + Json.fecha(r.getFechaOriginal()) + "\",\"reprogramaciones\":" + r.getReprogramaciones()
+                + ",\"canceladaEn\":\"" + Json.fecha(r.getCanceladaEn()) + "\",\"motivoCancelacion\":\"" + Json.esc(r.getMotivoCancelacion()) + "\"}";
     }
 
     private static String documento(Documento x) {

@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../css/estilos.css">
 <link rel="stylesheet" href="../css/ios.css">
 <link rel="stylesheet" href="../css/requisitos.css">
+<link rel="stylesheet" href="../css/gestion-reservas.css">
 </head>
 <body data-requiere-rol="feligres">
 
@@ -104,7 +105,7 @@
       <div class="encabezado-seccion">
         <p class="eyebrow">Seguimiento</p>
         <h2>Mis solicitudes</h2>
-        <p style="color:var(--color-ink-soft)">Aquí ves si la parroquia confirmó o rechazó cada solicitud. Si fue rechazada, verás el motivo.</p>
+        <p style="color:var(--color-ink-soft)">Aquí ves si la parroquia confirmó o rechazó cada solicitud. Si fue rechazada, verás el motivo. Mientras esté vigente puedes reprogramarla o cancelarla.</p>
       </div>
       <div class="tabla-scroll">
         <table class="tabla-tramites">
@@ -122,6 +123,24 @@
         </table>
       </div>
       <p id="nota-mis-reservas" style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;"></p>
+
+      <div class="ios-panel panel-gestion" id="panel-gestion" hidden>
+        <h3 id="gestion-titulo"></h3>
+        <p id="gestion-texto" class="ayuda"></p>
+        <div class="campo" id="gestion-campo-motivo" hidden>
+          <label for="gestion-motivo">Motivo (opcional)</label>
+          <textarea id="gestion-motivo" maxlength="255" rows="2" placeholder="Ej. Cambió la fecha del viaje"></textarea>
+        </div>
+        <div class="campo" id="gestion-campo-fecha" hidden>
+          <label for="gestion-fecha">Nueva fecha</label>
+          <input type="date" id="gestion-fecha" hidden>
+          <select id="gestion-fecha-lista" hidden></select>
+          <small id="gestion-fecha-ayuda"></small>
+        </div>
+        <button type="button" class="boton boton-primario" id="gestion-confirmar">Confirmar</button>
+        <button type="button" class="boton boton-secundario" id="gestion-volver">Volver</button>
+        <div class="mensaje-confirmacion" id="gestion-mensaje"></div>
+      </div>
     </div>
   </section>
 </main>
@@ -134,5 +153,6 @@
 
 <script src="../js/main.js"></script>
 <script src="../js/requisitos.js"></script>
+<script src="../js/gestion-reservas.js"></script>
 </body>
 </html>

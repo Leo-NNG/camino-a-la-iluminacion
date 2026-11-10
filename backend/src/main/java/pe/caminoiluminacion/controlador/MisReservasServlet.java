@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import pe.caminoiluminacion.modelo.Reserva;
+import pe.caminoiluminacion.servicio.GestionReservaService;
+import pe.caminoiluminacion.servicio.GestionReservaService.Opciones;
 import pe.caminoiluminacion.servicio.ReservaService;
 import pe.caminoiluminacion.servicio.ReservaService.ReservaPropia;
 import pe.caminoiluminacion.servicio.Servicios;
@@ -24,13 +26,19 @@ import java.util.List;
 public class MisReservasServlet extends HttpServlet {
 
     private final ReservaService reservas;
+    private final GestionReservaService gestion; // null = sin gestión: no se indica si se puede cancelar o reprogramar
 
     public MisReservasServlet() {
-        this(Servicios.reservas());
+        this(Servicios.reservas(), Servicios.gestionReservas());
     }
 
     MisReservasServlet(ReservaService reservas) {
+        this(reservas, null);
+    }
+
+    MisReservasServlet(ReservaService reservas, GestionReservaService gestion) {
         this.reservas = reservas;
+        this.gestion = gestion;
     }
 
     @Override
@@ -57,8 +65,16 @@ public class MisReservasServlet extends HttpServlet {
                     .append("\"solicitante\":\"").append(Json.esc(r.getNombreSolicitante())).append("\",")
                     .append("\"fecha\":\"").append(Json.esc(r.getFechaSolicitada())).append("\",")
                     .append("\"estado\":\"").append(Json.esc(r.getEstado())).append("\",")
-                    .append("\"motivo\":\"").append(Json.esc(r.getMotivoRechazo())).append("\"")
-                    .append("}");
+                    .append("\"motivo\":\"").append(Json.esc(r.getMotivoRechazo())).append("\",")
+                    .append("\"idParroquia\":").append(r.getIdParroquia()).append(",")
+                    .append("\"fechaOriginal\":\"").append(Json.esc(r.getFechaOriginal())).append("\",")
+                    .append("\"reprogramaciones\":").append(r.getReprogramaciones()).append(",")
+                    .append("\"motivoCancelacion\":\"").append(Json.esc(r.getMotivoCancelacion())).append("\"");
+                if (gestion != null) {
+                    Opciones o = gestion.opciones(r);
+                    json.append(",\"puedeCancelar\":").append(o.puedeCancelar()).append(",\"puedeReprogramar\":").append(o.puedeReprogramar());
+                }
+                json.append("}");
             }
             response.setStatus(HttpServletResponse.SC_OK);
             out.print(json.append("]"));

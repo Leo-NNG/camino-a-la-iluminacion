@@ -118,6 +118,8 @@ class RequisitoServiceTest {
         assertEquals(400, estado(() -> e.servicio.checklist(e.ana, "abc")));
         e.reserva.setEstado("rechazada");
         assertEquals(409, estado(() -> e.servicio.checklist(e.ana, "1")), "una solicitud rechazada ya no recibe documentos");
+        e.reserva.setEstado("cancelada");
+        assertEquals(409, estado(() -> e.servicio.checklist(e.ana, "1")), "ni una cancelada");
     }
 
     // ------------------------------------------------------------------ validar al subir

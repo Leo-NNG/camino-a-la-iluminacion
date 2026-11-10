@@ -230,6 +230,8 @@ class PagoServiceTest {
         assertEquals(404, estado(() -> pagarBautizo(1, ajena, "123456")), "la reserva de otro usuario no existe para mí");
         Reserva rechazada = reserva(1, 1, "bautizo", "rechazada");
         assertEquals(409, estado(() -> pagarBautizo(1, rechazada, "123456")));
+        Reserva cancelada = reserva(1, 1, "bautizo", "cancelada");
+        assertEquals(409, estado(() -> pagarBautizo(1, cancelada, "654321")), "una solicitud cancelada tampoco se paga");
         assertEquals(404, estado(() -> servicio.pagarReserva(1, "999", "yape", "123456", "987654321", png(), "ip")));
         assertEquals(400, estado(() -> servicio.pagarReserva(1, "abc", "yape", "123456", "987654321", png(), "ip")));
     }

@@ -50,6 +50,7 @@ camino-a-la-iluminacion/
 - `database/migracion_10_horarios_normalizados.sql` — horarios con hora real (una fila por celebración); las filas con texto desconocido se guardan en `horario_sin_migrar` (hacer copia antes; requiere la 09).
 - `database/migracion_11_privacidad.sql` — privacidad (Ley n.° 29733): `usuario.politica_version`, `politica_aceptada_en` y `eliminado_en` (hacer copia antes; requiere la 10). Habilita "Mi cuenta" y la eliminación (anonimización) de la cuenta.
 - `database/migracion_12_requisitos.sql` — requisitos por sacramento y checklist de documentos: tabla `requisito_sacramento` (con requisitos base editables para cada parroquia) y `documento.id_requisito` (hacer copia antes; requiere la 11).
+- `database/migracion_13_cancelar_reprogramar.sql` — cancelar y reprogramar solicitudes: `reserva.estado` admite 'cancelada' y se agregan `fecha_original`, `reprogramaciones`, `cancelada_en` y `motivo_cancelacion` (hacer copia antes; requiere la 12).
 - `database/migracion_05_normalizacion_bitacora.sql` — normaliza sacramentos y agrega la bitácora (hacer copia antes).
 - `database/migracion_01_dni_roles.sql` — migración para una base creada antes del acceso por DNI.
 - `database/camino_iluminacion.sql` — script con las 6 tablas del modelo entidad-relación (Capítulo 8.3) y datos de ejemplo.

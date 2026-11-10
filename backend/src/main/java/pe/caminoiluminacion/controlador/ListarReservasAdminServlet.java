@@ -69,6 +69,8 @@ public class ListarReservasAdminServlet extends HttpServlet {
                     .append("\"estado\":\"").append(Json.esc(r.getEstado())).append("\",")
                     .append("\"notas\":\"").append(Json.esc(r.getNotas())).append("\",")
                     .append("\"contacto\":\"").append(Json.esc(lista.get(i).contacto())).append("\"");
+                json.append(",\"reprogramaciones\":").append(r.getReprogramaciones())
+                    .append(",\"fechaOriginal\":\"").append(Json.esc(r.getFechaOriginal())).append("\"");
                 Avance a = avance.get(r.getIdReserva());
                 if (a != null) json.append(",\"obligatorios\":").append(a.obligatorios()).append(",\"validados\":").append(a.validados());
                 json.append("}");

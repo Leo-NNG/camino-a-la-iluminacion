@@ -148,9 +148,13 @@ CREATE TABLE reserva (
   nombre_solicitante VARCHAR(150) NOT NULL,
   fecha_solicitada   DATE NOT NULL,
   notas              TEXT NULL,
-  estado             ENUM('pendiente','confirmada','rechazada') NOT NULL DEFAULT 'pendiente',
+  estado             ENUM('pendiente','confirmada','rechazada','cancelada') NOT NULL DEFAULT 'pendiente',
   motivo_rechazo     VARCHAR(255) NULL COMMENT 'Lo escribe el personal al rechazar; el feligrés lo ve en Mis solicitudes',
   creado_en          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  fecha_original     DATE NULL COMMENT 'Primera fecha pedida; se llena al reprogramar por primera vez',
+  reprogramaciones   TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Cuántas veces el feligrés reprogramó la solicitud',
+  cancelada_en       TIMESTAMP NULL COMMENT 'Cuándo la canceló el feligrés',
+  motivo_cancelacion VARCHAR(255) NULL COMMENT 'Motivo opcional que escribe el feligrés al cancelar',
 
   CONSTRAINT fk_reserva_usuario FOREIGN KEY (id_usuario)
     REFERENCES usuario (id_usuario)

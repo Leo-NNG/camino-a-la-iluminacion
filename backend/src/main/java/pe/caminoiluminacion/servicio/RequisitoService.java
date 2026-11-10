@@ -72,7 +72,9 @@ public class RequisitoService {
         Reserva reserva = reservaDAO.buscarPorId(entero(reservaTxt, "Solicitud no válida."))
                 .filter(r -> r.getIdUsuario().equals(idUsuario))
                 .orElseThrow(() -> new ReglaNegocioException(404, "La solicitud no existe."));
-        if ("rechazada".equals(reserva.getEstado())) throw new ReglaNegocioException(409, "Esa solicitud fue rechazada.");
+        if ("rechazada".equals(reserva.getEstado()) || "cancelada".equals(reserva.getEstado())) {
+            throw new ReglaNegocioException(409, "Esa solicitud fue " + reserva.getEstado() + ".");
+        }
         Sacramento s = sacramentoDAO.buscarPorCodigo(reserva.getSacramento()).orElse(null);
         List<Requisito> requisitos = s == null ? List.of() : requisitoDAO.listar(reserva.getIdParroquia(), s.getIdSacramento());
         List<Cumplimiento> cumplimientos = requisitoDAO.cumplimientos(reserva.getIdReserva());

@@ -128,6 +128,18 @@ class CuentaServletTest {
     }
 
     @Test
+    void laCopiaDeDatosIncluyeLosDatosDeCancelacionYReprogramacionDeSusSolicitudes() throws Exception {
+        var cancelada = e.agregarReserva(ana, "Bebé Uno", null);
+        cancelada.setEstado("cancelada");
+        cancelada.setMotivoCancelacion("Cambió el viaje");
+        cancelada.setFechaOriginal(java.sql.Date.valueOf("2026-12-01"));
+        cancelada.setReprogramaciones(2);
+        String js = cuerpo(get(sesionDe(ana), "/datos", new HashMap<>()));
+        assertTrue(js.contains("\"estado\":\"cancelada\"") && js.contains("\"motivoCancelacion\":\"Cambió el viaje\""), js);
+        assertTrue(js.contains("\"reprogramaciones\":2") && js.contains("\"fechaOriginal\":\"2026-12-01\""), js);
+    }
+
+    @Test
     void guardaElContactoYRechazaDatosInvalidos() throws Exception {
         Contenedor c = sesionDe(ana);
         assertEquals(200, post(c, "/contacto", m("correo", "nuevo@x.pe", "telefono", "987654321")).status);

@@ -60,6 +60,8 @@ public final class Servicios {
     private static final CuentaService CUENTA_SERVICE = new CuentaService(USUARIOS, new CuentaDAOImpl(), RESERVAS, new DocumentoDAOImpl(), PAGOS,
             new IntencionDAOImpl(), NOTIFICACIONES, PARROQUIAS, ALMACEN_PAGOS, new LimiteIntentos(), BITACORA, IntencionService.relojDePeru());
 
+    private static final GestionReservaService GESTION_RESERVA_SERVICE = new GestionReservaService(RESERVAS, FECHAS, SACRAMENTOS, PAGOS, BITACORA, java.time.LocalDate::now);
+
     private Servicios() { }
 
     public static BitacoraService bitacora() { return BITACORA; }
@@ -74,4 +76,5 @@ public final class Servicios {
     public static IntencionService intenciones() { return INTENCION_SERVICE; }
     public static CuentaService cuenta() { return CUENTA_SERVICE; }
     public static RequisitoService requisitos() { return REQUISITO_SERVICE; }
+    public static GestionReservaService gestionReservas() { return GESTION_RESERVA_SERVICE; }
 }
