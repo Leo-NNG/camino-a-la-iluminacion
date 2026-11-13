@@ -1521,3 +1521,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
   cargarSacramentos().then(() => { salirDeEdicion(); return cargar(); });
 });
+
+/* ---------- Consulta automática de DNI con Factiliza ---------- */
+const campoDni = document.getElementById('reg-dni');
+
+if (campoDni) {
+  const campoNombre = document.getElementById('reg-nombre');
+  const campoApellido = document.getElementById('reg-apellido');
+
+  const estadoDni = document.createElement('small');
+  estadoDni.setAttribute('aria-live', 'polite');
+  campoDni.closest('.campo').appendChild(estadoDni);
+
+  campoDni.addEventListener('blur', async () => {
+    const dni = campoDni.value.trim();
+
+    if (!/^[0-9]{8}$/.test(dni)) {
+      estadoDni.textContent = '';
+      return;
+    }
+
+    estadoDni.textContent = 'Consultando DNI...';
+
+    try {
+      const response = await fetch(
+          `/api/consulta-dni?dni=${encodeURIComponent(dni)}`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.exito) {
+        estadoDni.textContent =
+            data.mensaje || 'No se pudo consultar el DNI.';
+        return;
+      }
+
+      campoNombre.value = data.nombres || '';
+      campoApellido.value = data.apellidos || '';
+
+      estadoDni.textContent = 'DNI consultado correctamente.';
+    } catch (error) {
+      console.error('Error al consultar DNI:', error);
+      estadoDni.textContent = 'No se pudo conectar con el servicio.';
+    }
+  });
+}
+

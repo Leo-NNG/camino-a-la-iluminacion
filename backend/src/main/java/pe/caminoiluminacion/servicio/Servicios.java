@@ -37,6 +37,7 @@ public final class Servicios {
     private static final FechaDisponibleDAOImpl FECHAS = new FechaDisponibleDAOImpl();
 
     private static final UsuarioService USUARIO_SERVICE = new UsuarioService(USUARIOS, new LimiteIntentos(), BITACORA);
+    private static final ConsultaDniService CONSULTA_DNI_SERVICE = new ConsultaDniService(System.getenv("FACTILIZA_TOKEN"));
     private static final ReservaService RESERVA_SERVICE = new ReservaService(RESERVAS, FECHAS, PARROQUIAS, SACRAMENTOS, USUARIOS, BITACORA,
             java.time.LocalDate::now, AVISADOR);
     private static final FechaDisponibleService FECHA_SERVICE = new FechaDisponibleService(FECHAS, SACRAMENTOS, BITACORA);
@@ -64,6 +65,7 @@ public final class Servicios {
 
     public static BitacoraService bitacora() { return BITACORA; }
     public static UsuarioService usuarios() { return USUARIO_SERVICE; }
+    public static ConsultaDniService consultaDni() {return CONSULTA_DNI_SERVICE;}
     public static ReservaService reservas() { return RESERVA_SERVICE; }
     public static FechaDisponibleService fechas() { return FECHA_SERVICE; }
     public static DocumentoService documentos() { return DOCUMENTO_SERVICE; }
