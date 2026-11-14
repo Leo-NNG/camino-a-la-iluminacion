@@ -1529,6 +1529,14 @@ if (campoDni) {
   const campoNombre = document.getElementById('reg-nombre');
   const campoApellido = document.getElementById('reg-apellido');
 
+  const formatoNombre = (texto) =>
+      texto.toLocaleLowerCase('es-PE')
+          .replace(/(^|[\s-])(\p{L})/gu,
+              (_, espacio, letra) =>
+                  espacio + letra.toLocaleUpperCase('es-PE')
+          );
+
+
   const estadoDni = document.createElement('small');
   estadoDni.setAttribute('aria-live', 'polite');
   campoDni.closest('.campo').appendChild(estadoDni);
@@ -1556,10 +1564,11 @@ if (campoDni) {
         return;
       }
 
-      campoNombre.value = data.nombres || '';
-      campoApellido.value = data.apellidos || '';
+      campoNombre.value = formatoNombre(data.nombres || '');
+      campoApellido.value = formatoNombre(data.apellidos || '');
 
       estadoDni.textContent = 'DNI consultado correctamente.';
+
     } catch (error) {
       console.error('Error al consultar DNI:', error);
       estadoDni.textContent = 'No se pudo conectar con el servicio.';
