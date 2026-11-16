@@ -26,9 +26,9 @@ public final class ReciboPdf {
     public record Datos(String numero, String parroquia, String direccion, String fechaPago, String fechaVerificacion,
                         String feligres, String concepto, String metodo, String operacion, String monto, String generadoEn) { }
 
-    private static final double ANCHO = 595, ALTO = 842, MARGEN = 50, COL_VALOR = 200, ANCHO_VALOR = 345;
+    static final double ANCHO = 595, ALTO = 842, MARGEN = 50, COL_VALOR = 200, ANCHO_VALOR = 345;
     private static final int MAX_LINEAS_POR_CAMPO = 3;
-    private static final ZoneId LIMA = ZoneId.of("America/Lima");
+    static final ZoneId LIMA = ZoneId.of("America/Lima");
     private static final DateTimeFormatter FECHA_HORA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     // Anchos de Helvetica (unidades por 1000 em) para los caracteres 32..126; el resto se aproxima con 556.
@@ -44,13 +44,22 @@ public final class ReciboPdf {
 
     /** Arma el recibo a partir de un pago aprobado. {@code reloj} fija la fecha de emisión (las pruebas usan uno fijo). */
     public static byte[] generar(Recibo r, Clock reloj) {
+        return generar(r, reloj, null, null);
+    }
+
+    /** Igual, pero imprime el código de verificación y la dirección donde comprobarlo (si {@code codigo} no es null). */
+    public static byte[] generar(Recibo r, Clock reloj, String codigo, String urlVerificacion) {
         var p = r.pago();
         return generar(new Datos(r.numero(), r.parroquia(), r.direccion(), fecha(p.creadoEn()), fecha(p.revisadoEn()),
                 r.feligres(), r.detalle(), "yape".equals(p.metodo()) ? "Yape" : "Plin", p.numeroOperacion(), soles(p.monto()),
-                FECHA_HORA.format(reloj.instant().atZone(LIMA))));
+                FECHA_HORA.format(reloj.instant().atZone(LIMA))), codigo, urlVerificacion);
     }
 
     public static byte[] generar(Datos d) {
+        return generar(d, null, null);
+    }
+
+    public static byte[] generar(Datos d, String codigo, String urlVerificacion) {
         StringBuilder c = new StringBuilder();
 
         // Franja superior
@@ -82,6 +91,15 @@ public final class ReciboPdf {
         texto(c, "F2", 28, MARGEN + 16, y - 44, "0.1 0.1 0.1", d.monto());
         texto(c, "F2", 11, ANCHO - MARGEN - 150, y - 40, "0.1 0.5 0.25", "PAGO VERIFICADO");
 
+        if (codigo != null) {
+            double yc = y - 62 - 30;
+            texto(c, "F1", 8.5, MARGEN, yc, "0.45 0.45 0.45", "C\u00D3DIGO DE VERIFICACI\u00D3N");
+            texto(c, "F2", 15, MARGEN, yc - 20, "0.1 0.1 0.1", codigo);
+            double yu = yc - 38;
+            texto(c, "F1", 9, MARGEN, yu, "0.4 0.4 0.4", "Comprueba que este recibo es aut\u00E9ntico en:");
+            for (String l : partir(urlVerificacion == null ? "" : urlVerificacion, 9, ANCHO - 2 * MARGEN, false)) { yu -= 12; texto(c, "F1", 9, MARGEN, yu, "0.13 0.19 0.55", l); }
+        }
+
         // Pie
         linea(c, MARGEN, 95, ANCHO - MARGEN);
         int py = 80;
@@ -97,7 +115,7 @@ public final class ReciboPdf {
 
     // ------------------------------------------------------------------ dibujo
 
-    private static double fila(StringBuilder c, double y, String etiqueta, String valor) {
+    static double fila(StringBuilder c, double y, String etiqueta, String valor) {
         texto(c, "F1", 8.5, MARGEN, y, "0.45 0.45 0.45", etiqueta);
         List<String> lineas = partir(valor == null || valor.isBlank() ? "-" : valor, 11, ANCHO_VALOR, false);
         for (String l : lineas) {
@@ -107,12 +125,12 @@ public final class ReciboPdf {
         return y - 9;
     }
 
-    private static void texto(StringBuilder c, String fuente, double tam, double x, double y, String color, String t) {
+    static void texto(StringBuilder c, String fuente, double tam, double x, double y, String color, String t) {
         c.append(color).append(" rg\nBT /").append(fuente).append(' ').append(num(tam)).append(" Tf ")
          .append(num(x)).append(' ').append(num(y)).append(" Td (").append(escapar(limpiar(t))).append(") Tj ET\n");
     }
 
-    private static void linea(StringBuilder c, double x1, double y, double x2) {
+    static void linea(StringBuilder c, double x1, double y, double x2) {
         c.append("0.8 0.8 0.8 RG\n0.7 w\n").append(num(x1)).append(' ').append(num(y)).append(" m ")
          .append(num(x2)).append(' ').append(num(y)).append(" l S\n");
     }
@@ -178,7 +196,7 @@ public final class ReciboPdf {
 
     // ------------------------------------------------------------------ estructura del archivo
 
-    private static byte[] documento(String contenido, String titulo) {
+    static byte[] documento(String contenido, String titulo) {
         byte[] flujo = contenido.getBytes(StandardCharsets.ISO_8859_1);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         List<Integer> posiciones = new ArrayList<>();

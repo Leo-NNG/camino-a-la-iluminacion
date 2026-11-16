@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camino a la Iluminación — Verificar documento</title>
+<link rel="stylesheet" href="../css/estilos.css">
+<link rel="stylesheet" href="../css/ios.css">
+<link rel="stylesheet" href="../css/verificar.css">
+</head>
+<body>
+
+<header class="sitio-header">
+  <nav class="barra-nav">
+    <a href="../index.html" class="marca">
+      <span class="marca-arco"></span>
+      <span class="marca-texto">Camino a la Iluminación<small>Software para parroquias</small></span>
+    </a>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="../index.html">Inicio</a></li>
+      <li><a href="horarios.html">Horarios</a></li>
+      <li><a href="notificaciones.html">Avisos</a></li>
+      <li><a href="mapa.html">Iglesias cercanas</a></li>
+      <li><a href="reservas.html">Reservar sacramento</a></li>
+      <li><a href="documentos.html">Mis documentos</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <section class="seccion" style="padding-top:56px">
+    <div class="envolvente texto-verificar">
+      <p class="eyebrow">Autenticidad</p>
+      <h1>Verificar un documento</h1>
+      <p class="ayuda">Las constancias de reserva y los recibos de pago que emite la parroquia llevan un código impreso (por ejemplo <strong>CON-7K3M9-PQ2XD</strong> o <strong>REC-7K3M9-PQ2XD</strong>). Escríbelo aquí para comprobar que el documento es auténtico y que sigue vigente. Por privacidad solo se muestran datos mínimos: compáralos con los del documento que tienes en la mano.</p>
+
+      <form class="formulario" id="form-verificar" novalidate>
+        <div class="campo">
+          <label for="codigo">Código del documento</label>
+          <input type="text" id="codigo" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CON-XXXXX-XXXXX">
+        </div>
+        <button type="submit" class="boton boton-primario" id="boton-verificar">Verificar</button>
+      </form>
+
+      <div class="resultado-verificacion" id="resultado" hidden role="status" aria-live="polite">
+        <p class="resultado-estado" id="resultado-estado"></p>
+        <dl class="resultado-datos" id="resultado-datos"></dl>
+        <p class="ayuda">Si algún dato no coincide con el documento, no lo aceptes y consulta directamente a la parroquia.</p>
+      </div>
+      <div class="alerta-auth" id="alerta-verificar"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="sitio-footer">
+  <div class="envolvente">
+    Camino a la Iluminación — Proyecto final. Curso Integrador I. · <a href="privacidad.html">Política de privacidad</a> · <a href="verificar.html">Verificar documento</a>
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+<script src="../js/verificar.js"></script>
+</body>
+</html>

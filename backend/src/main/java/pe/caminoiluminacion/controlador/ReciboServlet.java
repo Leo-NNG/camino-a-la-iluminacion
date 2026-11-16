@@ -12,7 +12,9 @@ import pe.caminoiluminacion.servicio.ReglaNegocioException;
 import pe.caminoiluminacion.servicio.Servicios;
 import pe.caminoiluminacion.util.Json;
 import pe.caminoiluminacion.util.Registro;
+import pe.caminoiluminacion.servicio.VerificacionService;
 import pe.caminoiluminacion.util.ReciboPdf;
+import pe.caminoiluminacion.util.UrlBase;
 import pe.caminoiluminacion.util.Sesion;
 
 import java.io.IOException;
@@ -29,12 +31,18 @@ public class ReciboServlet extends HttpServlet {
 
     private final PagoService pagos;
     private final Clock reloj;
+    private final VerificacionService verificacion; // null = el recibo sale sin código de verificación
 
-    public ReciboServlet() { this(Servicios.pagos(), IntencionService.relojDePeru()); }
+    public ReciboServlet() { this(Servicios.pagos(), IntencionService.relojDePeru(), Servicios.verificacion()); }
 
     ReciboServlet(PagoService pagos, Clock reloj) {
+        this(pagos, reloj, null);
+    }
+
+    ReciboServlet(PagoService pagos, Clock reloj, VerificacionService verificacion) {
         this.pagos = pagos;
         this.reloj = reloj;
+        this.verificacion = verificacion;
     }
 
     @Override
@@ -42,7 +50,8 @@ public class ReciboServlet extends HttpServlet {
         if (!Sesion.hayUsuario(request)) { error(response, 401, "Inicia sesión para continuar."); return; }
         try {
             Recibo r = pagos.paraRecibo(Sesion.rol(request), Sesion.idUsuario(request), Sesion.idParroquia(request), request.getParameter("id"));
-            byte[] pdf = ReciboPdf.generar(r, reloj);
+            String codigo = verificacion == null ? null : verificacion.codigoRecibo(r.pago().idPago());
+            byte[] pdf = codigo == null ? ReciboPdf.generar(r, reloj) : ReciboPdf.generar(r, reloj, codigo, UrlBase.verificacion(request, codigo));
             response.setContentType("application/pdf");
             response.setContentLength(pdf.length);
             response.setHeader("Content-Disposition", "inline; filename=\"recibo-" + r.numero() + ".pdf\"");

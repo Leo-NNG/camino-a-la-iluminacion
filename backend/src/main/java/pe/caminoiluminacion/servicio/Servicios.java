@@ -12,6 +12,7 @@ import pe.caminoiluminacion.dao.impl.IntencionDAOImpl;
 import pe.caminoiluminacion.dao.impl.NotificacionDAOImpl;
 import pe.caminoiluminacion.dao.impl.PagoDAOImpl;
 import pe.caminoiluminacion.dao.impl.RequisitoDAOImpl;
+import pe.caminoiluminacion.dao.impl.VerificacionDAOImpl;
 import pe.caminoiluminacion.dao.impl.ParroquiaDAOImpl;
 import pe.caminoiluminacion.dao.impl.ReporteDAOImpl;
 import pe.caminoiluminacion.dao.impl.ReservaDAOImpl;
@@ -60,6 +61,9 @@ public final class Servicios {
     private static final CuentaService CUENTA_SERVICE = new CuentaService(USUARIOS, new CuentaDAOImpl(), RESERVAS, new DocumentoDAOImpl(), PAGOS,
             new IntencionDAOImpl(), NOTIFICACIONES, PARROQUIAS, ALMACEN_PAGOS, new LimiteIntentos(), BITACORA, IntencionService.relojDePeru());
 
+    // La verificación pública limita los intentos fallidos por IP: 20 en 10 minutos y se bloquea 10 minutos.
+    private static final VerificacionService VERIFICACION_SERVICE = new VerificacionService(new VerificacionDAOImpl(), RESERVAS, PARROQUIAS, SACRAMENTOS,
+            REQUISITO_SERVICE, new LimiteIntentos(20, 600_000, 600_000, System::currentTimeMillis));
     private static final GestionReservaService GESTION_RESERVA_SERVICE = new GestionReservaService(RESERVAS, FECHAS, SACRAMENTOS, PAGOS, BITACORA, java.time.LocalDate::now);
 
     private Servicios() { }
@@ -77,4 +81,5 @@ public final class Servicios {
     public static CuentaService cuenta() { return CUENTA_SERVICE; }
     public static RequisitoService requisitos() { return REQUISITO_SERVICE; }
     public static GestionReservaService gestionReservas() { return GESTION_RESERVA_SERVICE; }
+    public static VerificacionService verificacion() { return VERIFICACION_SERVICE; }
 }

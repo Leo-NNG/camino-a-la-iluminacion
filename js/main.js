@@ -223,13 +223,15 @@ function cargarMisReservas() {
         const acciones = (r.puedeReprogramar ? `<button type="button" class="boton-mini" data-accion="reprogramar-reserva" ${datos}>Reprogramar</button>` : '')
           + (r.puedeCancelar ? `<button type="button" class="boton-mini rechazar" data-accion="cancelar-reserva" ${datos}>Cancelar</button>` : '');
         const botones = acciones ? `<br><span class="acciones-reserva">${acciones}</span>` : '';
+        // La constancia (PDF con código verificable) existe solo cuando la parroquia confirmó la fecha.
+        const constancia = r.estado === 'confirmada' ? `<br><a href="/api/reservas/constancia?id=${Number(r.id)}" target="_blank" rel="noopener">Constancia (PDF)</a>` : '';
         return `<tr>
           <td>${escaparHtml(NOMBRES_SACRAMENTO[r.sacramento] || r.sacramento)}</td>
           <td>${escaparHtml(r.parroquia)}</td>
           <td>${escaparHtml(r.solicitante)}</td>
           <td>${formatearFecha(r.fecha)}</td>
           <td><span class="insignia ${clase}">${texto}</span></td>
-          <td>${detalle}${pagar}${botones}</td>
+          <td>${detalle}${pagar}${constancia}${botones}</td>
         </tr>`;
       }).join('');
     })

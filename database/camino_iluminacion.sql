@@ -155,6 +155,7 @@ CREATE TABLE reserva (
   reprogramaciones   TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Cuántas veces el feligrés reprogramó la solicitud',
   cancelada_en       TIMESTAMP NULL COMMENT 'Cuándo la canceló el feligrés',
   motivo_cancelacion VARCHAR(255) NULL COMMENT 'Motivo opcional que escribe el feligrés al cancelar',
+  codigo_verificacion VARCHAR(20) NULL COMMENT 'Código impreso en la constancia en PDF (CON-XXXXX-XXXXX); se asigna al descargarla',
 
   CONSTRAINT fk_reserva_usuario FOREIGN KEY (id_usuario)
     REFERENCES usuario (id_usuario)
@@ -322,6 +323,7 @@ CREATE TABLE pago (
   -- fuera (valor NULL), así el feligrés puede reintentar tras corregir un error sin que choque con el rechazado.
   clave_operacion  VARCHAR(40) AS (IF(estado = 'rechazado', NULL, CONCAT(metodo, ':', numero_operacion))) VIRTUAL,
   clave_voucher    VARCHAR(64) AS (IF(estado = 'rechazado', NULL, voucher_sha256)) VIRTUAL,
+  codigo_verificacion VARCHAR(20) NULL COMMENT 'Código impreso en el recibo en PDF (REC-XXXXX-XXXXX); se asigna al descargarlo',
   CONSTRAINT uq_pago_operacion UNIQUE (clave_operacion),
   CONSTRAINT uq_pago_voucher   UNIQUE (clave_voucher),
   CONSTRAINT ck_pago_monto CHECK (monto > 0),
@@ -397,6 +399,11 @@ ALTER TABLE documento
   ADD CONSTRAINT fk_documento_requisito FOREIGN KEY (id_requisito)
     REFERENCES requisito_sacramento (id_requisito)
     ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Códigos de verificación únicos de constancias y recibos (aquí, después de los índices anteriores, para que el esquema sea
+-- idéntico al de una base migrada con migracion_14_codigos_verificables.sql).
+ALTER TABLE reserva ADD CONSTRAINT uq_reserva_codigo UNIQUE (codigo_verificacion);
+ALTER TABLE pago    ADD CONSTRAINT uq_pago_codigo    UNIQUE (codigo_verificacion);
 
 -- ============================================================================
 -- DATOS DE EJEMPLO
