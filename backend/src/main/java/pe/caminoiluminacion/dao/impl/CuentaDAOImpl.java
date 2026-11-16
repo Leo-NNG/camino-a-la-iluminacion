@@ -95,7 +95,7 @@ public class CuentaDAOImpl implements CuentaDAO {
         ejecutar(con, "DELETE FROM notificacion WHERE id_usuario = ?", id);
         // El pago se conserva (es un registro contable de la parroquia) pero sin el celular de origen.
         ejecutar(con, "UPDATE pago SET celular_origen = NULL WHERE id_usuario = ?", id);
-        ejecutar(con, "UPDATE reserva SET nombre_solicitante = '(anonimizado)', notas = NULL WHERE id_usuario = ?", id);
+        ejecutar(con, "UPDATE reserva SET nombre_solicitante = '(anonimizado)', notas = NULL, motivo_cancelacion = NULL WHERE id_usuario = ?", id);
         ejecutar(con, "UPDATE intencion_misa SET texto = '(eliminada)' WHERE id_usuario = ?", id);
         ejecutar(con, "UPDATE bitacora SET ip = NULL WHERE id_usuario = ?", id);
         // correo es NOT NULL y UNIQUE: se deja un marcador único e inválido. contrasena_hash '!' no es un hash válido:

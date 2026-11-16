@@ -194,7 +194,7 @@
     const zonaArancel = q('cobro-arancel');
     function cargarSolicitudes() {
       return pedir('/api/mis-reservas').then(({ data }) => {
-        const activas = Array.isArray(data) ? data.filter((r) => r.estado !== 'rechazada') : [];
+        const activas = Array.isArray(data) ? data.filter((r) => r.estado !== 'rechazada' && r.estado !== 'cancelada') : [];
         selReserva.length = 1;
         activas.forEach((r) => {
           const op = document.createElement('option');

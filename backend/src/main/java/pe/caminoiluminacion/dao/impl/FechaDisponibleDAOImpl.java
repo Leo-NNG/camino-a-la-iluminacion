@@ -13,11 +13,11 @@ import java.util.Optional;
 
 public class FechaDisponibleDAOImpl implements FechaDisponibleDAO {
 
-    /** Columnas de la fecha, el sacramento y cuántas solicitudes activas (no rechazadas) la ocupan. */
+    /** Columnas de la fecha, el sacramento y cuántas solicitudes activas (ni rechazadas ni canceladas) la ocupan. */
     private static final String SELECT =
             "SELECT f.id_fecha, f.id_parroquia, f.id_sacramento, s.codigo, s.nombre, f.fecha, f.hora_inicio, f.cupo, "
           + "(SELECT COUNT(*) FROM reserva r WHERE r.id_parroquia = f.id_parroquia AND r.id_sacramento = f.id_sacramento "
-          + "AND r.fecha_solicitada = f.fecha AND r.estado <> 'rechazada') AS ocupados "
+          + "AND r.fecha_solicitada = f.fecha AND r.estado NOT IN ('rechazada','cancelada')) AS ocupados "
           + "FROM fecha_disponible f JOIN sacramento s ON s.id_sacramento = f.id_sacramento ";
 
     @Override

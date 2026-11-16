@@ -12,9 +12,13 @@ public class Reserva {
     private String nombreSolicitante;
     private Date fechaSolicitada;
     private String notas;
-    private String estado; // pendiente, confirmada, rechazada
+    private String estado; // pendiente, confirmada, rechazada, cancelada (la cancela el propio feligres)
     private String motivoRechazo; // solo cuando estado = rechazada
     private Timestamp creadoEn;
+    private Date fechaOriginal;      // primera fecha pedida (solo si se reprogramo)
+    private int reprogramaciones;    // cuantas veces se reprogramo
+    private Timestamp canceladaEn;
+    private String motivoCancelacion; // opcional, lo escribe el feligres
 
     public Reserva() {
     }
@@ -65,4 +69,16 @@ public class Reserva {
         return "Reserva{id=" + idReserva + ", sacramento='" + sacramento
             + "', solicitante='" + nombreSolicitante + "', estado='" + estado + "'}";
     }
+
+    public Date getFechaOriginal() { return fechaOriginal; }
+    public void setFechaOriginal(Date fechaOriginal) { this.fechaOriginal = fechaOriginal; }
+
+    public int getReprogramaciones() { return reprogramaciones; }
+    public void setReprogramaciones(int reprogramaciones) { this.reprogramaciones = reprogramaciones; }
+
+    public Timestamp getCanceladaEn() { return canceladaEn; }
+    public void setCanceladaEn(Timestamp canceladaEn) { this.canceladaEn = canceladaEn; }
+
+    public String getMotivoCancelacion() { return motivoCancelacion; }
+    public void setMotivoCancelacion(String motivoCancelacion) { this.motivoCancelacion = motivoCancelacion; }
 }

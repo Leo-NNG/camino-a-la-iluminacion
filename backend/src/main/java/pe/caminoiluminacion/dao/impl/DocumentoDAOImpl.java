@@ -48,7 +48,7 @@ public class DocumentoDAOImpl implements DocumentoDAO {
     @Override
     public List<Documento> listarPendientesPorParroquia(int idParroquia) throws SQLException {
         String sql = "SELECT d.* FROM documento d JOIN reserva r ON r.id_reserva = d.id_reserva "
-                   + "WHERE d.estado_validacion = 'pendiente' AND r.id_parroquia = ? ORDER BY d.fecha_envio";
+                   + "WHERE d.estado_validacion = 'pendiente' AND r.id_parroquia = ? AND r.estado <> 'cancelada' ORDER BY d.fecha_envio";
         List<Documento> lista = new ArrayList<>();
         try (Connection con = Conexion.obtener();
              PreparedStatement ps = con.prepareStatement(sql)) {

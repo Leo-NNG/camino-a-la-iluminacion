@@ -124,8 +124,8 @@ public class PagoService {
                              InputStream comprobante, String ip) throws SQLException, IOException {
         String metodo = metodo(metodoTxt);
         Reserva reserva = reservaPropia(idUsuario, idReservaTxt);
-        if ("rechazada".equals(reserva.getEstado())) {
-            throw new ReglaNegocioException(409, "Esa solicitud fue rechazada: no corresponde pagarla.");
+        if ("rechazada".equals(reserva.getEstado()) || "cancelada".equals(reserva.getEstado())) {
+            throw new ReglaNegocioException(409, "Esa solicitud fue " + reserva.getEstado() + ": no corresponde pagarla.");
         }
         if (pagoDAO.vigenteDeReserva(reserva.getIdReserva()).isPresent()) {
             throw new ReglaNegocioException(409, "Esa solicitud ya tiene un pago registrado.");

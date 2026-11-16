@@ -19,7 +19,7 @@ public class ReporteDAOImpl implements ReporteDAO {
                    + "COALESCE(SUM(r.estado = 'pendiente'), 0) AS pendientes, "
                    + "COALESCE(SUM(r.estado = 'rechazada'), 0) AS rechazadas "
                    + "FROM sacramento s "
-                   + "LEFT JOIN reserva r ON r.id_sacramento = s.id_sacramento AND r.id_parroquia = ? "
+                   + "LEFT JOIN reserva r ON r.id_sacramento = s.id_sacramento AND r.id_parroquia = ? AND r.estado <> 'cancelada' "
                    + (mes != null ? "AND DATE_FORMAT(r.creado_en, '%Y-%m') = ? " : "")
                    + "GROUP BY s.id_sacramento, s.nombre ORDER BY s.id_sacramento";
         List<FilaTramites> lista = new ArrayList<>();
@@ -46,7 +46,7 @@ public class ReporteDAOImpl implements ReporteDAO {
                    + "JOIN reserva r ON r.id_reserva = d.id_reserva "
                    + "JOIN usuario u ON u.id_usuario = d.id_usuario "
                    + "JOIN sacramento s ON s.id_sacramento = r.id_sacramento "
-                   + "WHERE d.estado_validacion = 'pendiente' AND r.id_parroquia = ? "
+                   + "WHERE d.estado_validacion = 'pendiente' AND r.id_parroquia = ? AND r.estado <> 'cancelada' "
                    + "ORDER BY d.fecha_envio ASC";
         List<FilaDocumento> lista = new ArrayList<>();
         try (Connection con = Conexion.obtener();

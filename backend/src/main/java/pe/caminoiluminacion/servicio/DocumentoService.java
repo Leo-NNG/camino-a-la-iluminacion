@@ -86,8 +86,8 @@ public class DocumentoService {
         // La solicitud debe ser del propio usuario (si es de otro, se responde como si no existiera).
         Optional<Reserva> reserva = reservaDAO.buscarPorId(idReserva);
         if (reserva.isEmpty() || !reserva.get().getIdUsuario().equals(idUsuario)) throw new ReglaNegocioException(404, "La solicitud no existe.");
-        if ("rechazada".equals(reserva.get().getEstado())) {
-            throw new ReglaNegocioException(409, "Esa solicitud fue rechazada. Haz una nueva solicitud para enviar documentos.");
+        if ("rechazada".equals(reserva.get().getEstado()) || "cancelada".equals(reserva.get().getEstado())) {
+            throw new ReglaNegocioException(409, "Esa solicitud fue " + reserva.get().getEstado() + ". Haz una nueva solicitud para enviar documentos.");
         }
 
         Integer idRequisito = null;
