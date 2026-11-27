@@ -66,6 +66,10 @@ public final class Servicios {
             REQUISITO_SERVICE, new LimiteIntentos(20, 600_000, 600_000, System::currentTimeMillis));
     private static final GestionReservaService GESTION_RESERVA_SERVICE = new GestionReservaService(RESERVAS, FECHAS, SACRAMENTOS, PAGOS, BITACORA, java.time.LocalDate::now);
 
+    // Consulta de DNI (Factiliza): token solo por la variable FACTILIZA_TOKEN; 10 consultas por IP cada 10 minutos.
+    private static final ConsultaDniService CONSULTA_DNI_SERVICE = new ConsultaDniService(ConsultaDniService.clienteJdk(),
+            ConsultaDniService.tokenDeEntorno(), new LimiteIntentos(10, 600_000, 600_000, System::currentTimeMillis));
+
     private Servicios() { }
 
     public static BitacoraService bitacora() { return BITACORA; }
@@ -82,4 +86,5 @@ public final class Servicios {
     public static RequisitoService requisitos() { return REQUISITO_SERVICE; }
     public static GestionReservaService gestionReservas() { return GESTION_RESERVA_SERVICE; }
     public static VerificacionService verificacion() { return VERIFICACION_SERVICE; }
+    public static ConsultaDniService consultaDni() { return CONSULTA_DNI_SERVICE; }
 }
