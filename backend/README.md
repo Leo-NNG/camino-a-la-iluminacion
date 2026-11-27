@@ -71,6 +71,32 @@ FROM bitacora b LEFT JOIN usuario u ON u.id_usuario = b.id_usuario
 ORDER BY b.creado_en DESC LIMIT 50;
 ```
 
+## Bitácora en el panel, salud y respaldos
+- **Bitácora** (`paginas/admin/bitacora.html`, `GET /api/admin/bitacora[?accion=CODIGO][&limite=N]`): últimas acciones
+  (50, 100 o 200; máximo 200) del **personal de la parroquia del administrador**: ingresos, validaciones, pagos, avisos,
+  horarios, fechas, requisitos, cobros y reportes, con fecha, persona, detalle e IP. No muestra a los feligreses ni al
+  personal de otras parroquias. No requiere migración.
+- **Salud** (`GET /api/salud`, público): `200 {"estado":"ok","baseDatos":"ok",...}` si la aplicación y la base
+  responden; `503` con `"error"` si la base no responde (nunca muestra el motivo; queda en el log). Sirve para un
+  monitor externo (UptimeRobot, Zabbix…) y lo usa el `healthcheck` de Docker Compose.
+- **Respaldos** (los archivos quedan **fuera** del repositorio; tienen datos personales, guárdalos con cuidado):
+  - Windows: `powershell -ExecutionPolicy Bypass -File scripts\respaldo.ps1 [-BaseDatos camino_iluminacion_dev] [-ConDocumentos] [-Dias 30]`.
+    Usa `DB_USER`/`DB_PASSWORD` (la contraseña va en un archivo temporal que solo tu usuario puede leer y se borra al
+    terminar), guarda en `~\respaldos_camino_iluminacion`, comprueba que el volcado esté completo y borra los de más
+    de 30 días. `-ConDocumentos` agrega un .zip de `DOCS_DIR`.
+  - Respaldo diario a las 23:00 con el Programador de tareas:
+    ```powershell
+    schtasks /Create /SC DAILY /ST 23:00 /TN "Respaldo Camino a la Iluminacion" /TR "powershell -NoProfile -ExecutionPolicy Bypass -File \"$PWD\scripts\respaldo.ps1\" -ConDocumentos"
+    ```
+    (desde la raíz del repositorio; la tarea corre con tu usuario y usa tus variables de entorno).
+  - Linux/macOS: `scripts/respaldo.sh`; con Docker: `scripts/respaldo.sh --docker` (genera `.sql.gz`).
+  - **Restaurar** en una base nueva (nunca encima de la que está en uso sin un respaldo previo):
+    ```powershell
+    & 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe' -u root -p --default-character-set=utf8mb4 -e "CREATE DATABASE camino_restaurada CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+    cmd /c "\"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe\" -u root -p --default-character-set=utf8mb4 camino_restaurada < RUTA\DEL\RESPALDO.sql"
+    ```
+    Los DNI siguen cifrados: hace falta la misma `CAI_DATA_KEY` (o `.data-key`) para leerlos.
+
 ## Reportes (panel del administrador)
 `GET /api/admin/reportes?tipo=tramites|documentos|agenda|ingresos[&mes=AAAA-MM][&formato=xlsx]`, siempre de **la parroquia del administrador**. Sin `formato` devuelve JSON para las tablas de la pantalla; con `formato=xlsx` descarga un **Excel real** generado con Apache POI en `util/ExcelReporte` (los textos se guardan como celda de texto, así que un valor que empiece con `=` nunca se ejecuta como fórmula; los importes llevan formato `S/ #,##0.00`).
 - R1 trámites por sacramento y mes, con totales y columna **Canceladas** («Solicitudes» incluye las canceladas por el feligrés).
@@ -86,7 +112,7 @@ ORDER BY b.creado_en DESC LIMIT 50;
 
 ## Pruebas automáticas
 `mvn test` (desde `backend/`). JUnit 5, sin base de datos ni Tomcat: servlets y servicios reales con DAO falsos en memoria.
-- **Pruebas unitarias:** `util/` (claves con hash, límite de intentos, JSON, almacén de archivos, Excel), `servicio/` (reservas con reloj fijo, usuarios, reportes, consulta de DNI con cliente HTTP falso), `filtro/` (CSRF, cookie de sesión) y `conexion/` (variables de entorno obligatorias).
+- **Pruebas unitarias:** `util/` (claves con hash, límite de intentos, JSON, almacén de archivos, Excel), `servicio/` (reservas con reloj fijo, usuarios, reportes, consulta de DNI con cliente HTTP falso), `filtro/` (CSRF, cookie de sesión), `conexion/` (variables de entorno obligatorias) y `controlador/BitacoraYSaludServletTest` (bitácora del panel y /api/salud).
 - **Escenarios** (`controlador/EscenariosTest`): recorridos completos de acceso por DNI y roles, reservas, documentos, parroquias/horarios/avisos y sacramentos, incluyendo ataques típicos (otra parroquia, archivos disfrazados, entradas maliciosas).
 - Lo que NO cubren: el SQL real de los DAO (hay que probarlo contra MySQL/MariaDB), Tomcat y el navegador.
 

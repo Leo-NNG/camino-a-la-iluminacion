@@ -1463,6 +1463,62 @@ document.addEventListener('DOMContentLoaded', () => {
     .catch(() => { actualizado.textContent = ''; nota.textContent = 'No se pudo conectar con el servidor.'; });
 });
 
+/* ---------- panel admin: bitácora del personal de la parroquia ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('form-bitacora');
+  if (!form) return; // solo existe en paginas/admin/bitacora.html
+  const ACCIONES = {
+    LOGIN_OK: 'Inició sesión', LOGIN_FALLIDO: 'Intento de ingreso fallido', LOGOUT: 'Cerró sesión',
+    CUENTA_CONTACTO_ACTUALIZADO: 'Actualizó sus datos de contacto', CUENTA_CLAVE_CAMBIADA: 'Cambió su contraseña',
+    CUENTA_CLAVE_FALLIDA: 'Contraseña actual incorrecta', DATOS_DESCARGADOS: 'Descargó sus datos', POLITICA_ACEPTADA: 'Aceptó la política de privacidad',
+    RESERVA_CONFIRMADA: 'Confirmó una solicitud', RESERVA_RECHAZADA: 'Rechazó una solicitud',
+    DOCUMENTO_VALIDADO: 'Validó un documento', DOCUMENTO_RECHAZADO: 'Rechazó un documento',
+    PAGO_APROBADO: 'Aprobó un pago', PAGO_RECHAZADO: 'Rechazó un pago',
+    AVISO_PUBLICADO: 'Publicó un aviso', AVISO_ELIMINADO: 'Eliminó un aviso',
+    HORARIO_CREADO: 'Agregó un horario', HORARIO_MODIFICADO: 'Modificó un horario', HORARIO_ELIMINADO: 'Eliminó un horario',
+    SACRAMENTOS_ACTUALIZADOS: 'Actualizó los sacramentos ofrecidos',
+    FECHA_DISPONIBLE_CREADA: 'Abrió una fecha', FECHA_DISPONIBLE_MODIFICADA: 'Modificó una fecha', FECHA_DISPONIBLE_ELIMINADA: 'Eliminó una fecha',
+    REQUISITO_CREADO: 'Agregó un requisito', REQUISITO_MODIFICADO: 'Modificó un requisito', REQUISITO_ELIMINADO: 'Eliminó un requisito',
+    CUENTA_PAGO_EDITADA: 'Editó las cuentas Yape/Plin', OFRENDA_INTENCION_EDITADA: 'Editó la ofrenda de intenciones', ARANCEL_EDITADO: 'Editó un arancel',
+    REPORTE_EXPORTADO: 'Descargó un reporte'
+  };
+  const selectAccion = document.getElementById('filtro-accion');
+  Object.keys(ACCIONES).sort((x, y) => ACCIONES[x].localeCompare(ACCIONES[y], 'es')).forEach((codigo) => {
+    const op = document.createElement('option');
+    op.value = codigo;
+    op.textContent = ACCIONES[codigo];
+    selectAccion.appendChild(op);
+  });
+  const tbody = document.getElementById('tabla-bitacora');
+  const nota = document.getElementById('nota-bitacora');
+  const formatoFecha = new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeStyle: 'short' });
+  const cargar = () => {
+    const params = new URLSearchParams(new FormData(form));
+    if (!params.get('accion')) params.delete('accion');
+    nota.textContent = 'Cargando…';
+    fetch('/api/admin/bitacora?' + params.toString(), { cache: 'no-store', credentials: 'same-origin' })
+      .then((r) => r.json().catch(() => ({})).then((data) => ({ ok: r.ok, data })))
+      .then(({ ok, data }) => {
+        if (!ok || !Array.isArray(data)) { tbody.innerHTML = ''; nota.textContent = data.error || 'No se pudo cargar la bitácora.'; return; }
+        tbody.innerHTML = data.map((f) => {
+          const fecha = f.fecha ? new Date(f.fecha) : null; // hora del servidor (Perú)
+          const cuando = fecha && !isNaN(fecha) ? formatoFecha.format(fecha) : escaparHtml(f.fecha);
+          return `<tr><td>${cuando}</td><td>${escaparHtml(f.usuario)}</td>
+            <td class="bitacora-accion" title="${escaparHtml(f.accion)}">${escaparHtml(ACCIONES[f.accion] || f.accion)}</td>
+            <td>${escaparHtml(f.detalle)}</td><td>${escaparHtml(f.ip)}</td></tr>`;
+        }).join('');
+        nota.textContent = data.length
+          ? 'Mostrando ' + data.length + (data.length === 1 ? ' acción' : ' acciones') + ', de la más reciente a la más antigua.'
+          : 'No hay acciones registradas con ese filtro.';
+      })
+      .catch(() => { nota.textContent = 'No se pudo conectar con el servidor.'; });
+  };
+  form.addEventListener('submit', (e) => { e.preventDefault(); cargar(); });
+  selectAccion.addEventListener('change', cargar);
+  document.getElementById('filtro-limite').addEventListener('change', cargar);
+  cargar();
+});
+
 /* ---------- panel admin: fechas disponibles para reservar sacramentos ---------- */
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('form-fecha');

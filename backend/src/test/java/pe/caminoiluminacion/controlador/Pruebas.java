@@ -166,6 +166,12 @@ public class Pruebas {
             if (fallar) throw new SQLException("bitácora caída");
             filas.add(new String[]{String.valueOf(idUsuario), accion, detalle, ip});
         }
+        public List<BitacoraDAO.Entrada> entradas = new ArrayList<>(); public Integer parroquiaPedida; public String accionPedida; public Integer limitePedido;
+        public List<BitacoraDAO.Entrada> recientesDelPersonal(int idParroquia, String accion, int limite) throws SQLException {
+            if (fallar) throw new SQLException("bitácora caída");
+            parroquiaPedida = idParroquia; accionPedida = accion; limitePedido = limite;
+            return entradas;
+        }
         public boolean hay(String accion) { return filas.stream().anyMatch(f -> f[1].equals(accion)); }
         public long cuenta(String accion) { return filas.stream().filter(f -> f[1].equals(accion)).count(); }
         public String ultima(String accion) { String[] r = null; for (String[] f : filas) if (f[1].equals(accion)) r = f; return r == null ? null : String.join("|", r); }

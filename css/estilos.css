@@ -848,3 +848,9 @@ body[data-requiere-rol]:not(.sesion-ok) { visibility: hidden; }
 
 /* Enlaces del saludo de la barra (Mi cuenta) y del pie (Política de privacidad) */
 .nav-saludo a, .sitio-footer a { color: inherit; text-decoration: underline; }
+
+/* Panel: bitácora del personal */
+.bitacora-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 8px 0 20px; }
+.bitacora-filtros select { width: auto; min-width: 160px; }
+.bitacora-filtros .boton { margin: 0; }
+.bitacora-accion { white-space: nowrap; }

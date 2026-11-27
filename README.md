@@ -21,6 +21,7 @@ Pantallas: `paginas/pagos.html` (pagar un trámite, donar o diezmar, mis pagos),
 Pendiente: un antivirus para los archivos subidos.
 Para ponerlo en marcha: `backend/README.md` (variables de entorno, scripts SQL, migraciones y despliegue como `ROOT.war` en Tomcat 10).
 Con Docker: `docker compose up --build -d` levanta la aplicación y MariaDB (ver «Con Docker» en `backend/README.md`).
+Mantenimiento: bitácora del personal en el panel, `GET /api/salud` para monitoreo y respaldos con `scripts/respaldo.ps1` (Windows) o `scripts/respaldo.sh` (Linux/Docker).
 Las variables obligatorias son `DB_USER` y `DB_PASSWORD` (y `CAI_DATA_KEY` en un despliegue); el código no trae credenciales por defecto.
 
 ## Estructura del proyecto

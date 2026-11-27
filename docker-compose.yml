@@ -46,6 +46,13 @@ services:
       FACTILIZA_TOKEN: ${FACTILIZA_TOKEN:-}
     ports:
       - "${APP_PUERTO:-8080}:8080"
+    healthcheck:
+      # /api/salud responde 200 solo si la aplicación y la base de datos están bien.
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/api/salud"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     volumes:
       - documentos:/datos/docs
       - registros:/datos/logs

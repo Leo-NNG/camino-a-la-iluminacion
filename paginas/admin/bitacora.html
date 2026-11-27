@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel administrador — Bitácora</title>
+<link rel="stylesheet" href="../../css/estilos.css">
+<link rel="stylesheet" href="../../css/ios.css">
+</head>
+<body data-requiere-rol="administrador">
+
+<div class="franja-admin">Panel de personal parroquial — <span id="franja-parroquia">tu parroquia</span> · <a href="../../index.html">Ver el sitio público</a></div>
+
+
+<header class="sitio-header">
+  <nav class="barra-nav">
+    <a href="resumen.html" class="marca">
+      <span class="marca-arco"></span>
+      <span class="marca-texto">Camino a la Iluminación<small>Panel administrador</small></span>
+    </a>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="resumen.html">Resumen</a></li>
+      <li><a href="documentos.html">Validar documentos</a></li>
+      <li><a href="avisos.html">Publicar aviso</a></li>
+      <li><a href="horarios.html">Gestionar horarios</a></li>
+      <li><a href="fechas.html">Fechas disponibles</a></li>
+      <li><a href="requisitos.html">Requisitos</a></li>
+      <li><a href="reportes.html">Reportes</a></li>
+      <li><a href="pagos.html">Pagos</a></li>
+      <li><a href="intenciones.html">Intenciones</a></li>
+      <li><a href="cobros.html">Cobros</a></li>
+      <li><a href="bitacora.html" class="activo">Bitácora</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <section class="seccion" style="padding-top:56px">
+    <div class="envolvente">
+      <div class="encabezado-seccion">
+        <p class="eyebrow">Trazabilidad</p>
+        <h1>Bitácora del personal</h1>
+        <p>Lo que hizo el personal de tu parroquia en el panel y en su cuenta: ingresos, validaciones, pagos, avisos, horarios y reportes. No se guardan DNI, contraseñas ni contenido de documentos.</p>
+      </div>
+
+      <form id="form-bitacora" class="bitacora-filtros">
+        <label for="filtro-accion">Acción</label>
+        <select id="filtro-accion" name="accion" class="form-select">
+          <option value="">Todas</option>
+        </select>
+        <label for="filtro-limite">Mostrar</label>
+        <select id="filtro-limite" name="limite" class="form-select">
+          <option value="50">últimas 50</option>
+          <option value="100" selected>últimas 100</option>
+          <option value="200">últimas 200</option>
+        </select>
+        <button type="submit" class="boton boton-secundario">Actualizar</button>
+      </form>
+
+      <div class="tabla-scroll">
+      <table class="tabla-tramites">
+        <thead>
+          <tr>
+            <th>Fecha y hora</th>
+            <th>Persona</th>
+            <th>Acción</th>
+            <th>Detalle</th>
+            <th>IP</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-bitacora"></tbody>
+      </table>
+      </div>
+      <p class="ayuda" id="nota-bitacora" aria-live="polite">Cargando…</p>
+    </div>
+  </section>
+</main>
+
+<footer class="sitio-footer">
+  <div class="envolvente">
+    Camino a la Iluminación — Proyecto final. Curso Integrador I. · <a href="../privacidad.html">Política de privacidad</a> · <a href="../verificar.html">Verificar documento</a>
+  </div>
+</footer>
+
+<script src="../../js/main.js"></script>
+</body>
+</html>
