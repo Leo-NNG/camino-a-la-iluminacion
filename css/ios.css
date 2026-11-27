@@ -52,7 +52,8 @@ background:rgba(255,252,245,.8)!important;-webkit-backdrop-filter:saturate(180%)
 .ios-filtros{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0 14px;margin-bottom:8px}
 .ios-panel{background:#fff;border-radius:20px;border:1px solid var(--ios-sep);box-shadow:0 4px 24px rgba(0,0,0,.06);padding:20px;margin-bottom:20px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media (min-width:861px){.nav-links{flex-wrap:nowrap}.nav-links li{white-space:nowrap}.nav-links a{padding:8px 10px;font-size:.84rem}#nav-cuenta{margin-left:6px;display:flex;align-items:center;white-space:nowrap}#nav-cuenta .nav-saludo{display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:.84rem}}
+/* El menú pasa a dos líneas antes que desbordar la página (el panel tiene 10 enlaces). */
+@media (min-width:861px){.nav-links{flex-wrap:wrap;row-gap:2px}.nav-links li{white-space:nowrap}.nav-links a{padding:8px 10px;font-size:.84rem}#nav-cuenta{margin-left:6px;display:flex;align-items:center;white-space:nowrap}#nav-cuenta .nav-saludo{display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:.84rem}}
 @media (min-width:861px) and (max-width:1380px){.marca-texto small{display:none}}
 
 /* ===== Paleta litúrgica: vino, oro y marfil ===== */

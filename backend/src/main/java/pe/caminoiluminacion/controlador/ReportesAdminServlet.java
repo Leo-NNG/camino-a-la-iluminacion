@@ -11,6 +11,7 @@ import pe.caminoiluminacion.dao.ReporteDAO.FilaTramites;
 import pe.caminoiluminacion.servicio.ReglaNegocioException;
 import pe.caminoiluminacion.servicio.ReporteService;
 import pe.caminoiluminacion.servicio.ReporteService.Archivo;
+import pe.caminoiluminacion.servicio.ReporteService.IngresoConcepto;
 import pe.caminoiluminacion.servicio.Servicios;
 import pe.caminoiluminacion.util.AccesoAdmin;
 import pe.caminoiluminacion.util.Registro;
@@ -27,7 +28,7 @@ import java.util.List;
 
 /**
  * Reportes del panel, siempre de la parroquia del administrador.
- * GET /api/admin/reportes?tipo=tramites|documentos|agenda[&mes=AAAA-MM][&formato=xlsx]
+ * GET /api/admin/reportes?tipo=tramites|documentos|agenda|ingresos[&mes=AAAA-MM][&formato=xlsx]
  * Sin formato devuelve JSON (para las tablas de la pantalla); con formato=xlsx descarga el Excel.
  */
 @WebServlet("/api/admin/reportes")
@@ -65,6 +66,7 @@ public class ReportesAdminServlet extends HttpServlet {
             if ("tramites".equals(tipo)) out.print(jsonTramites(reportes.tramites(idParroquia, mes)));
             else if ("documentos".equals(tipo)) out.print(jsonDocumentos(reportes.documentosPendientes(idParroquia)));
             else if ("agenda".equals(tipo)) out.print(jsonAgenda(reportes.agenda(idParroquia)));
+            else if ("ingresos".equals(tipo)) out.print(jsonIngresos(reportes.ingresos(idParroquia, mes)));
             else { Respuesta.error(response, out, 400, "Reporte no válido."); return; }
             response.setStatus(HttpServletResponse.SC_OK);
         } catch (ReglaNegocioException e) {
@@ -119,7 +121,7 @@ public class ReportesAdminServlet extends HttpServlet {
             if (i > 0) sb.append(",");
             sb.append("{\"sacramento\":\"").append(Json.esc(f.sacramento())).append("\",\"solicitudes\":").append(f.solicitudes())
               .append(",\"confirmadas\":").append(f.confirmadas()).append(",\"pendientes\":").append(f.pendientes())
-              .append(",\"rechazadas\":").append(f.rechazadas()).append("}");
+              .append(",\"rechazadas\":").append(f.rechazadas()).append(",\"canceladas\":").append(f.canceladas()).append("}");
         }
         return sb.append("]").toString();
     }
@@ -145,5 +147,22 @@ public class ReportesAdminServlet extends HttpServlet {
               .append("\",\"solicitante\":\"").append(Json.esc(f.solicitante())).append("\",\"contacto\":\"").append(Json.esc(f.contacto())).append("\"}");
         }
         return sb.append("]").toString();
+    }
+
+    /** Importes con dos decimales, como número JSON (BigDecimal no usa notación científica con toPlainString). */
+    static String jsonIngresos(List<IngresoConcepto> filas) {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < filas.size(); i++) {
+            IngresoConcepto f = filas.get(i);
+            if (i > 0) sb.append(",");
+            sb.append("{\"concepto\":\"").append(Json.esc(f.concepto())).append("\",\"pagos\":").append(f.pagos())
+              .append(",\"yape\":").append(importe(f.yape())).append(",\"plin\":").append(importe(f.plin()))
+              .append(",\"total\":").append(importe(f.total())).append("}");
+        }
+        return sb.append("]").toString();
+    }
+
+    static String importe(java.math.BigDecimal monto) {
+        return monto.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString();
     }
 }

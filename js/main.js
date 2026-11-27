@@ -35,7 +35,7 @@ function estaEnPaginas() { return window.location.pathname.includes('/paginas/')
 function rutaPaginas() { return estaEnAdmin() ? '../' : (estaEnPaginas() ? '' : 'paginas/'); }
 function rutaIndex() { return estaEnAdmin() ? '../../index.html' : (estaEnPaginas() ? '../index.html' : 'index.html'); }
 
-const INICIO_POR_ROL = { administrador: 'admin/documentos.html', feligres: 'reservas.html' };
+const INICIO_POR_ROL = { administrador: 'admin/resumen.html', feligres: 'reservas.html' };
 function inicioPorRol(rol) { return rutaPaginas() + (INICIO_POR_ROL[rol] || 'login.html'); }
 
 /* Solo se acepta como destino una página interna (evita redirecciones a sitios externos). */
@@ -85,7 +85,7 @@ function pintarNavCuenta() {
     });
     const liPanel = document.createElement('li');
     const enlace = document.createElement('a');
-    enlace.href = rutaPaginas() + 'admin/documentos.html';
+    enlace.href = rutaPaginas() + 'admin/resumen.html';
     enlace.textContent = 'Panel administrador';
     liPanel.appendChild(enlace);
     navLinks.appendChild(liPanel);
@@ -1372,6 +1372,12 @@ document.addEventListener('DOMContentLoaded', () => {
     opciones.push(`<option value="${valor}">${escaparHtml(etiqueta.charAt(0).toUpperCase() + etiqueta.slice(1))}</option>`);
   }
   selectMes.innerHTML = opciones.join('');
+  const selectMesIngresos = document.getElementById('reporte-mes-ingresos');
+  const enlaceIngresos = document.getElementById('descargar-ingresos');
+  if (selectMesIngresos) {
+    selectMesIngresos.innerHTML = opciones.join('');
+    selectMesIngresos.selectedIndex = 1; // por defecto, el mes en curso
+  }
 
   const filaVacia = (columnas, texto) => `<tr><td colspan="${columnas}">${escaparHtml(texto)}</td></tr>`;
 
@@ -1382,9 +1388,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const nota = document.getElementById('nota-reporte-tramites');
       if (!ok) { tbodyTramites.innerHTML = ''; nota.textContent = data.error || 'No se pudo generar el reporte.'; return; }
       nota.textContent = '';
-      const total = data.reduce((t, f) => ({ s: t.s + f.solicitudes, c: t.c + f.confirmadas, p: t.p + f.pendientes, r: t.r + f.rechazadas }), { s: 0, c: 0, p: 0, r: 0 });
-      tbodyTramites.innerHTML = data.map((f) => `<tr><td>${escaparHtml(f.sacramento)}</td><td>${f.solicitudes}</td><td>${f.confirmadas}</td><td>${f.pendientes}</td><td>${f.rechazadas}</td></tr>`).join('')
-        + `<tr class="fila-total"><td><strong>Total</strong></td><td><strong>${total.s}</strong></td><td><strong>${total.c}</strong></td><td><strong>${total.p}</strong></td><td><strong>${total.r}</strong></td></tr>`;
+      const total = data.reduce((t, f) => ({ s: t.s + f.solicitudes, c: t.c + f.confirmadas, p: t.p + f.pendientes, r: t.r + f.rechazadas, x: t.x + (f.canceladas || 0) }), { s: 0, c: 0, p: 0, r: 0, x: 0 });
+      tbodyTramites.innerHTML = data.map((f) => `<tr><td>${escaparHtml(f.sacramento)}</td><td>${Number(f.solicitudes)}</td><td>${Number(f.confirmadas)}</td><td>${Number(f.pendientes)}</td><td>${Number(f.rechazadas)}</td><td>${Number(f.canceladas || 0)}</td></tr>`).join('')
+        + `<tr class="fila-total"><td><strong>Total</strong></td><td><strong>${total.s}</strong></td><td><strong>${total.c}</strong></td><td><strong>${total.p}</strong></td><td><strong>${total.r}</strong></td><td><strong>${total.x}</strong></td></tr>`;
     }).catch(() => { document.getElementById('nota-reporte-tramites').textContent = 'No se pudo conectar con el servidor.'; });
   };
 
@@ -1406,10 +1412,55 @@ document.addEventListener('DOMContentLoaded', () => {
     tbody.innerHTML = data.map((f) => `<tr><td>${formatearFecha(f.fecha)}</td><td>${escaparHtml(f.sacramento)}</td><td>${escaparHtml(f.solicitante)}</td><td>${escaparHtml(f.contacto)}</td></tr>`).join('');
   }).catch(() => { document.getElementById('nota-reporte-agenda').textContent = 'No se pudo conectar con el servidor.'; });
 
+  const NOMBRES_CONCEPTO_PAGO = { arancel: 'Arancel', intencion: 'Intención de misa', donacion: 'Donación', diezmo: 'Diezmo' };
+  const soles = (n) => 'S/ ' + Number(n).toFixed(2);
+  const cargarIngresos = () => {
+    if (!selectMesIngresos) return Promise.resolve();
+    const mes = selectMesIngresos.value;
+    const filtro = mes ? '&mes=' + encodeURIComponent(mes) : '';
+    enlaceIngresos.href = '/api/admin/reportes?tipo=ingresos&formato=xlsx' + filtro;
+    return pedir('tipo=ingresos' + filtro).then(({ ok, data }) => {
+      const tbody = document.getElementById('tabla-reporte-ingresos');
+      const nota = document.getElementById('nota-reporte-ingresos');
+      if (!ok) { tbody.innerHTML = ''; nota.textContent = data.error || 'No se pudo generar el reporte.'; return; }
+      const t = data.reduce((a, f) => ({ n: a.n + Number(f.pagos), y: a.y + Number(f.yape), p: a.p + Number(f.plin), s: a.s + Number(f.total) }), { n: 0, y: 0, p: 0, s: 0 });
+      nota.textContent = t.n ? '' : 'No hay pagos verificados en este periodo.';
+      tbody.innerHTML = data.map((f) => `<tr><td>${escaparHtml(NOMBRES_CONCEPTO_PAGO[f.concepto] || f.concepto)}</td><td>${Number(f.pagos)}</td>
+        <td>${soles(f.yape)}</td><td>${soles(f.plin)}</td><td>${soles(f.total)}</td></tr>`).join('')
+        + `<tr class="fila-total"><td><strong>Total</strong></td><td><strong>${t.n}</strong></td><td><strong>${soles(t.y)}</strong></td><td><strong>${soles(t.p)}</strong></td><td><strong>${soles(t.s)}</strong></td></tr>`;
+    }).catch(() => { document.getElementById('nota-reporte-ingresos').textContent = 'No se pudo conectar con el servidor.'; });
+  };
+
   selectMes.addEventListener('change', cargarTramites);
+  if (selectMesIngresos) selectMesIngresos.addEventListener('change', cargarIngresos);
   cargarTramites();
   cargarDocumentos();
   cargarAgenda();
+  cargarIngresos();
+});
+
+/* ---------- panel admin: resumen (dashboard) con contadores ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  const contadores = document.querySelectorAll('[data-contador]');
+  const nota = document.getElementById('nota-resumen');
+  if (!contadores.length || !nota) return; // solo existe en paginas/admin/resumen.html
+  const actualizado = document.getElementById('resumen-actualizado');
+  fetch('/api/admin/resumen', { cache: 'no-store', credentials: 'same-origin' })
+    .then((r) => r.json().catch(() => ({})).then((data) => ({ ok: r.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) { actualizado.textContent = ''; nota.textContent = data.error || 'No se pudo cargar el resumen.'; return; }
+      contadores.forEach((el) => {
+        const [grupo, clave] = el.dataset.contador.split('.');
+        const valor = Number((data[grupo] || {})[clave] || 0);
+        el.textContent = el.dataset.formato === 'soles' ? 'S/ ' + valor.toFixed(2) : String(valor);
+        // Resalta las tarjetas de "Pendientes de atender" que tienen algo por hacer.
+        const tarjeta = el.closest('.resumen-kpi');
+        if (grupo === 'pendientes' && tarjeta) tarjeta.classList.toggle('con-pendientes', valor > 0);
+      });
+      document.getElementById('resumen-dias').textContent = String(Number(data.diasProximos) || 7);
+      actualizado.textContent = 'Toca una tarjeta para ir a la pantalla correspondiente. Actualizado a las ' + new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    })
+    .catch(() => { actualizado.textContent = ''; nota.textContent = 'No se pudo conectar con el servidor.'; });
 });
 
 /* ---------- panel admin: fechas disponibles para reservar sacramentos ---------- */

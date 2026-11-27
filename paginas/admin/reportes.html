@@ -14,12 +14,13 @@
 
 <header class="sitio-header">
   <nav class="barra-nav">
-    <a href="documentos.html" class="marca">
+    <a href="resumen.html" class="marca">
       <span class="marca-arco"></span>
       <span class="marca-texto">Camino a la Iluminación<small>Panel administrador</small></span>
     </a>
     <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
     <ul class="nav-links">
+      <li><a href="resumen.html">Resumen</a></li>
       <li><a href="documentos.html">Validar documentos</a></li>
       <li><a href="avisos.html">Publicar aviso</a></li>
       <li><a href="horarios.html">Gestionar horarios</a></li>
@@ -53,11 +54,13 @@
             <th>Confirmadas</th>
             <th>Pendientes</th>
             <th>Rechazadas</th>
+            <th>Canceladas</th>
           </tr>
         </thead>
         <tbody id="tabla-reporte-tramites"></tbody>
       </table>
       </div>
+      <p style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;">«Solicitudes» suma todas las del mes, también las que el feligrés canceló.</p>
       <p id="nota-reporte-tramites" style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;"></p>
       <a class="boton boton-secundario" id="descargar-tramites" href="/api/admin/reportes?tipo=tramites&amp;formato=xlsx">Descargar en Excel</a>
 
@@ -80,7 +83,7 @@
       <p id="nota-reporte-documentos" style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;"></p>
       <a class="boton boton-secundario" href="/api/admin/reportes?tipo=documentos&amp;formato=xlsx">Descargar en Excel</a>
 
-      <h2 style="margin-top:56px;">Agenda de celebraciones confirmadas</h2>
+      <h2 id="agenda" style="margin-top:56px;">Agenda de celebraciones confirmadas</h2>
       <p style="font-size:.9rem;color:var(--color-ink-soft);">Reservas confirmadas desde hoy en adelante, para planificar las celebraciones.</p>
       <div class="tabla-scroll">
       <table class="tabla-tramites">
@@ -97,6 +100,29 @@
       </div>
       <p id="nota-reporte-agenda" style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;"></p>
       <a class="boton boton-secundario" href="/api/admin/reportes?tipo=agenda&amp;formato=xlsx">Descargar en Excel</a>
+
+      <h2 id="ingresos" style="margin-top:56px;">Ingresos verificados</h2>
+      <p style="font-size:.9rem;color:var(--color-ink-soft);">Pagos Yape y Plin que tu parroquia ya aprobó, por concepto y según el mes en que se pagaron. El Excel trae además el detalle de cada pago.</p>
+      <div class="campo" style="max-width:320px;margin-bottom:16px;">
+        <label for="reporte-mes-ingresos">Mes del pago</label>
+        <select id="reporte-mes-ingresos"></select>
+      </div>
+      <div class="tabla-scroll">
+      <table class="tabla-tramites">
+        <thead>
+          <tr>
+            <th>Concepto</th>
+            <th>Pagos</th>
+            <th>Yape</th>
+            <th>Plin</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-reporte-ingresos"></tbody>
+      </table>
+      </div>
+      <p id="nota-reporte-ingresos" style="font-size:.9rem;color:var(--color-ink-soft);margin-top:12px;"></p>
+      <a class="boton boton-secundario" id="descargar-ingresos" href="/api/admin/reportes?tipo=ingresos&amp;formato=xlsx">Descargar en Excel</a>
     </div>
   </section>
 </main>

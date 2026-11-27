@@ -88,4 +88,32 @@ class ExcelReporteTest {
         Sheet h = leer(ExcelReporte.generar("H", List.of("Monto"), List.of(List.of(new BigDecimal("50.50"))), false));
         assertEquals(50.5, h.getRow(1).getCell(0).getNumericCellValue(), 0.0001);
     }
+
+    @Test
+    void generaVariasHojasEnOrdenYSinNombresRepetidos() throws IOException {
+        byte[] xlsx = ExcelReporte.generar(List.of(
+                new ExcelReporte.Hoja("Resumen", List.of("A"), List.of(List.of("uno")), false),
+                new ExcelReporte.Hoja("resumen", List.of("B"), List.of(List.of("dos")), false),
+                new ExcelReporte.Hoja("x".repeat(40), List.of("C"), List.of(), false),
+                new ExcelReporte.Hoja("x".repeat(40), List.of("D"), List.of(), false)));
+        try (XSSFWorkbook libro = new XSSFWorkbook(new ByteArrayInputStream(xlsx))) {
+            assertEquals(4, libro.getNumberOfSheets());
+            assertEquals("Resumen", libro.getSheetName(0));
+            assertEquals("resumen 2", libro.getSheetName(1));
+            assertEquals("x".repeat(31), libro.getSheetName(2));
+            assertEquals("x".repeat(29) + " 2", libro.getSheetName(3));
+            assertEquals("dos", libro.getSheetAt(1).getRow(1).getCell(0).getStringCellValue());
+        }
+    }
+
+    @Test
+    void losImportesLlevanFormatoDeSolesYElTotalVaEnNegrita() throws IOException {
+        Sheet h = leer(ExcelReporte.generar("H", List.of("Concepto", "Monto", "Pagos"),
+                List.of(List.of("Arancel", new BigDecimal("1234.5"), 2), List.of("Total", new BigDecimal("1234.5"), 2)), true));
+        assertEquals(ExcelReporte.FORMATO_SOLES, h.getRow(1).getCell(1).getCellStyle().getDataFormatString());
+        assertEquals("S/ 1,234.50", new org.apache.poi.ss.usermodel.DataFormatter(java.util.Locale.US).formatCellValue(h.getRow(1).getCell(1)));
+        assertEquals("General", h.getRow(1).getCell(2).getCellStyle().getDataFormatString(), "un entero no es un importe");
+        assertTrue(h.getWorkbook().getFontAt(h.getRow(2).getCell(1).getCellStyle().getFontIndex()).getBold(), "importe del total en negrita");
+        assertEquals(ExcelReporte.FORMATO_SOLES, h.getRow(2).getCell(1).getCellStyle().getDataFormatString());
+    }
 }

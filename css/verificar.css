@@ -1,5 +1,7 @@
 /* Verificación pública de documentos */
 .texto-verificar { max-width: 640px; }
+/* La tarjeta del formulario quedaba pegada al párrafo introductorio. */
+.texto-verificar #form-verificar { margin-top: 28px; }
 .resultado-verificacion { margin-top: 24px; padding: 18px 20px; border-radius: 14px; border-left: 5px solid var(--color-line, #D9D2C3); background: #fff; }
 .resultado-verificacion.vigente { border-left-color: #4E7A56; background: #F2F8F3; }
 .resultado-verificacion.no-vigente { border-left-color: var(--color-wine); background: #FBF1F1; }
