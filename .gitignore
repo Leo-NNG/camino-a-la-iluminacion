@@ -15,3 +15,6 @@ database/respaldo_*.sql
 
 # Clave de cifrado generada en desarrollo (NUNCA subir)
 .data-key
+
+# Variables de Docker Compose (contraseñas y clave): NUNCA subir
+.env

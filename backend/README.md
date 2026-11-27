@@ -139,6 +139,27 @@ mvn clean package          # corre las pruebas y genera target/ROOT.war
 el frontend llama a `/api/...`. No necesita `web.xml`: servlets y filtros usan anotaciones. Define las variables de
 entorno de la sección «Configurar» en el servicio de Tomcat. En IntelliJ, SmartTomcat se sigue usando igual.
 
+## Con Docker (app + MariaDB)
+Requiere Docker Desktop (Windows/macOS) o Docker Engine con Compose. Desde la **raíz** del repositorio:
+```powershell
+Copy-Item .env.example .env     # luego completa DB_ROOT_PASSWORD, DB_PASSWORD y CAI_DATA_KEY
+docker compose up --build -d    # compila ROOT.war dentro de la imagen y levanta todo
+docker compose logs -f app      # ver el arranque (Ctrl+C para salir)
+```
+Abre `http://localhost:8080` (o el puerto `APP_PUERTO`). La primera vez, MariaDB crea la base con
+`database/camino_iluminacion.sql` (con los usuarios de demostración) y la aplicación cifra los DNI al arrancar.
+- `.env` tiene contraseñas y la clave del DNI: está en `.gitignore` y **no se sube**. Respalda `CAI_DATA_KEY`.
+- La base no publica su puerto: solo la aplicación llega a ella. Tomcat corre con un usuario sin privilegios.
+- Base de datos, documentos subidos y registros quedan en volúmenes de Docker. `docker compose down` los conserva;
+  `docker compose down -v` **los borra**.
+- El script inicial solo se ejecuta con el volumen vacío: en una base ya creada, aplica las migraciones a mano.
+- La imagen no corre las pruebas (eso lo hace GitHub Actions); para actualizar tras un `git pull`: `docker compose up --build -d`.
+
+## Integración continua (GitHub Actions)
+`.github/workflows/ci.yml` corre `mvn clean test` con Java 17 en cada push y en cada Pull Request a `main`, y
+luego comprueba que `ROOT.war` se empaqueta. El resultado aparece en la pestaña *Actions* y en el PR (✔ o ✖). Si
+fallan pruebas, los reportes quedan como artefacto `reportes-surefire` durante 7 días.
+
 ## Consulta de DNI en el registro (Factiliza)
 `GET /api/consulta-dni` dice si está disponible (`{"disponible":true|false}`); `POST /api/consulta-dni` con `dni`
 devuelve nombres y apellidos. La consulta la hace el servidor (`ConsultaDniService`, cliente HTTP inyectable) con

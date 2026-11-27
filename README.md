@@ -20,6 +20,7 @@ Incluye **intenciones de misa con ofrenda** (cupo por misa, agenda para el perso
 Pantallas: `paginas/pagos.html` (pagar un trámite, donar o diezmar, mis pagos), `paginas/intenciones.html`, `paginas/bandeja.html` (avisos y campana en la barra) y, en el panel, `admin/pagos.html` (verificar pagos e ingresos), `admin/cobros.html` (Yape/Plin, ofrenda y aranceles) y `admin/intenciones.html` (agenda imprimible para el párroco). Su lógica está en `js/pagos.js`.
 Pendiente: un antivirus para los archivos subidos.
 Para ponerlo en marcha: `backend/README.md` (variables de entorno, scripts SQL, migraciones y despliegue como `ROOT.war` en Tomcat 10).
+Con Docker: `docker compose up --build -d` levanta la aplicación y MariaDB (ver «Con Docker» en `backend/README.md`).
 Las variables obligatorias son `DB_USER` y `DB_PASSWORD` (y `CAI_DATA_KEY` en un despliegue); el código no trae credenciales por defecto.
 
 ## Estructura del proyecto
