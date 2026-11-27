@@ -1,0 +1,56 @@
+# Aplicación + MariaDB para probar o desplegar con Docker.
+#   1. Copia .env.example a .env y completa las contraseñas y la clave CAI_DATA_KEY.
+#   2. docker compose up --build -d
+#   3. Abre http://localhost:8080 (o el puerto de APP_PUERTO).
+# La primera vez, MariaDB crea la base con database/camino_iluminacion.sql (incluye los usuarios de demostración).
+# Los datos quedan en volúmenes: «docker compose down» los conserva; «docker compose down -v» los BORRA.
+
+services:
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Define DB_ROOT_PASSWORD en .env}
+      MARIADB_DATABASE: camino_iluminacion
+      MARIADB_USER: ${DB_USER:-cai_app}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en .env}
+      TZ: America/Lima
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db-datos:/var/lib/mysql
+      - ./database/camino_iluminacion.sql:/docker-entrypoint-initdb.d/01-camino_iluminacion.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    # Sin «ports»: la base solo es accesible desde la aplicación, no desde fuera.
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: camino_iluminacion
+      DB_USER: ${DB_USER:-cai_app}
+      DB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en .env}
+      CAI_DATA_KEY: ${CAI_DATA_KEY:?Define CAI_DATA_KEY en .env (32 bytes en base64)}
+      CAI_URL_PUBLICA: ${CAI_URL_PUBLICA:-}
+      FACTILIZA_TOKEN: ${FACTILIZA_TOKEN:-}
+    ports:
+      - "${APP_PUERTO:-8080}:8080"
+    volumes:
+      - documentos:/datos/docs
+      - registros:/datos/logs
+
+volumes:
+  db-datos:
+  documentos:
+  registros:

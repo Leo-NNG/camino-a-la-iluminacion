@@ -1,0 +1,11 @@
+.git
+.github
+.idea
+.vscode
+*.iml
+backend/target
+**/.data-key
+.env
+database/respaldo_*.sql
+*.patch
+*.log
