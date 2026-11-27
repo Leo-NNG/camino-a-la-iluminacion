@@ -1,29 +1,42 @@
 # Backend — Camino a la Iluminación
 
-Backend en Java (JDBC + patrón DAO) para el proyecto. Arquitectura en capas
-según el Capítulo 8.1 del informe: Presentación → Lógica de negocio → DAO → BD.
-Esta etapa cubre Modelo + DAO; la capa de Servicios (lógica de negocio) y los
-controladores web se agregan en una etapa posterior del curso.
+Backend en Java 17 (Jakarta Servlets para Tomcat 10, JDBC + patrón DAO). Arquitectura en capas
+según el Capítulo 8.1 del informe: Presentación → Lógica de negocio → DAO → BD. Se empaqueta como
+`ROOT.war`, que trae también el frontend (`index.html`, `paginas/`, `css/`, `js/`, `vendor/`).
 
 ## Requisitos
 - JDK 17 o superior
-- Maven
-- Base de datos ya creada: correr primero `../database/camino_iluminacion.sql`
+- Maven 3.9 (o el que trae IntelliJ)
+- MySQL 8 o MariaDB 10.6+ con la base ya creada: correr primero `../database/camino_iluminacion.sql`
+- Tomcat 10.1 para ejecutar la aplicación web
 
-## Configurar
-La conexión se lee de variables de entorno (no se escriben credenciales en el código):
+## Configurar (variables de entorno)
+Toda la configuración sale de variables de entorno: en el código no hay usuarios, contraseñas ni tokens.
 
-| Variable | Por defecto |
-|---|---|
-| `DB_HOST` | `localhost` |
-| `DB_PORT` | `3306` |
-| `DB_NAME` | `camino_iluminacion` |
-| `DB_USER` | `root` |
-| `DB_PASSWORD` | `1234` (solo para desarrollo local) |
-| `FACTILIZA_TOKEN` | *(vacía)*: token de la API de Factiliza para autocompletar nombres por DNI en el registro. Sin ella, el registro funciona igual y los nombres se escriben a mano. Nunca se escribe en el código ni llega al navegador. |
+| Variable | ¿Obligatoria? | Por defecto | Para qué |
+|---|---|---|---|
+| `DB_USER` | **Sí** | — | Usuario de MySQL/MariaDB. En un despliegue, un usuario de aplicación sin privilegios de administrador. |
+| `DB_PASSWORD` | **Sí** | — | Contraseña de ese usuario. |
+| `DB_HOST` | No | `localhost` | Servidor de la base de datos. |
+| `DB_PORT` | No | `3306` | Puerto. |
+| `DB_NAME` | No | `camino_iluminacion` | Nombre de la base. |
+| `CAI_DATA_KEY` | **Sí en despliegue** | — | Clave de cifrado del DNI: 32 bytes en base64 (ver el README principal, «Seguridad de los datos»). |
+| `CAI_DATA_KEY_FILE` | No | `.data-key` en la carpeta de trabajo | Solo si no hay `CAI_DATA_KEY`: archivo donde se lee (o, en desarrollo, se crea) la clave. Respáldalo. |
+| `DOCS_DIR` | No | `~/camino_iluminacion_docs` | Carpeta de documentos y comprobantes subidos (fuera de la carpeta pública). |
+| `CAI_LOG_DIR` | No | `~/camino_iluminacion_logs` | Carpeta de los registros de Logback (un archivo por día, 30 días). |
+| `CAI_URL_PUBLICA` | No | la dirección de la petición | Dirección que se imprime en los PDF verificables, p. ej. `https://miparroquia.pe`. |
+| `FACTILIZA_TOKEN` | No | *(vacía)* | Token de la API de Factiliza para autocompletar nombres por DNI en el registro. Sin él, los nombres se escriben a mano. Nunca va en el código ni llega al navegador. |
 
-Define al menos `DB_PASSWORD` con la contraseña real de tu MySQL/MariaDB (y, en un
-despliegue, un usuario de aplicación sin privilegios de administrador).
+Si falta `DB_USER` o `DB_PASSWORD`, cada consulta a la base falla con un mensaje que dice qué variable falta
+(ya no se intenta entrar como `root` con una contraseña fija).
+
+En Windows (PowerShell), para tu usuario; luego **cierra y vuelve a abrir** la terminal, IntelliJ o Tomcat:
+```powershell
+[Environment]::SetEnvironmentVariable('DB_USER', 'root', 'User')
+[Environment]::SetEnvironmentVariable('DB_PASSWORD', (Read-Host 'Contraseña de MySQL'), 'User')
+```
+En SmartTomcat: *Run > Edit Configurations > Environment variables*. En un servicio de Tomcat, en `bin/setenv.bat`
+(o `setenv.sh`), que no se sube al repositorio.
 
 ## Base de datos
 - **Base nueva:** ejecutar `../database/camino_iluminacion.sql` (ya incluye DNI y parroquia del administrador).
@@ -69,11 +82,11 @@ ORDER BY b.creado_en DESC LIMIT 50;
 ## Seguridad adicional
 - **CSRF:** `FiltroOrigen` exige que toda petición que cambia datos bajo `/api/` venga del propio sitio (`Sec-Fetch-Site` same-origin y `Origin` igual al `Host`). Si pones un proxy inverso delante de Tomcat, debe **conservar el encabezado `Host` original**; de lo contrario las peticiones legítimas se rechazarán con 403.
 - **Cookie de sesión:** `ConfiguracionSesion` la marca `HttpOnly` y `SameSite=Lax`. Con HTTPS agrega también `Secure` (`setSecure(true)`).
-- Los errores del servidor se registran con `java.util.logging` (Tomcat los lleva a sus archivos de log); al navegador nunca se le envían detalles internos.
+- Los errores del servidor se registran con Logback/SLF4J (`util/Registro`, archivos en `CAI_LOG_DIR`); al navegador nunca se le envían detalles internos.
 
 ## Pruebas automáticas
 `mvn test` (desde `backend/`). JUnit 5, sin base de datos ni Tomcat: servlets y servicios reales con DAO falsos en memoria.
-- **Pruebas unitarias:** `util/` (claves con hash, límite de intentos, JSON, almacén de archivos, Excel), `servicio/` (reservas con reloj fijo, usuarios, reportes) y `filtro/` (CSRF, cookie de sesión).
+- **Pruebas unitarias:** `util/` (claves con hash, límite de intentos, JSON, almacén de archivos, Excel), `servicio/` (reservas con reloj fijo, usuarios, reportes, consulta de DNI con cliente HTTP falso), `filtro/` (CSRF, cookie de sesión) y `conexion/` (variables de entorno obligatorias).
 - **Escenarios** (`controlador/EscenariosTest`): recorridos completos de acceso por DNI y roles, reservas, documentos, parroquias/horarios/avisos y sacramentos, incluyendo ataques típicos (otra parroquia, archivos disfrazados, entradas maliciosas).
 - Lo que NO cubren: el SQL real de los DAO (hay que probarlo contra MySQL/MariaDB), Tomcat y el navegador.
 
@@ -106,17 +119,16 @@ ORDER BY b.creado_en DESC LIMIT 50;
 | Administrador (parroquia San José) | 70000000 |
 | Feligreses | 70000001, 70000002, 70000003, 70000004 |
 
-## Compilar y correr
+## Compilar, probar y correr
 ```bash
-mvn compile
-mvn exec:java
+mvn clean test             # pruebas (no necesitan base de datos)
+mvn clean package          # pruebas + target/ROOT.war
 ```
-o desde tu IDE: clic derecho sobre `PruebaConexion.java` → Run.
+En IntelliJ: panel *Maven* → `clean` y luego `test`. Para usar la aplicación, despliega el WAR (siguiente sección)
+o ejecútala con SmartTomcat, con las variables de entorno de «Configurar».
 
-`PruebaConexion.java` conecta a la base de datos, lista parroquias, horarios
-y avisos, crea una reserva y un documento de prueba, y simula la aprobación
-del documento por el panel de administración — para confirmar que las 6
-tablas y sus relaciones funcionan de punta a punta.
+`PruebaConexion.java` es una demostración antigua de la capa DAO: **escribe datos de prueba** (una reserva y un
+documento) en la base configurada, así que úsala solo contra una base de desarrollo (clic derecho → Run).
 
 ## Desplegar como WAR (Tomcat 10)
 ```bash
@@ -137,11 +149,16 @@ casilla obligatoria de la política de privacidad no cambian. El DNI no se escri
 ## Estructura
 ```
 src/main/java/pe/caminoiluminacion/
-├── conexion/     Conexion.java (punto único de conexión JDBC)
-├── modelo/       Usuario, Parroquia, Horario, Aviso, Reserva, Documento
+├── conexion/     Conexion.java (punto único de conexión JDBC, lee las variables DB_*)
+├── controlador/  Servlets (/api/...): leen la petición, llaman al servicio y responden JSON
+├── servicio/     Reglas de negocio; Servicios.java ensambla todo
 ├── dao/          Interfaces (contrato de cada DAO)
 ├── dao/impl/     Implementaciones con JDBC puro
-└── PruebaConexion.java   Clase de demostración end-to-end
+├── modelo/       Entidades (Usuario, Parroquia, Reserva, Documento, Pago, ...)
+├── filtro/       CSRF por origen, cabeceras de seguridad, acceso al panel
+├── seguridad/    Cifrado del DNI (AES-GCM) y hash de contraseñas (PBKDF2)
+├── util/         Excel (POI), PDF, límite de intentos, registro de eventos, archivos
+└── PruebaConexion.java   Demostración antigua de la capa DAO (escribe datos de prueba)
 ```
 
 ## Intenciones de misa y recibos (resumen técnico)

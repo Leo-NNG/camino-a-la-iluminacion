@@ -18,8 +18,9 @@ Pagos por **Yape y Plin** con verificación manual (arancel de reservas, donacio
 cada parroquia, comprobante en el almacén privado y avisos dentro de la plataforma. No hay pasarela ni se reciben datos de tarjeta.
 Incluye **intenciones de misa con ofrenda** (cupo por misa, agenda para el personal) y **recibo en PDF** de cada pago aprobado.
 Pantallas: `paginas/pagos.html` (pagar un trámite, donar o diezmar, mis pagos), `paginas/intenciones.html`, `paginas/bandeja.html` (avisos y campana en la barra) y, en el panel, `admin/pagos.html` (verificar pagos e ingresos), `admin/cobros.html` (Yape/Plin, ofrenda y aranceles) y `admin/intenciones.html` (agenda imprimible para el párroco). Su lógica está en `js/pagos.js`.
-Pendiente: despliegue como WAR y un antivirus para los archivos subidos.
-Para ponerlo en marcha: `backend/README.md` (variables de entorno, scripts SQL y migraciones).
+Pendiente: un antivirus para los archivos subidos.
+Para ponerlo en marcha: `backend/README.md` (variables de entorno, scripts SQL, migraciones y despliegue como `ROOT.war` en Tomcat 10).
+Las variables obligatorias son `DB_USER` y `DB_PASSWORD` (y `CAI_DATA_KEY` en un despliegue); el código no trae credenciales por defecto.
 
 ## Estructura del proyecto
 ```
@@ -58,8 +59,9 @@ camino-a-la-iluminacion/
 - `database/camino_iluminacion.sql` — script con las 6 tablas del modelo entidad-relación (Capítulo 8.3) y datos de ejemplo.
 - `backend/` — proyecto Maven en Java con modelos y DAO para las 6 tablas. Ver `backend/README.md` para instrucciones de configuración y ejecución.
 
-## Cómo ver el prototipo
-No necesita servidor: clona el repositorio y abre `index.html` en el navegador.
+## Cómo verlo
+Las páginas estáticas se pueden abrir directamente (`index.html`), pero el registro, el acceso, las reservas, los pagos
+y el panel necesitan el backend: genera `ROOT.war` y despliégalo en Tomcat 10 como se explica en `backend/README.md`.
 
 ## Cómo contribuir
 1. Trae los últimos cambios: `git pull`
