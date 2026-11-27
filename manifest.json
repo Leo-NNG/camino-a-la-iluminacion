@@ -1,0 +1,26 @@
+{
+  "name": "Camino a la Iluminación",
+  "short_name": "Camino",
+  "description": "Reservas de sacramentos, documentos, pagos e intenciones de misa de las parroquias de Chiclayo.",
+  "lang": "es-PE",
+  "dir": "ltr",
+  "id": "/",
+  "start_url": "/?origen=app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F8F3E9",
+  "theme_color": "#6E1F2A",
+  "categories": ["lifestyle", "productivity"],
+  "icons": [
+    { "src": "iconos/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "iconos/icono.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Mis reservas", "url": "/paginas/reservas.html", "icons": [{ "src": "iconos/icono-192.png", "sizes": "192x192" }] },
+    { "name": "Pagos", "url": "/paginas/pagos.html", "icons": [{ "src": "iconos/icono-192.png", "sizes": "192x192" }] },
+    { "name": "Verificar documento", "url": "/paginas/verificar.html", "icons": [{ "src": "iconos/icono-192.png", "sizes": "192x192" }] }
+  ]
+}

@@ -1,0 +1,144 @@
+/* ==================== Accesibilidad: tamaño de letra, alto contraste y control flotante ====================
+   Las clases las pone js/preferencias.js en <html>. Todo el sitio usa rem, así que basta con cambiar la base. */
+
+html.letra-1 { font-size: 112.5%; }
+html.letra-2 { font-size: 125%; }
+html.letra-3 { font-size: 137.5%; }
+
+/* ---------- control flotante "Aa" ---------- */
+.a11y-boton {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 300;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #6E1F2A;
+  color: #fff;
+  font: 700 18px/1 Inter, system-ui, sans-serif; /* en px: el botón no crece con la letra */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .25);
+  cursor: pointer;
+}
+.a11y-boton:focus-visible { outline: 3px solid #A9812E; outline-offset: 3px; }
+.a11y-panel {
+  position: fixed;
+  left: 16px;
+  bottom: 74px;
+  z-index: 300;
+  width: min(300px, calc(100vw - 32px));
+  background: #fff;
+  color: #2A241F;
+  border: 1px solid rgba(90, 60, 40, .25);
+  border-radius: 16px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .2);
+  padding: 16px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.a11y-panel[hidden] { display: none; }
+.a11y-panel h2 { font-size: 17px; margin: 0 0 12px; color: #2A241F; }
+.a11y-fila { margin-bottom: 14px; }
+.a11y-fila > span { display: block; font-weight: 600; margin-bottom: 6px; }
+.a11y-grupo { display: flex; gap: 6px; align-items: center; }
+.a11y-panel button {
+  min-width: 44px;
+  min-height: 40px;
+  border-radius: 10px;
+  border: 1.5px solid #6E1F2A;
+  background: #fff;
+  color: #6E1F2A;
+  font: 600 15px/1 Inter, system-ui, sans-serif;
+  cursor: pointer;
+  padding: 0 10px;
+}
+.a11y-panel button[aria-pressed="true"] { background: #6E1F2A; color: #fff; }
+.a11y-panel button:disabled { opacity: .45; cursor: default; }
+.a11y-panel button:focus-visible { outline: 3px solid #A9812E; outline-offset: 2px; }
+.a11y-valor { min-width: 52px; text-align: center; font-weight: 600; }
+.a11y-restablecer { width: 100%; }
+@media print { .a11y-boton, .a11y-panel { display: none !important; } }
+
+/* ---------- alto contraste ----------
+   Negro sobre blanco, enlaces subrayados, bordes visibles y foco grueso. Usa !important porque ios.css
+   también lo usa; los selectores empiezan con html.alto-contraste para ganar siempre. */
+html.alto-contraste {
+  --color-bg: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-ink: #000000;
+  --color-ink-soft: #1A1A1A;
+  --color-wine: #5A0012;
+  --color-wine-dark: #3D000C;
+  --color-gold: #5C4300;
+  --color-gold-soft: #5C4300;
+  --color-sage: #1F3A12;
+  --color-line: #000000;
+  --shadow-soft: none;
+  --ios-blue: #5A0012;
+  --ios-bg: #FFFFFF;
+  --ios-text: #000000;
+  --ios-sec: #1A1A1A;
+  --ios-sep: #000000;
+  --ios-gold: #5C4300;
+  --ios-red: #A30000;
+  --ios-green: #0B5D1E;
+}
+html.alto-contraste body { background: #FFFFFF !important; color: #000000 !important; }
+html.alto-contraste .sitio-header,
+html.alto-contraste .barra-nav,
+html.alto-contraste .tarjeta,
+html.alto-contraste .formulario,
+html.alto-contraste .tarjeta-auth,
+html.alto-contraste .aviso,
+html.alto-contraste .tabla-scroll,
+html.alto-contraste .ios-kpi,
+html.alto-contraste .toast,
+html.alto-contraste #nav-cuenta {
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html.alto-contraste .hero,
+html.alto-contraste main,
+html.alto-contraste main section { background: #FFFFFF !important; }
+html.alto-contraste p,
+html.alto-contraste li,
+html.alto-contraste td,
+html.alto-contraste th,
+html.alto-contraste label,
+html.alto-contraste small,
+html.alto-contraste .ayuda,
+html.alto-contraste .eyebrow,
+html.alto-contraste .ios-kpi-t,
+html.alto-contraste .marca-texto,
+html.alto-contraste .marca-texto small { color: #000000 !important; }
+html.alto-contraste h1,
+html.alto-contraste h2,
+html.alto-contraste h3,
+html.alto-contraste h4 { color: #3D000C !important; }
+html.alto-contraste main a:not(.boton):not(.nav-cuenta-link):not(.ios-kpi) { color: #3D000C !important; text-decoration: underline !important; text-underline-offset: 3px; }
+html.alto-contraste .nav-links a.activo { background: #000000 !important; color: #FFFFFF !important; text-decoration: none !important; }
+html.alto-contraste .boton-primario,
+html.alto-contraste .nav-cuenta-link,
+html.alto-contraste .btn-gold { background: #3D000C !important; color: #FFFFFF !important; border: 2px solid #000000 !important; box-shadow: none !important; }
+html.alto-contraste .boton-secundario,
+html.alto-contraste .nav-salir { background: #FFFFFF !important; color: #3D000C !important; border: 2px solid #3D000C !important; }
+html.alto-contraste input,
+html.alto-contraste select,
+html.alto-contraste textarea { background: #FFFFFF !important; color: #000000 !important; border: 2px solid #000000 !important; }
+html.alto-contraste ::placeholder { color: #333333 !important; opacity: 1; }
+html.alto-contraste .franja-admin,
+html.alto-contraste .sitio-footer,
+html.alto-contraste .sitio-footer .envolvente { background: #000000 !important; color: #FFFFFF !important; }
+html.alto-contraste .franja-admin a,
+html.alto-contraste .sitio-footer a { color: #FFE066 !important; }
+html.alto-contraste :focus-visible { outline: 3px solid #000000 !important; outline-offset: 3px !important; box-shadow: 0 0 0 6px #FFE066 !important; }
+html.alto-contraste img { filter: contrast(1.1); }
+html.alto-contraste .a11y-boton { background: #000000; border-color: #FFE066; }
+html.alto-contraste .a11y-panel { border: 2px solid #000000; color: #000000; }
+html.alto-contraste .a11y-panel button { border-color: #000000; color: #000000; }
+html.alto-contraste .a11y-panel button[aria-pressed="true"] { background: #000000; color: #FFFFFF; }

@@ -1638,3 +1638,100 @@ document.addEventListener('DOMContentLoaded', () => {
 
   cargarSacramentos().then(() => { salirDeEdicion(); return cargar(); });
 });
+
+/* ==================== ACCESIBILIDAD Y APP INSTALABLE ==================== */
+
+/* Control "Aa": tamaño de letra (4 niveles) y alto contraste. Las clases las aplica js/preferencias.js
+   en el <head> al cargar; aquí solo se cambian y se guardan en este navegador. */
+document.addEventListener('DOMContentLoaded', () => {
+  const raiz = document.documentElement;
+  const TAMANOS = ['100 %', '112 %', '125 %', '137 %'];
+  const guardar = (clave, valor) => { try { localStorage.setItem(clave, valor); } catch (e) { /* sin localStorage */ } };
+  const borrar = (clave) => { try { localStorage.removeItem(clave); } catch (e) { /* sin localStorage */ } };
+  const nivelActual = () => [1, 2, 3].find((n) => raiz.classList.contains('letra-' + n)) || 0;
+
+  const boton = document.createElement('button');
+  boton.type = 'button';
+  boton.className = 'a11y-boton';
+  boton.textContent = 'Aa';
+  boton.setAttribute('aria-label', 'Opciones de accesibilidad: tamaño de letra y contraste');
+  boton.setAttribute('aria-expanded', 'false');
+  boton.setAttribute('aria-controls', 'a11y-panel');
+
+  const panel = document.createElement('div');
+  panel.className = 'a11y-panel';
+  panel.id = 'a11y-panel';
+  panel.hidden = true;
+  panel.setAttribute('role', 'group');
+  panel.setAttribute('aria-labelledby', 'a11y-titulo');
+  panel.innerHTML = `
+    <h2 id="a11y-titulo">Accesibilidad</h2>
+    <div class="a11y-fila">
+      <span id="a11y-letra-t">Tamaño de letra</span>
+      <div class="a11y-grupo" role="group" aria-labelledby="a11y-letra-t">
+        <button type="button" data-letra="-1" aria-label="Letra más pequeña">A−</button>
+        <output class="a11y-valor" aria-live="polite"></output>
+        <button type="button" data-letra="1" aria-label="Letra más grande">A+</button>
+      </div>
+    </div>
+    <div class="a11y-fila">
+      <span id="a11y-contraste-t">Contraste</span>
+      <button type="button" class="a11y-contraste" aria-pressed="false" aria-describedby="a11y-contraste-t">Alto contraste</button>
+    </div>
+    <button type="button" class="a11y-restablecer">Restablecer</button>`;
+
+  const valor = panel.querySelector('.a11y-valor');
+  const menos = panel.querySelector('[data-letra="-1"]');
+  const mas = panel.querySelector('[data-letra="1"]');
+  const contraste = panel.querySelector('.a11y-contraste');
+
+  const pintar = () => {
+    const n = nivelActual();
+    valor.textContent = TAMANOS[n];
+    menos.disabled = n === 0;
+    mas.disabled = n === 3;
+    contraste.setAttribute('aria-pressed', String(raiz.classList.contains('alto-contraste')));
+  };
+  const ponerLetra = (n) => {
+    [1, 2, 3].forEach((k) => raiz.classList.toggle('letra-' + k, k === n));
+    if (n === 0) borrar('cai-letra'); else guardar('cai-letra', String(n));
+    pintar();
+  };
+  menos.addEventListener('click', () => ponerLetra(Math.max(0, nivelActual() - 1)));
+  mas.addEventListener('click', () => ponerLetra(Math.min(3, nivelActual() + 1)));
+  contraste.addEventListener('click', () => {
+    const activo = raiz.classList.toggle('alto-contraste');
+    guardar('cai-contraste', activo ? '1' : '0');
+    pintar();
+  });
+  panel.querySelector('.a11y-restablecer').addEventListener('click', () => {
+    raiz.classList.remove('alto-contraste');
+    borrar('cai-contraste');
+    ponerLetra(0);
+  });
+
+  const abrir = (si) => {
+    panel.hidden = !si;
+    boton.setAttribute('aria-expanded', String(si));
+    if (si) { pintar(); (mas.disabled ? menos : mas).focus(); }
+  };
+  boton.addEventListener('click', () => abrir(panel.hidden));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !panel.hidden) { abrir(false); boton.focus(); }
+  });
+  document.addEventListener('click', (e) => {
+    if (!panel.hidden && !panel.contains(e.target) && e.target !== boton) abrir(false);
+  });
+
+  document.body.appendChild(panel);
+  document.body.appendChild(boton);
+  pintar();
+});
+
+/* App instalable (PWA): el service worker solo funciona en HTTPS o en localhost. Nunca guarda /api/
+   ni páginas HTML; sin conexión muestra paginas/offline.html. */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => { /* sin service worker la web funciona igual */ });
+  });
+}

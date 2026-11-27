@@ -97,6 +97,18 @@ ORDER BY b.creado_en DESC LIMIT 50;
     ```
     Los DNI siguen cifrados: hace falta la misma `CAI_DATA_KEY` (o `.data-key`) para leerlos.
 
+## App instalable (PWA) y accesibilidad
+- **Instalable:** `manifest.json` (nombre, colores e íconos en `iconos/`) y `sw.js` (service worker) en la raíz.
+  En Chrome/Edge aparece «Instalar app»; en Android, «Agregar a pantalla principal»; en iPhone, Compartir → «Agregar
+  a inicio». El service worker **solo funciona con HTTPS o en `localhost`** (no por IP de la red local).
+- **Qué guarda el teléfono:** solo CSS, JS, fuentes, íconos y `paginas/offline.html`. **Nunca** `/api/` ni páginas
+  HTML (pueden ser privadas). Sin conexión se muestra la página «No hay conexión a internet». CSS y JS se piden
+  primero a la red, así un despliegue nuevo se ve al instante. Si cambias la lista de archivos de `sw.js`, sube `VERSION`.
+- **Accesibilidad:** botón flotante **Aa** en todas las páginas: tamaño de letra (100 %, 112 %, 125 %, 137 %) y
+  **alto contraste** (negro sobre blanco, enlaces subrayados, bordes y foco visibles). Se guarda solo en ese navegador
+  (`localStorage`) y se aplica antes de pintar la página (`js/preferencias.js`). Si el sistema pide «más contraste»
+  (`prefers-contrast: more`) y la persona no eligió nada, se activa solo. Estilos en `css/accesibilidad.css`.
+
 ## Reportes (panel del administrador)
 `GET /api/admin/reportes?tipo=tramites|documentos|agenda|ingresos[&mes=AAAA-MM][&formato=xlsx]`, siempre de **la parroquia del administrador**. Sin `formato` devuelve JSON para las tablas de la pantalla; con `formato=xlsx` descarga un **Excel real** generado con Apache POI en `util/ExcelReporte` (los textos se guardan como celda de texto, así que un valor que empiece con `=` nunca se ejecuta como fórmula; los importes llevan formato `S/ #,##0.00`).
 - R1 trámites por sacramento y mes, con totales y columna **Canceladas** («Solicitudes» incluye las canceladas por el feligrés).
@@ -160,7 +172,7 @@ documento) en la base configurada, así que úsala solo contra una base de desar
 ```bash
 mvn clean package          # corre las pruebas y genera target/ROOT.war
 ```
-`ROOT.war` trae el backend y el frontend (`index.html`, `paginas/`, `css/`, `js/`, `vendor/`). Cópialo a
+`ROOT.war` trae el backend y el frontend (`index.html`, `paginas/`, `css/`, `js/`, `vendor/`, `iconos/`, `manifest.json`, `sw.js`). Cópialo a
 `webapps/` de Tomcat 10 con ese nombre para que la app quede en la raíz (`http://servidor:8080/`), que es donde
 el frontend llama a `/api/...`. No necesita `web.xml`: servlets y filtros usan anotaciones. Define las variables de
 entorno de la sección «Configurar» en el servicio de Tomcat. En IntelliJ, SmartTomcat se sigue usando igual.

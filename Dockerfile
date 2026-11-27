@@ -12,6 +12,8 @@ COPY paginas paginas
 COPY css css
 COPY js js
 COPY vendor vendor
+COPY iconos iconos
+COPY manifest.json sw.js ./
 COPY backend/src backend/src
 # Las pruebas corren en GitHub Actions (y con mvn test en tu PC); aquí solo se empaqueta.
 RUN mvn -B -ntp -o -f backend/pom.xml -DskipTests package

@@ -127,6 +127,9 @@
                 <include>css/**</include>
                 <include>js/**</include>
                 <include>vendor/**</include>
+                <include>iconos/**</include>
+                <include>manifest.json</include>
+                <include>sw.js</include>
               </includes>
             </resource>
           </webResources>
