@@ -38,10 +38,11 @@ camino-a-la-iluminacion/
 │   ├── reservas.html
 │   ├── documentos.html
 │   └── admin/            → panel de personal parroquial
+│       ├── resumen.html      → resumen (dashboard) con contadores; inicio del panel
 │       ├── documentos.html   → validar documentos
 │       ├── avisos.html       → publicar aviso
 │       ├── horarios.html     → gestionar horarios
-│       └── reportes.html     → trámites por sacramento
+│       └── reportes.html     → trámites, documentos, agenda e ingresos (Excel)
 ```
 
 ## Backend y base de datos

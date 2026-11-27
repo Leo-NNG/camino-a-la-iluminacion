@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel administrador — Resumen</title>
+<link rel="stylesheet" href="../../css/estilos.css">
+<link rel="stylesheet" href="../../css/ios.css">
+<link rel="stylesheet" href="../../css/resumen.css">
+</head>
+<body data-requiere-rol="administrador">
+
+<div class="franja-admin">Panel de personal parroquial — <span id="franja-parroquia">tu parroquia</span> · <a href="../../index.html">Ver el sitio público</a></div>
+
+
+<header class="sitio-header">
+  <nav class="barra-nav">
+    <a href="resumen.html" class="marca">
+      <span class="marca-arco"></span>
+      <span class="marca-texto">Camino a la Iluminación<small>Panel administrador</small></span>
+    </a>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="resumen.html" class="activo">Resumen</a></li>
+      <li><a href="documentos.html">Validar documentos</a></li>
+      <li><a href="avisos.html">Publicar aviso</a></li>
+      <li><a href="horarios.html">Gestionar horarios</a></li>
+      <li><a href="fechas.html">Fechas disponibles</a></li>
+      <li><a href="requisitos.html">Requisitos</a></li>
+      <li><a href="reportes.html">Reportes</a></li>
+      <li><a href="pagos.html">Pagos</a></li>
+      <li><a href="intenciones.html">Intenciones</a></li>
+      <li><a href="cobros.html">Cobros</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <section class="seccion" style="padding-top:56px">
+    <div class="envolvente">
+      <div class="encabezado-seccion">
+        <p class="eyebrow">Resumen de tu parroquia</p>
+        <h1>¿Qué hay para hoy?</h1>
+        <p class="ayuda" id="resumen-actualizado" aria-live="polite">Cargando…</p>
+      </div>
+
+      <h2 class="resumen-titulo">Pendientes de atender</h2>
+      <div class="ios-kpis resumen-kpis">
+        <a class="ios-kpi resumen-kpi" href="documentos.html#solicitudes-reserva">
+          <span class="ios-kpi-t">Solicitudes por confirmar</span>
+          <span class="ios-kpi-v" data-contador="pendientes.solicitudes">—</span>
+        </a>
+        <a class="ios-kpi resumen-kpi" href="documentos.html">
+          <span class="ios-kpi-t">Documentos por validar</span>
+          <span class="ios-kpi-v" data-contador="pendientes.documentos">—</span>
+        </a>
+        <a class="ios-kpi resumen-kpi" href="pagos.html">
+          <span class="ios-kpi-t">Pagos por verificar</span>
+          <span class="ios-kpi-v" data-contador="pendientes.pagos">—</span>
+        </a>
+      </div>
+
+      <h2 class="resumen-titulo">Próximos <span id="resumen-dias">7</span> días</h2>
+      <div class="ios-kpis resumen-kpis">
+        <a class="ios-kpi resumen-kpi" href="reportes.html#agenda">
+          <span class="ios-kpi-t">Celebraciones confirmadas</span>
+          <span class="ios-kpi-v" data-contador="proximos.celebraciones">—</span>
+        </a>
+        <a class="ios-kpi resumen-kpi" href="intenciones.html">
+          <span class="ios-kpi-t">Intenciones de misa (pago verificado)</span>
+          <span class="ios-kpi-v" data-contador="proximos.intenciones">—</span>
+        </a>
+      </div>
+
+      <h2 class="resumen-titulo">Este mes</h2>
+      <div class="ios-kpis resumen-kpis">
+        <a class="ios-kpi resumen-kpi" href="reportes.html">
+          <span class="ios-kpi-t">Solicitudes recibidas</span>
+          <span class="ios-kpi-v" data-contador="mes.solicitudes">—</span>
+        </a>
+        <a class="ios-kpi resumen-kpi" href="reportes.html">
+          <span class="ios-kpi-t">Canceladas por el feligrés</span>
+          <span class="ios-kpi-v" data-contador="mes.canceladas">—</span>
+        </a>
+        <a class="ios-kpi resumen-kpi" href="reportes.html#ingresos">
+          <span class="ios-kpi-t">Ingresos verificados (<span data-contador="mes.pagos">—</span> pagos)</span>
+          <span class="ios-kpi-v" data-contador="mes.ingresos" data-formato="soles">—</span>
+        </a>
+      </div>
+      <p class="ayuda" id="nota-resumen"></p>
+    </div>
+  </section>
+</main>
+
+<footer class="sitio-footer">
+  <div class="envolvente">
+    Camino a la Iluminación — Proyecto final. Curso Integrador I. · <a href="../privacidad.html">Política de privacidad</a> · <a href="../verificar.html">Verificar documento</a>
+  </div>
+</footer>
+
+<script src="../../js/main.js"></script>
+</body>
+</html>

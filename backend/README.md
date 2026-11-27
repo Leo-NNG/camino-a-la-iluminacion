@@ -58,8 +58,12 @@ ORDER BY b.creado_en DESC LIMIT 50;
 ```
 
 ## Reportes (panel del administrador)
-`GET /api/admin/reportes?tipo=tramites|documentos|agenda[&mes=AAAA-MM][&formato=xlsx]`, siempre de **la parroquia del administrador**. Sin `formato` devuelve JSON para las tablas de la pantalla; con `formato=xlsx` descarga un **Excel real** (se genera en `util/ExcelSimple`, sin librerías externas; los textos se guardan como texto literal, así que un valor que empiece con `=` nunca se ejecuta como fórmula).
-- R1 trámites por sacramento y mes (con totales), R2 documentos pendientes con días de espera, R3 agenda de celebraciones confirmadas.
+`GET /api/admin/reportes?tipo=tramites|documentos|agenda|ingresos[&mes=AAAA-MM][&formato=xlsx]`, siempre de **la parroquia del administrador**. Sin `formato` devuelve JSON para las tablas de la pantalla; con `formato=xlsx` descarga un **Excel real** generado con Apache POI en `util/ExcelReporte` (los textos se guardan como celda de texto, así que un valor que empiece con `=` nunca se ejecuta como fórmula; los importes llevan formato `S/ #,##0.00`).
+- R1 trámites por sacramento y mes, con totales y columna **Canceladas** («Solicitudes» incluye las canceladas por el feligrés).
+- R2 documentos pendientes con días de espera. R3 agenda de celebraciones confirmadas.
+- R4 **ingresos verificados** (pagos aprobados) por mes de pago: hoja «Resumen de ingresos» (concepto × Yape/Plin, con total) y hoja «Detalle de pagos» (fecha, feligrés, concepto, método, n.º de operación, monto y código de recibo).
+
+`GET /api/admin/resumen` alimenta el **resumen (dashboard)** de `paginas/admin/resumen.html`, que es la página de inicio del panel: solicitudes por confirmar, documentos por validar, pagos por verificar, celebraciones e intenciones (con pago verificado) de los próximos 7 días, y solicitudes, cancelaciones e ingresos del mes en curso. Las fechas se calculan con la hora de Perú. No requiere migración.
 
 ## Seguridad adicional
 - **CSRF:** `FiltroOrigen` exige que toda petición que cambia datos bajo `/api/` venga del propio sitio (`Sec-Fetch-Site` same-origin y `Origin` igual al `Host`). Si pones un proxy inverso delante de Tomcat, debe **conservar el encabezado `Host` original**; de lo contrario las peticiones legítimas se rechazarán con 403.

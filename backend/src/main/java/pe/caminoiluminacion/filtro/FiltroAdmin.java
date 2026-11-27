@@ -45,7 +45,7 @@ public class FiltroAdmin implements Filter {
         } else if (Sesion.hayUsuario(request)) {
             response.sendRedirect(ctx + "/paginas/reservas.html"); // feligrés: a su zona
         } else {
-            response.sendRedirect(ctx + "/paginas/login.html?next=admin/documentos.html");
+            response.sendRedirect(ctx + "/paginas/login.html?next=admin/resumen.html");
         }
     }
 }
