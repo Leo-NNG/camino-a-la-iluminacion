@@ -20,6 +20,7 @@ La conexión se lee de variables de entorno (no se escriben credenciales en el c
 | `DB_NAME` | `camino_iluminacion` |
 | `DB_USER` | `root` |
 | `DB_PASSWORD` | `1234` (solo para desarrollo local) |
+| `FACTILIZA_TOKEN` | *(vacía)*: token de la API de Factiliza para autocompletar nombres por DNI en el registro. Sin ella, el registro funciona igual y los nombres se escriben a mano. Nunca se escribe en el código ni llega al navegador. |
 
 Define al menos `DB_PASSWORD` con la contraseña real de tu MySQL/MariaDB (y, en un
 despliegue, un usuario de aplicación sin privilegios de administrador).
@@ -116,6 +117,22 @@ o desde tu IDE: clic derecho sobre `PruebaConexion.java` → Run.
 y avisos, crea una reserva y un documento de prueba, y simula la aprobación
 del documento por el panel de administración — para confirmar que las 6
 tablas y sus relaciones funcionan de punta a punta.
+
+## Desplegar como WAR (Tomcat 10)
+```bash
+mvn clean package          # corre las pruebas y genera target/ROOT.war
+```
+`ROOT.war` trae el backend y el frontend (`index.html`, `paginas/`, `css/`, `js/`, `vendor/`). Cópialo a
+`webapps/` de Tomcat 10 con ese nombre para que la app quede en la raíz (`http://servidor:8080/`), que es donde
+el frontend llama a `/api/...`. No necesita `web.xml`: servlets y filtros usan anotaciones. Define las variables de
+entorno de la sección «Configurar» en el servicio de Tomcat. En IntelliJ, SmartTomcat se sigue usando igual.
+
+## Consulta de DNI en el registro (Factiliza)
+`GET /api/consulta-dni` dice si está disponible (`{"disponible":true|false}`); `POST /api/consulta-dni` con `dni`
+devuelve nombres y apellidos. La consulta la hace el servidor (`ConsultaDniService`, cliente HTTP inyectable) con
+5 s de tiempo de espera y un límite de 10 consultas por IP cada 10 minutos. Si no hay token, Factiliza falla o
+se supera el límite, responde un error con `"manual":true` y el feligrés escribe sus datos; el registro y la
+casilla obligatoria de la política de privacidad no cambian. El DNI no se escribe en el registro de eventos.
 
 ## Estructura
 ```

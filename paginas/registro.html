@@ -38,6 +38,12 @@
 
       <form id="form-registro" novalidate>
         <div class="campo">
+          <label for="reg-dni">DNI</label>
+          <input type="text" id="reg-dni" name="dni" inputmode="numeric" maxlength="8" data-solo-digitos placeholder="8 dígitos" aria-describedby="estado-dni">
+          <span class="error-campo">El DNI debe tener exactamente 8 dígitos.</span>
+          <small class="ayuda" id="estado-dni" aria-live="polite"></small>
+        </div>
+        <div class="campo">
           <label for="reg-nombre">Nombres</label>
           <input type="text" id="reg-nombre" name="nombre" maxlength="80" autocomplete="given-name" placeholder="Ej. María José">
           <span class="error-campo">Ingresa tus nombres (solo letras).</span>
@@ -46,11 +52,6 @@
           <label for="reg-apellido">Apellidos</label>
           <input type="text" id="reg-apellido" name="apellido" maxlength="80" autocomplete="family-name" placeholder="Ej. Fernández Núñez">
           <span class="error-campo">Ingresa tus apellidos (solo letras).</span>
-        </div>
-        <div class="campo">
-          <label for="reg-dni">DNI</label>
-          <input type="text" id="reg-dni" name="dni" inputmode="numeric" maxlength="8" data-solo-digitos placeholder="8 dígitos">
-          <span class="error-campo">El DNI debe tener exactamente 8 dígitos.</span>
         </div>
         <div class="campo">
           <label for="reg-correo">Correo electrónico</label>
@@ -91,5 +92,6 @@
 </footer>
 
 <script src="../js/main.js"></script>
+<script src="../js/registro-dni.js"></script>
 </body>
 </html>
